@@ -1,0 +1,25 @@
+group = 'com.prezi.gradle'
+version = '1.0-SNAPSHOT'
+
+apply plugin: 'groovy'
+apply plugin: 'maven'
+
+dependencies {
+    compile gradleApi()
+    compile localGroovy()
+}
+
+task run(type: Exec) {
+	workingDir "test/at"
+	commandLine = [ "gradle", "build", "--info", "--stacktrace" ]
+}
+
+uploadArchives {
+    repositories {
+        mavenDeployer {
+            repository(url: "$nexusRepositoriesUrl/snapshots/") {
+                authentication(userName: nexusUser, password: nexusPassword)
+            }
+        }
+    }
+}

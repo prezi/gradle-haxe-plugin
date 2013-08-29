@@ -1,0 +1,31 @@
+import com.prezi.gradle.CompileHaxe
+import com.prezi.gradle.Har
+
+buildscript {
+	repositories {
+		mavenLocal()
+		mavenCentral()
+	}
+
+	dependencies {
+		classpath "com.prezi.gradle:gradle-haxe-plugin:1.0-SNAPSHOT"
+	}
+}
+
+apply plugin: "haxe"
+
+task lajos(type: CompileHaxe) {
+	source file("src/main/haxe/common")
+	resource file("src/main/resources/readme.txt")
+	main "prezi.test.Main"
+	targetPlatform "js"
+	outputFile "${buildDir}/test.js"
+}
+
+task bela(type: Har) {
+	bundle lajos
+}
+
+task build {
+	dependsOn bela
+}
