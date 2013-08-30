@@ -68,7 +68,6 @@ class CompileHaxe extends DefaultTask {
 
 	void extractDependenciesFrom(Configuration configuration, Set<File> sourcePath, Set<File> resourcePath)
 	{
-		println "Processing dependencies in configuration " + configuration.name
 		configuration.dependencies.each { ModuleDependency dependency ->
 			configuration.files(dependency).each { File file ->
 				Instantiator instantiator = getServices().get(Instantiator.class);
@@ -107,7 +106,17 @@ class CompileHaxe extends DefaultTask {
 		{
 			return null
 		}
-		return new File(project.buildDir, getBaseName() + ".har")
+		return new File(project.buildDir, getFullName() + ".har")
+	}
+
+	private String getFullName()
+	{
+		def fullName = getBaseName()
+		if (classifier != null && classifier != "")
+		{
+			fullName += "-" + classifier
+		}
+		return fullName
 	}
 
 	File getAndCreateOutput()
@@ -141,8 +150,6 @@ class CompileHaxe extends DefaultTask {
 
 	Configuration configuration
 
-	String componentName
-
 	String main = ""
 
 	List macros = []
@@ -166,20 +173,6 @@ class CompileHaxe extends DefaultTask {
 	public void configuration(Configuration configuration)
 	{
 		this.configuration = configuration
-	}
-
-	public componentName(String componentName)
-	{
-		this.componentName = componentName
-	}
-
-	public String getComponentName()
-	{
-		if (componentName == null)
-		{
-			return "haxe"
-		}
-		return componentName;
 	}
 
 	public macro(String m)

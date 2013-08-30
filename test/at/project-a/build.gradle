@@ -1,0 +1,56 @@
+import com.prezi.gradle.CompileHaxe
+import org.gradle.api.publish.ivy.IvyPublication
+
+configurations {
+	haxelibs
+	runtime
+	node.extendsFrom runtime
+}
+
+dependencies {
+	haxelibs group: "haxelib", name: "munit", version: "0.9.5.2"
+}
+
+task sayHello << {
+	println "!!!!!!!--------Hello-------!!!!!!!"
+}
+
+task lajos(type: CompileHaxe) {
+	dependsOn sayHello
+	configuration configurations.haxelibs
+	source "src/main/haxe/common"
+	source "src/main/haxe/js"
+	targetPlatform "js"
+	main "prezi.test.Main"
+}
+
+task "lajos-node"(type: CompileHaxe) {
+	configuration configurations.node
+	source "src/main/haxe/common"
+	targetPlatform "js"
+	classifier "node"
+	main "prezi.test.Main"
+}
+
+task tibor(type: CompileHaxe) {
+	configuration configurations.runtime
+	baseName "tibor"
+	source "src/main/haxe/common"
+	targetPlatform "swf"
+	outputFile "${buildDir}/compiled-haxe/tibor.swf"
+	main "prezi.test.Main"
+	archive false
+}
+
+task lajosDep {
+	dependsOn lajos
+}
+
+publishing {
+	publications {
+		ivy(IvyPublication) {
+			artifact(lajos.sourceBundle)
+			artifact(tasks["lajos-node"].sourceBundle)
+		}
+	}
+}

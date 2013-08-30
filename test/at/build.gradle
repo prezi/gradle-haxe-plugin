@@ -1,9 +1,6 @@
 import com.prezi.gradle.CompileHaxe
 import org.gradle.api.publish.ivy.IvyPublication
 
-group = "prezi.test"
-version = "0.1-SNAPSHOT"
-
 buildscript {
 	repositories {
 		mavenLocal()
@@ -14,77 +11,30 @@ buildscript {
 	}
 }
 
-repositories {
-	mavenLocal()
+configure(allprojects) {
+	group = "prezi.test"
+	version = "0.1-SNAPSHOT"
 
-	maven {
-		credentials {
-			username "$nexusUser"
-			password "$nexusPassword"
-		}
-		url "http://intra.prezi.com:8081/nexus/content/groups/public/"
-	}
-}
+	apply plugin: "haxe"
+	apply plugin: "ivy-publish"
 
-apply plugin: "haxe"
-apply plugin: "ivy-publish"
-
-configurations {
-	haxelibs
-	runtime
-	node.extendsFrom runtime
-}
-
-dependencies {
-	haxelibs group: "haxelib", name: "munit", version: "0.9.5.2"
-}
-
-task sayHello << {
-	println "!!!!!!!--------Hello-------!!!!!!!"
-}
-
-task lajos(type: CompileHaxe) {
-	dependsOn sayHello
-	configuration configurations.haxelibs
-	source "src/main/haxe/common"
-	targetPlatform "js"
-	main "prezi.test.Main"
-}
-
-task "lajos2-harom"(type: CompileHaxe) {
-	configuration configurations.node
-	componentName "node"
-	baseName "lajos2-harom"
-	source "src/main/haxe/common"
-	targetPlatform "as3"
-	classifier "bela"
-	main "prezi.test.Main"
-}
-
-task tibor(type: CompileHaxe) {
-	configuration configurations.runtime
-	source "src/main/haxe/common"
-	source "src/main/haxe/js"
-	targetPlatform "swf"
-	outputFile "${buildDir}/compiled-haxe/tibor.swf"
-	main "prezi.test.Main"
-	archive false
-}
-
-task lajosDep {
-	dependsOn lajos
-}
-
-publishing {
-	publications {
-		ivy(IvyPublication) {
-			artifact(lajos.sourceBundle)
-			artifact(tasks["lajos2-harom"].sourceBundle)
-		}
-	}
 	repositories {
-		ivy {
-			url "file://$buildDir/repo"
+		mavenLocal()
+
+		maven {
+			credentials {
+				username "$nexusUser"
+				password "$nexusPassword"
+			}
+			url "http://intra.prezi.com:8081/nexus/content/groups/public/"
+		}
+	}
+
+	publishing {
+		repositories {
+			ivy {
+				url "file://$rootProject.buildDir/repo"
+			}
 		}
 	}
 }
