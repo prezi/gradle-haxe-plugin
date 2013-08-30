@@ -5,7 +5,6 @@ import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.ModuleDependency
 import org.gradle.api.artifacts.PublishArtifact
 import org.gradle.api.file.FileCollection
-import org.gradle.api.internal.artifacts.publish.AbstractPublishArtifact
 import org.gradle.api.internal.file.FileResolver
 import org.gradle.api.internal.file.UnionFileCollection
 import org.gradle.api.internal.file.copy.FileCopyActionImpl
@@ -97,7 +96,7 @@ class CompileHaxe extends DefaultTask {
 		}
 	}
 
-	public PublishArtifact getSourceHar()
+	public PublishArtifact getSourceBundle()
 	{
 		return new HarPublishArtifact(this, getSourceArchive())
 	}
@@ -109,55 +108,6 @@ class CompileHaxe extends DefaultTask {
 			return null
 		}
 		return new File(project.buildDir, getBaseName() + ".har")
-	}
-
-	private static class HarPublishArtifact extends AbstractPublishArtifact {
-
-		private final CompileHaxe task
-		private final File archiveFile
-
-		HarPublishArtifact(CompileHaxe task, File archiveFile)
-		{
-			super(task)
-			this.task = task
-			this.archiveFile = archiveFile
-		}
-
-		@Override
-		String getName()
-		{
-			return task.getBaseName()
-		}
-
-		@Override
-		String getExtension()
-		{
-			return "har"
-		}
-
-		@Override
-		String getType()
-		{
-			return "har"
-		}
-
-		@Override
-		String getClassifier()
-		{
-			return task.getClassifier()
-		}
-
-		@Override
-		File getFile()
-		{
-			return archiveFile
-		}
-
-		@Override
-		Date getDate()
-		{
-			return new Date(archiveFile.lastModified())
-		}
 	}
 
 	File getAndCreateOutput()

@@ -14,7 +14,6 @@ buildscript {
 	}
 }
 
-
 repositories {
 	mavenLocal()
 
@@ -79,12 +78,13 @@ task lajosDep {
 publishing {
 	publications {
 		ivy(IvyPublication) {
-			artifact(lajos.sourceHar)
+			artifact(lajos.sourceBundle)
+			artifact(tasks["lajos2-harom"].sourceBundle)
 		}
 	}
 	repositories {
 		ivy {
-			url "file://$buildDir/repo" // change to point to your repo, e.g. http://my.org/repo
+			url "file://$buildDir/repo"
 		}
 	}
 }
