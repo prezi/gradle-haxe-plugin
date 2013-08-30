@@ -13,19 +13,34 @@ buildscript {
 }
 
 apply plugin: "haxe"
+apply plugin: "ivy-publish"
 
-task lajos(type: CompileHaxe) {
-	source file("src/main/haxe/common")
-	resource file("src/main/resources/readme.txt")
-	main "prezi.test.Main"
-	targetPlatform "js"
-	outputFile "${buildDir}/test.js"
+task sayHello << {
+	println "!!!!!!!--------Hello-------!!!!!!!"
 }
 
-task bela(type: Har) {
-	bundle lajos
-}
+haxe {
+	builds {
+		lajos {
+			dependsOn sayHello
+			source "src/main/haxe/common"
+			targetPlatform "js"
+			main "prezi.test.Main"
+		}
 
-task build {
-	dependsOn bela
+		geza {
+			dependsOn sayHello
+			source "src/main/haxe/common"
+			targetPlatform "as3"
+			main "prezi.test.Main"
+		}
+
+		tibor {
+			dependsOn sayHello
+			source "src/main/haxe/common"
+			targetPlatform "swf"
+			outputFile "${buildDir}/compiled-haxe/tibor.swf"
+			main "prezi.test.Main"
+		}
+	}
 }
