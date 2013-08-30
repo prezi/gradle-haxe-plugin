@@ -14,8 +14,6 @@ import org.gradle.util.ConfigureUtil
 public class Har extends Zip {
 	public static final String DEFAULT_EXTENSION = 'har'
 
-	public HaxeBuild build
-
 	private Manifest manifest
 	private final CopySpecImpl metaInf
 	private final CopySpecImpl sources
@@ -23,6 +21,7 @@ public class Har extends Zip {
 
 	Har() {
 		extension = DEFAULT_EXTENSION
+		destinationDir = new File(project.buildDir, "har")
 		manifest = new DefaultManifest(getServices().get(FileResolver))
 		// Add these as separate specs, so they are not affected by the changes to the main spec
 		metaInf = copyAction.rootSpec.addFirst().into('META-INF')
@@ -43,12 +42,12 @@ public class Har extends Zip {
 		resources = copyAction.rootSpec.addChild().into('resources')
 	}
 
-	@Override
-	protected void copy()
+	public setBuild(HaxeBuild build)
 	{
+		baseName = build.baseName
+		classifier = build.classifier
 		sources.from(build.sources)
 		resources.from(build.resources)
-		super.copy()
 	}
 
 	/**

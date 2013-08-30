@@ -1,7 +1,5 @@
 package com.prezi.gradle
 
-import org.gradle.api.Namer
-import org.gradle.api.internal.DefaultNamedDomainObjectList
 import org.gradle.api.internal.DefaultPolymorphicDomainObjectContainer
 import org.gradle.internal.reflect.Instantiator
 

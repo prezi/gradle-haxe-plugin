@@ -1,5 +1,6 @@
 package com.prezi.gradle
 
+import groovy.transform.ToString
 import org.gradle.api.Named
 import org.gradle.api.Project
 import org.gradle.api.artifacts.Configuration
@@ -8,11 +9,11 @@ import org.gradle.api.internal.file.UnionFileCollection
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.tasks.DefaultTaskDependency
 import org.gradle.api.tasks.InputFiles
-import org.gradle.api.tasks.Optional
 import org.gradle.api.tasks.OutputDirectory
 import org.gradle.api.tasks.OutputFile
 import org.gradle.api.tasks.SkipWhenEmpty
 
+@ToString(includeNames = true)
 class HaxeBuild implements Named {
 	String name
 	Project project
@@ -26,15 +27,13 @@ class HaxeBuild implements Named {
 	@SkipWhenEmpty
 	FileCollection resources = new UnionFileCollection()
 
-	@OutputFile
-	@Optional
 	File outputFile
 
-	@OutputDirectory
-	@Optional
 	File outputDirectory
 
-	List<Configuration> configurations = [];
+	Configuration configuration
+
+	String componentName
 
 	String main = ""
 
@@ -52,6 +51,10 @@ class HaxeBuild implements Named {
 
 	boolean archive = true
 
+	String classifier
+
+	String baseName
+
 	public HaxeBuild(String name, ProjectInternal project)
 	{
 		this.name = name
@@ -66,7 +69,21 @@ class HaxeBuild implements Named {
 
 	public void configuration(Configuration configuration)
 	{
-		configurations.add(configuration)
+		this.configuration = configuration
+	}
+
+	public componentName(String componentName)
+	{
+		this.componentName = componentName
+	}
+
+	public String getComponentName()
+	{
+		if (componentName == null)
+		{
+			return "haxe";
+		}
+		return componentName;
 	}
 
 	public macro(String m)
@@ -99,30 +116,44 @@ class HaxeBuild implements Named {
 		this.targetPlatform = platform
 	}
 
-	public File createAndGetOutput()
+	@OutputFile
+	@OutputDirectory
+	public File getOutput()
 	{
+		File output
+		File dirToMake
 		if (outputFile != null)
 		{
-			return outputFile
+			output = outputFile
+			dirToMake = outputFile.parentFile
 		}
-		if (outputDirectory != null)
+		else if (outputDirectory != null)
 		{
-			project.mkdir(outputDirectory)
-			return outputDirectory
+			output = outputDirectory
+			dirToMake = outputDirectory
 		}
-		switch (targetPlatform)
+		else
 		{
-			case "js":
-				return project.file("${project.buildDir}/compiled-haxe/${name}.js")
-			case "swf":
-				return project.file("${project.buildDir}/compiled-haxe/${name}.swc")
-			case "as3":
-				def dir = project.file("${project.buildDir}/compiled-haxe/${name}-as3")
-				project.mkdir(dir)
-				return dir
-			default:
-				return null
+			switch (targetPlatform)
+			{
+				case "js":
+					output = project.file("${project.buildDir}/compiled-haxe/${name}.js")
+					dirToMake = output.parentFile
+					break;
+				case "swf":
+					output = project.file("${project.buildDir}/compiled-haxe/${name}.swc")
+					dirToMake = output.parentFile
+					break;
+				case "as3":
+					output = project.file("${project.buildDir}/compiled-haxe/${name}-as3")
+					dirToMake = output
+					break;
+				default:
+					throw new IllegalStateException("No output specified")
+			}
 		}
+		project.mkdir(dirToMake)
+		return output
 	}
 
 	public void setOutputFile(Object file)
@@ -138,5 +169,20 @@ class HaxeBuild implements Named {
 	public void flag(String flag)
 	{
 		flags += " $flag"
+	}
+
+	public archive(boolean archive)
+	{
+		this.archive = archive
+	}
+
+	public String getBaseName()
+	{
+		return baseName == null ? name : baseName
+	}
+
+	public classifier(String classifier)
+	{
+		this.classifier = classifier
 	}
 }

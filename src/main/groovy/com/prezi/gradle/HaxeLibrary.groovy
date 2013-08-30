@@ -26,23 +26,22 @@ import org.gradle.api.internal.component.Usage
  * A SoftwareComponent representing a Haxe library.
  */
 public class HaxeLibrary implements SoftwareComponentInternal {
+	private final String name
 	private final Usage runtimeUsage = new RuntimeUsage()
 	private final Set<PublishArtifact> artifacts = new LinkedHashSet<PublishArtifact>()
 	private final DependencySet runtimeDependencies
 
-	public HaxeLibrary(DependencySet runtimeDependencies)
+	public HaxeLibrary(String name, PublishArtifact artifact, DependencySet runtimeDependencies)
 	{
+		this.name = name
+		this.artifacts.add(artifact)
 		this.runtimeDependencies = runtimeDependencies
+		println "Created " + this
 	}
 
 	public String getName()
 	{
-		return "haxe"
-	}
-
-	public void addArtifact(PublishArtifact artifact)
-	{
-		artifacts.add(artifact);
+		return name
 	}
 
 	public Set<Usage> getUsages()
@@ -58,12 +57,18 @@ public class HaxeLibrary implements SoftwareComponentInternal {
 
 		public Set<PublishArtifact> getArtifacts()
 		{
-			return artifacts
+			return HaxeLibrary.this.artifacts
 		}
 
 		public Set<ModuleDependency> getDependencies()
 		{
 			return runtimeDependencies.withType(ModuleDependency.class)
 		}
+	}
+
+	@Override
+	String toString()
+	{
+		return name +": " + artifacts.toString();
 	}
 }

@@ -13,7 +13,7 @@ class CompileHaxe extends DefaultTask {
 	{
 		String cmd = new CmdBuilder()
 				.withMain(build.main)
-				.withTarget(build.targetPlatform, build.createAndGetOutput())
+				.withTarget(build.targetPlatform, build.getOutput())
 				.withMacros(build.macros)
 				.withIncludePackages(build.includePackages)
 				.withExcludePackages(build.excludePackages)
