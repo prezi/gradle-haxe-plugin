@@ -7,7 +7,6 @@ version = "0.1-SNAPSHOT"
 buildscript {
 	repositories {
 		mavenLocal()
-		mavenCentral()
 	}
 
 	dependencies {
@@ -15,13 +14,31 @@ buildscript {
 	}
 }
 
-configurations {
-	runtime
-	node.extendsFrom runtime
+
+repositories {
+	mavenLocal()
+
+	maven {
+		credentials {
+			username "$nexusUser"
+			password "$nexusPassword"
+		}
+		url "http://intra.prezi.com:8081/nexus/content/groups/public/"
+	}
 }
 
 apply plugin: "haxe"
 apply plugin: "ivy-publish"
+
+configurations {
+	haxelibs
+	runtime
+	node.extendsFrom runtime
+}
+
+dependencies {
+	haxelibs group: "haxelib", name: "munit", version: "0.9.5.2"
+}
 
 task sayHello << {
 	println "!!!!!!!--------Hello-------!!!!!!!"
@@ -29,7 +46,7 @@ task sayHello << {
 
 task lajos(type: CompileHaxe) {
 	dependsOn sayHello
-	configuration configurations.runtime
+	configuration configurations.haxelibs
 	source "src/main/haxe/common"
 	targetPlatform "js"
 	main "prezi.test.Main"
@@ -59,18 +76,15 @@ task lajosDep {
 	dependsOn lajos
 }
 
-//publishing {
-//	publications {
-//		ivyHaxe(IvyPublication) {
-//			from components.haxe
-//		}
-//		ivyNode(IvyPublication) {
-//			from components.node
-//		}
-//	}
-//	repositories {
-//		ivy {
-//			url "file://$buildDir/repo" // change to point to your repo, e.g. http://my.org/repo
-//		}
-//	}
-//}
+publishing {
+	publications {
+		ivy(IvyPublication) {
+			artifact(lajos.sourceHar)
+		}
+	}
+	repositories {
+		ivy {
+			url "file://$buildDir/repo" // change to point to your repo, e.g. http://my.org/repo
+		}
+	}
+}

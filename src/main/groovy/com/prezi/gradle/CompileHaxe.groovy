@@ -2,40 +2,47 @@ package com.prezi.gradle
 
 import org.gradle.api.DefaultTask
 import org.gradle.api.artifacts.Configuration
+import org.gradle.api.artifacts.ModuleDependency
+import org.gradle.api.artifacts.PublishArtifact
 import org.gradle.api.file.FileCollection
+import org.gradle.api.internal.artifacts.publish.AbstractPublishArtifact
 import org.gradle.api.internal.file.FileResolver
 import org.gradle.api.internal.file.UnionFileCollection
+import org.gradle.api.internal.file.copy.FileCopyActionImpl
+import org.gradle.api.internal.file.copy.FileCopySpecVisitor
+import org.gradle.api.internal.file.copy.SyncCopySpecVisitor
 import org.gradle.api.tasks.*
 import org.gradle.internal.reflect.Instantiator
 import org.gradle.process.internal.ExecException
 
 class CompileHaxe extends DefaultTask {
 
+	public static final String EXTRACTED_HAXELIBS_PATH = "haxelibs"
+
 	@TaskAction
 	void compile()
 	{
-		File output
-		File dirToMake
-		if (isOutputInADirectory())
+		Set<File> sourcePath = []
+		Set<File> resourcePath = []
+
+		sourcePath.addAll(sources.files)
+		resourcePath.addAll(resources.files)
+
+		if (configuration != null)
 		{
-			output = getOutputDirectory()
-			dirToMake = output
+			configuration.hierarchy.each { Configuration config ->
+				extractDependenciesFrom(config, sourcePath, resourcePath)
+			}
 		}
-		else
-		{
-			output = getOutputFile()
-			dirToMake = output.parentFile
-		}
-		project.mkdir(dirToMake)
+
 		String cmd = new CmdBuilder()
 				.withMain(main)
-				.withTarget(targetPlatform, output)
+				.withTarget(targetPlatform, getAndCreateOutput())
 				.withMacros(macros)
 				.withIncludePackages(includePackages)
 				.withExcludePackages(excludePackages)
-				.withResources(resources.files)
-				// .withHaxelibs(project, collectTargetDirs())
-				.withSources(sources.files)
+				.withSources(sourcePath)
+				.withResources(resourcePath)
 				.withFlags(flags)
 				.withDebugFlags(debug)
 				.build()
@@ -50,16 +57,124 @@ class CompileHaxe extends DefaultTask {
 			throw new ExecException("Command finished with non-zero exit value (${res.exitValue}):\n${cmd}")
 		}
 
-		if (archive) {
-			def archiveFile = new File(project.buildDir, getBaseName() + ".har")
-			println "Archiving into ${archiveFile}"
+		if (archive)
+		{
 			FileResolver fileResolver = getServices().get(FileResolver.class)
 			Instantiator instantiator = getServices().get(Instantiator.class)
 			def copyAction = new HarCopyActionImpl(instantiator, fileResolver, temporaryDirFactory,
-					archiveFile, sources, resources)
+					getSourceArchive(), sources, resources)
 			copyAction.execute()
-			println "Did work: " + copyAction.didWork
 		}
+	}
+
+	void extractDependenciesFrom(Configuration configuration, Set<File> sourcePath, Set<File> resourcePath)
+	{
+		println "Processing dependencies in configuration " + configuration.name
+		configuration.dependencies.each { ModuleDependency dependency ->
+			configuration.files(dependency).each { File file ->
+				Instantiator instantiator = getServices().get(Instantiator.class);
+				FileResolver fileResolver = getServices().get(FileResolver.class);
+
+				def targetPath = project.file("${project.buildDir}/${EXTRACTED_HAXELIBS_PATH}/${dependency.name}")
+
+				def copy = new FileCopyActionImpl(instantiator, fileResolver, new SyncCopySpecVisitor(new FileCopySpecVisitor()));
+				copy.from(project.zipTree(file))
+				copy.into targetPath
+				copy.execute()
+
+				if (dependency.group == "haxelib")
+				{
+					sourcePath.add(targetPath)
+				}
+				else
+				{
+					def sources = new File(targetPath, "sources")
+					def resources = new File(targetPath, "resources")
+					if (sources.exists()) sourcePath.add(sources)
+					if (resources.exists()) sourcePath.add(resources)
+				}
+			}
+		}
+	}
+
+	public PublishArtifact getSourceHar()
+	{
+		return new HarPublishArtifact(this, getSourceArchive())
+	}
+
+	public File getSourceArchive()
+	{
+		if (!archive)
+		{
+			return null
+		}
+		return new File(project.buildDir, getBaseName() + ".har")
+	}
+
+	private static class HarPublishArtifact extends AbstractPublishArtifact {
+
+		private final CompileHaxe task
+		private final File archiveFile
+
+		HarPublishArtifact(CompileHaxe task, File archiveFile)
+		{
+			super(task)
+			this.task = task
+			this.archiveFile = archiveFile
+		}
+
+		@Override
+		String getName()
+		{
+			return task.getBaseName()
+		}
+
+		@Override
+		String getExtension()
+		{
+			return "har"
+		}
+
+		@Override
+		String getType()
+		{
+			return "har"
+		}
+
+		@Override
+		String getClassifier()
+		{
+			return task.getClassifier()
+		}
+
+		@Override
+		File getFile()
+		{
+			return archiveFile
+		}
+
+		@Override
+		Date getDate()
+		{
+			return new Date(archiveFile.lastModified())
+		}
+	}
+
+	File getAndCreateOutput()
+	{
+		File output
+		File dirToMake
+		if (isOutputInADirectory())
+		{
+			output = getOutputDirectory()
+			dirToMake = output
+		} else
+		{
+			output = getOutputFile()
+			dirToMake = output.parentFile
+		}
+		project.mkdir(dirToMake)
+		return output
 	}
 
 	@InputFiles
@@ -112,6 +227,7 @@ class CompileHaxe extends DefaultTask {
 	{
 		if (componentName == null)
 		{
+			return "haxe"
 		}
 		return componentName;
 	}
@@ -146,11 +262,14 @@ class CompileHaxe extends DefaultTask {
 		this.targetPlatform = platform
 	}
 
-	boolean isOutputInADirectory() {
-		if (outputFile != null) {
+	boolean isOutputInADirectory()
+	{
+		if (outputFile != null)
+		{
 			return false;
 		}
-		if (outputDirectory != null) {
+		if (outputDirectory != null)
+		{
 			return true;
 		}
 		return targetPlatform == "as3"
@@ -163,12 +282,10 @@ class CompileHaxe extends DefaultTask {
 		if (outputFile != null)
 		{
 			return outputFile
-		}
-		else if (outputDirectory != null)
+		} else if (outputDirectory != null)
 		{
 			return null
-		}
-		else
+		} else
 		{
 			switch (targetPlatform)
 			{
@@ -189,12 +306,10 @@ class CompileHaxe extends DefaultTask {
 		if (outputFile != null)
 		{
 			return null
-		}
-		else if (outputDirectory != null)
+		} else if (outputDirectory != null)
 		{
 			return outputDirectory
-		}
-		else
+		} else
 		{
 			switch (targetPlatform)
 			{
@@ -228,7 +343,8 @@ class CompileHaxe extends DefaultTask {
 		this.archive = archive
 	}
 
-	public baseName(String baseName) {
+	public baseName(String baseName)
+	{
 		this.baseName = baseName
 	}
 

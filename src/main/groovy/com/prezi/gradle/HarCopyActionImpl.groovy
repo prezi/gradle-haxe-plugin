@@ -2,12 +2,12 @@ package com.prezi.gradle
 
 import org.gradle.api.file.CopySpec
 import org.gradle.api.file.FileCopyDetails
-import org.gradle.internal.Factory;
 import org.gradle.api.internal.file.FileResolver
 import org.gradle.api.internal.file.collections.FileTreeAdapter
 import org.gradle.api.internal.file.collections.MapFileTree
 import org.gradle.api.java.archives.Manifest
 import org.gradle.api.java.archives.internal.DefaultManifest
+import org.gradle.internal.Factory
 import org.gradle.internal.reflect.Instantiator
 import org.gradle.util.ConfigureUtil
 

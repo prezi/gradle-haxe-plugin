@@ -1,10 +1,7 @@
 package com.prezi.gradle
 
-import org.gradle.api.Action
-import org.gradle.api.NamedDomainObjectFactory
 import org.gradle.api.Plugin
 import org.gradle.api.Project
-import org.gradle.api.internal.artifacts.publish.ArchivePublishArtifact
 import org.gradle.api.internal.tasks.TaskResolver
 import org.gradle.api.tasks.Delete
 import org.gradle.configuration.project.ProjectConfigurationActionContainer
@@ -42,22 +39,5 @@ class HaxePlugin implements Plugin<Project> {
 			compileTask.group = BUILD_TASKS_GROUP
 			buildTask.dependsOn compileTask
 		}
-
-		// Create HAR task
-//		if (build.archive)
-//		{
-//			Har sourcesTask = project.tasks.create("sources" + build.name.capitalize(), Har)
-//			sourcesTask.group = BUILD_TASKS_GROUP
-//			sourcesTask.description = "Bundle sources for ${build.name}"
-//			sourcesTask.build = build
-//			compileTask.dependsOn sourcesTask
-//
-//			def sourcesArtifact = new ArchivePublishArtifact(sourcesTask)
-//			def runtimeConfiguration = build.configuration
-//			runtimeConfiguration.getArtifacts().add(sourcesArtifact)
-//			println "Components before adding ${build.name}: " + project.getComponents()
-//			project.getComponents().add(new HaxeLibrary(build.componentName, sourcesArtifact, runtimeConfiguration.getAllDependencies()))
-//			println "Components after adding ${build.name}: " + project.getComponents()
-//		}
 	}
 }
