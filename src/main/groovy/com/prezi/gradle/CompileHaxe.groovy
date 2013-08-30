@@ -61,7 +61,7 @@ class CompileHaxe extends DefaultTask {
 		{
 			FileResolver fileResolver = getServices().get(FileResolver.class)
 			Instantiator instantiator = getServices().get(Instantiator.class)
-			def copyAction = new HarCopyActionImpl(instantiator, fileResolver, temporaryDirFactory,
+			def copyAction = new HarCopyAction(instantiator, fileResolver, temporaryDirFactory,
 					getSourceArchive(), sources, resources)
 			copyAction.execute()
 		}

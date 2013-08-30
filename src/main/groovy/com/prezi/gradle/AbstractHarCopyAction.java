@@ -33,6 +33,7 @@ public class AbstractHarCopyAction extends CopyActionImpl implements ZipCopyActi
 		return ZipDeflatedCompressor.INSTANCE;
 	}
 
+	// These are needed because Groovy complains otherwise
 	@Override
 	public CopySpec from(Object... sourcePaths)
 	{

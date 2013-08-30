@@ -11,7 +11,7 @@ import org.gradle.internal.Factory
 import org.gradle.internal.reflect.Instantiator
 import org.gradle.util.ConfigureUtil
 
-public class HarCopyActionImpl extends AbstractHarCopyAction {
+public class HarCopyAction extends AbstractHarCopyAction {
 	public static final String DEFAULT_EXTENSION = 'har'
 
 	private Manifest manifest
@@ -19,7 +19,7 @@ public class HarCopyActionImpl extends AbstractHarCopyAction {
 	private final CopySpec sources
 	private final CopySpec resources
 
-	HarCopyActionImpl(Instantiator instantiator, FileResolver fileResolver, Factory<File> temporaryDirFactory,
+	HarCopyAction(Instantiator instantiator, FileResolver fileResolver, Factory<File> temporaryDirFactory,
 					  File archivePath, Object sources, Object resources)
 	{
 		super(instantiator, fileResolver, archivePath);
@@ -77,7 +77,7 @@ public class HarCopyActionImpl extends AbstractHarCopyAction {
 	 * @param configureClosure The closure.
 	 * @return This.
 	 */
-	public HarCopyActionImpl manifest(Closure configureClosure)
+	public HarCopyAction manifest(Closure configureClosure)
 	{
 		if (getManifest() == null)
 		{
