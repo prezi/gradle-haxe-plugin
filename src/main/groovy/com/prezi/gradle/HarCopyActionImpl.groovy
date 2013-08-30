@@ -2,59 +2,59 @@ package com.prezi.gradle
 
 import org.gradle.api.file.CopySpec
 import org.gradle.api.file.FileCopyDetails
+import org.gradle.internal.Factory;
 import org.gradle.api.internal.file.FileResolver
 import org.gradle.api.internal.file.collections.FileTreeAdapter
 import org.gradle.api.internal.file.collections.MapFileTree
-import org.gradle.api.internal.file.copy.CopySpecImpl
 import org.gradle.api.java.archives.Manifest
 import org.gradle.api.java.archives.internal.DefaultManifest
-import org.gradle.api.tasks.bundling.Zip
+import org.gradle.internal.reflect.Instantiator
 import org.gradle.util.ConfigureUtil
 
-public class Har extends Zip {
+public class HarCopyActionImpl extends AbstractHarCopyAction {
 	public static final String DEFAULT_EXTENSION = 'har'
 
 	private Manifest manifest
-	private final CopySpecImpl metaInf
-	private final CopySpecImpl sources
-	private final CopySpecImpl resources
+	private final CopySpec metaInf
+	private final CopySpec sources
+	private final CopySpec resources
 
-	Har() {
-		extension = DEFAULT_EXTENSION
-		destinationDir = new File(project.buildDir, "har")
-		manifest = new DefaultManifest(getServices().get(FileResolver))
+	HarCopyActionImpl(Instantiator instantiator, FileResolver fileResolver, Factory<File> temporaryDirFactory,
+					  File archivePath, Object sources, Object resources)
+	{
+		super(instantiator, fileResolver, archivePath);
+		this.sources = rootSpec.addChild()
+				.into('sources')
+				.from(sources)
+		this.resources = rootSpec.addChild()
+				.into('resources')
+				.from(resources)
+
+		manifest = new DefaultManifest(fileResolver)
 		// Add these as separate specs, so they are not affected by the changes to the main spec
-		metaInf = copyAction.rootSpec.addFirst().into('META-INF')
+		metaInf = rootSpec.addFirst().into('META-INF')
 		metaInf.addChild().from {
 			MapFileTree manifestSource = new MapFileTree(temporaryDirFactory)
-			manifestSource.add('MANIFEST.MF') {OutputStream outstr ->
+			manifestSource.add('MANIFEST.MF') { OutputStream outstr ->
 				Manifest manifest = getManifest() ?: new DefaultManifest(null)
 				manifest.writeTo(new OutputStreamWriter(outstr))
 			}
 			return new FileTreeAdapter(manifestSource)
 		}
-		copyAction.mainSpec.eachFile { FileCopyDetails details ->
-			if (details.path.equalsIgnoreCase('META-INF/MANIFEST.MF')) {
+		mainSpec.eachFile { FileCopyDetails details ->
+			if (details.path.equalsIgnoreCase('META-INF/MANIFEST.MF'))
+			{
 				details.exclude()
 			}
 		}
-		sources = copyAction.rootSpec.addChild().into('sources')
-		resources = copyAction.rootSpec.addChild().into('resources')
-	}
-
-	public setBuild(HaxeBuild build)
-	{
-		baseName = build.baseName
-		classifier = build.classifier
-		sources.from(build.sources)
-		resources.from(build.resources)
 	}
 
 	/**
 	 * Returns the manifest for this HAR archive.
 	 * @return The manifest
 	 */
-	public Manifest getManifest() {
+	public Manifest getManifest()
+	{
 		return manifest
 	}
 
@@ -63,7 +63,8 @@ public class Har extends Zip {
 	 *
 	 * @param manifest The manifest. May be null.
 	 */
-	public void setManifest(Manifest manifest) {
+	public void setManifest(Manifest manifest)
+	{
 		this.manifest = manifest
 	}
 
@@ -76,15 +77,18 @@ public class Har extends Zip {
 	 * @param configureClosure The closure.
 	 * @return This.
 	 */
-	public Har manifest(Closure configureClosure) {
-		if (getManifest() == null) {
+	public HarCopyActionImpl manifest(Closure configureClosure)
+	{
+		if (getManifest() == null)
+		{
 			manifest = new DefaultManifest(project.fileResolver)
 		}
 		ConfigureUtil.configure(configureClosure, getManifest())
 		return this
 	}
 
-	public CopySpec getMetaInf() {
+	public CopySpec getMetaInf()
+	{
 		return metaInf.addChild()
 	}
 
@@ -97,23 +101,28 @@ public class Har extends Zip {
 	 * @param configureClosure The closure.
 	 * @return The created {@code CopySpec}
 	 */
-	public CopySpec metaInf(Closure configureClosure) {
+	public CopySpec metaInf(Closure configureClosure)
+	{
 		return ConfigureUtil.configure(configureClosure, getMetaInf())
 	}
 
-	public CopySpec getSources() {
+	public CopySpec getSources()
+	{
 		return sources.addChild()
 	}
 
-	public CopySpec sources(Closure configureClosure) {
+	public CopySpec sources(Closure configureClosure)
+	{
 		return ConfigureUtil.configure(configureClosure, getSources())
 	}
 
-	public CopySpec getResources() {
+	public CopySpec getResources()
+	{
 		return resources.addChild()
 	}
 
-	public CopySpec resources(Closure configureClosure) {
+	public CopySpec resources(Closure configureClosure)
+	{
 		return ConfigureUtil.configure(configureClosure, getResources())
 	}
 }

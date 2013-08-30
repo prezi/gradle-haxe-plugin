@@ -1,3 +1,4 @@
+import com.prezi.gradle.CompileHaxe
 import org.gradle.api.publish.ivy.IvyPublication
 
 group = "prezi.test"
@@ -26,49 +27,50 @@ task sayHello << {
 	println "!!!!!!!--------Hello-------!!!!!!!"
 }
 
-haxe {
-	builds {
-		lajos {
-			dependsOn sayHello
-			configuration configurations.runtime
-			source "src/main/haxe/common"
-			targetPlatform "js"
-			main "prezi.test.Main"
-		}
-
-		"lajos2-harom" {
-			configuration configurations.node
-			componentName "node"
-			source "src/main/haxe/common"
-			targetPlatform "as3"
-			classifier "bela"
-			main "prezi.test.Main"
-		}
-
-		tibor {
-			configuration configurations.runtime
-			source "src/main/haxe/common"
-			source "src/main/haxe/js"
-			targetPlatform "swf"
-			outputFile "${buildDir}/compiled-haxe/tibor.swf"
-			main "prezi.test.Main"
-			archive false
-		}
-	}
+task lajos(type: CompileHaxe) {
+	dependsOn sayHello
+	configuration configurations.runtime
+	source "src/main/haxe/common"
+	targetPlatform "js"
+	main "prezi.test.Main"
 }
 
-publishing {
-	publications {
-		ivyHaxe(IvyPublication) {
-			from components.haxe
-		}
-		ivyNode(IvyPublication) {
-			from components.node
-		}
-	}
-	repositories {
-		ivy {
-			url "file://$buildDir/repo" // change to point to your repo, e.g. http://my.org/repo
-		}
-	}
+task "lajos2-harom"(type: CompileHaxe) {
+	configuration configurations.node
+	componentName "node"
+	baseName "lajos2-harom"
+	source "src/main/haxe/common"
+	targetPlatform "as3"
+	classifier "bela"
+	main "prezi.test.Main"
 }
+
+task tibor(type: CompileHaxe) {
+	configuration configurations.runtime
+	source "src/main/haxe/common"
+	source "src/main/haxe/js"
+	targetPlatform "swf"
+	outputFile "${buildDir}/compiled-haxe/tibor.swf"
+	main "prezi.test.Main"
+	archive false
+}
+
+task lajosDep {
+	dependsOn lajos
+}
+
+//publishing {
+//	publications {
+//		ivyHaxe(IvyPublication) {
+//			from components.haxe
+//		}
+//		ivyNode(IvyPublication) {
+//			from components.node
+//		}
+//	}
+//	repositories {
+//		ivy {
+//			url "file://$buildDir/repo" // change to point to your repo, e.g. http://my.org/repo
+//		}
+//	}
+//}
