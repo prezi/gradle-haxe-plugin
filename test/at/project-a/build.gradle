@@ -2,13 +2,12 @@ import com.prezi.gradle.CompileHaxe
 import org.gradle.api.publish.ivy.IvyPublication
 
 configurations {
-	haxelibs
 	runtime
 	node.extendsFrom runtime
 }
 
 dependencies {
-	haxelibs group: "haxelib", name: "munit", version: "0.9.5.2"
+	runtime group: "haxelib", name: "munit", version: "0.9.5.2"
 }
 
 task sayHello << {
@@ -17,7 +16,7 @@ task sayHello << {
 
 task lajos(type: CompileHaxe) {
 	dependsOn sayHello
-	configuration configurations.haxelibs
+	configuration configurations.runtime
 	source "src/main/haxe/common"
 	source "src/main/haxe/js"
 	targetPlatform "js"
@@ -39,7 +38,6 @@ task tibor(type: CompileHaxe) {
 	targetPlatform "swf"
 	outputFile "${buildDir}/compiled-haxe/tibor.swf"
 	main "prezi.test.Main"
-	archive false
 }
 
 task lajosDep {
