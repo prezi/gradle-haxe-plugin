@@ -18,13 +18,17 @@ task sayHello << {
 	println "!!!!!!!--------Hello-------!!!!!!!"
 }
 
+haxe {
+	main "prezi.test.Main"
+	includePackage "prezi.test"
+}
+
 task lajos(type: CompileHaxe) {
 	dependsOn sayHello
 	configuration configurations.runtime
 	source "src/main/haxe/common"
 	source "src/main/haxe/js"
 	targetPlatform "js"
-	main "prezi.test.Main"
 }
 
 task testLajos(type: MUnit) {
@@ -38,7 +42,6 @@ task "lajos-node"(type: CompileHaxe) {
 	source "src/main/haxe/common"
 	targetPlatform "js"
 	classifier "node"
-	main "prezi.test.Main"
 }
 
 task tibor(type: CompileHaxe) {
@@ -47,7 +50,6 @@ task tibor(type: CompileHaxe) {
 	source "src/main/haxe/common"
 	targetPlatform "swf"
 	outputFile "${buildDir}/compiled-haxe/tibor.swf"
-	main "prezi.test.Main"
 }
 
 task lajosDep {
