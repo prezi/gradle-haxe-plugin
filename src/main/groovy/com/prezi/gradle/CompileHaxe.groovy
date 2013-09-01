@@ -49,6 +49,25 @@ class CompileHaxe extends DefaultTask implements HaxeTask {
 		copyAction.execute()
 	}
 
+	private PublishArtifact artifactBundle
+
+	public PublishArtifact getArtifact()
+	{
+		if (artifactBundle == null)
+		{
+			switch (targetPlatform)
+			{
+				case "js":
+				case "swf":
+					artifactBundle = new HaxeBuildPublishArtifact(this)
+					break;
+				default:
+					throw new IllegalStateException("Build artifact is not supported for target platform " + targetPlatform)
+			}
+		}
+		return artifactBundle
+	}
+
 	private PublishArtifact sourceBundle
 
 	public PublishArtifact getSources()

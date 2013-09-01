@@ -1,12 +1,12 @@
 package com.prezi.gradle
 
+import org.gradle.api.artifacts.Configuration
 import org.gradle.api.file.FileCollection
 import org.gradle.api.internal.file.UnionFileCollection
 
 class HaxeExtension {
 
 	String main = ""
-
 	public main(String main)
 	{
 		this.main = main
@@ -44,6 +44,12 @@ class HaxeExtension {
 		resourceTree.add(project.files(paths))
 	}
 
+	Configuration configuration
+	public configuration(Configuration configuration)
+	{
+		this.configuration = configuration
+	}
+
 	void mapTo(CompileHaxe compileTask)
 	{
 		compileTask.main = main
@@ -53,5 +59,6 @@ class HaxeExtension {
 		compileTask.resourceTree = resourceTree
 		compileTask.flags = flags
 		compileTask.debug = debug
+		compileTask.configuration = configuration
 	}
 }
