@@ -14,7 +14,6 @@ import org.gradle.api.tasks.InputFiles
 import org.gradle.api.tasks.SkipWhenEmpty
 import org.gradle.api.tasks.TaskAction
 import org.gradle.internal.reflect.Instantiator
-import org.gradle.util.GUtil
 
 class MUnit extends DefaultTask implements HaxeTask {
 	static final String WORKING_DIRECTORY_PREFIX = "munit-work"

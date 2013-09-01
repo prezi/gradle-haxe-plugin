@@ -24,11 +24,10 @@ class HaxeCommandBuilder {
 
 	HaxeCommandBuilder withMain(String main)
 	{
-		if (!main.isEmpty())
+		if (main)
 		{
 			append("-main $main")
 		}
-
 		this
 	}
 

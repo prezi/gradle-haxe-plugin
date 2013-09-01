@@ -4,6 +4,8 @@ import org.gradle.api.internal.artifacts.publish.AbstractPublishArtifact
 
 public class HarPublishArtifact extends AbstractPublishArtifact {
 
+	public static final DEFAULT_TYPE = "har"
+
 	private final HaxeTask task
 	private final File archiveFile
 
@@ -23,13 +25,13 @@ public class HarPublishArtifact extends AbstractPublishArtifact {
 	@Override
 	String getExtension()
 	{
-		return "har"
+		return HarCopyAction.DEFAULT_EXTENSION
 	}
 
 	@Override
 	String getType()
 	{
-		return "har"
+		return DEFAULT_TYPE
 	}
 
 	@Override

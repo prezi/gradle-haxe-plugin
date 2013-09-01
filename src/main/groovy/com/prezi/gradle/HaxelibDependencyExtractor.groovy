@@ -76,12 +76,11 @@ class HaxelibDependencyExtractor {
 					&& details.relativePath.parent.parent)
 			{
 				manifest = new DefaultManifest(details.file, fileResolver)
-				println ">>>>>>> We have a manifest: " + manifest
 				details.stopVisiting()
 			}
 		}
 
-		if (manifest != null && manifest.getAttributes().get("Library-Version") == "1.0")
+		if (manifest && manifest.getAttributes().get("Library-Version") == "1.0")
 		{
 			def sources = new File(targetPath, "sources")
 			def resources = new File(targetPath, "resources")

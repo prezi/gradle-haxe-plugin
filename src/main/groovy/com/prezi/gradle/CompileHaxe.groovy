@@ -210,7 +210,7 @@ class CompileHaxe extends DefaultTask implements HaxeTask {
 
 	String main
 
-	List macros = []
+	List<String> macros = []
 
 	public macro(String m)
 	{
