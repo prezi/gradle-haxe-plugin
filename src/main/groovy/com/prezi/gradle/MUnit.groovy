@@ -171,10 +171,13 @@ class MUnit extends DefaultTask implements HaxeTask {
 
 	public String getClassifier()
 	{
-		if (classifier == null) {
-			return GUtil.elvis(compileTask.classifier, "") + "-tests"
+		if (classifier)
+		{
+			return classifier
 		}
-		return classifier
+
+		def result = compileTask.classifier
+		return result ? result + "-tests" : "tests"
 	}
 
 	public classifier(String classifier)

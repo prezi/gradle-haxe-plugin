@@ -68,7 +68,7 @@ class CompileHaxe extends DefaultTask implements HaxeTask {
 	private String getFullName()
 	{
 		def fullName = getBaseName()
-		if (classifier != null && classifier != "")
+		if (classifier)
 		{
 			fullName += "-" + classifier
 		}
@@ -247,7 +247,7 @@ class CompileHaxe extends DefaultTask implements HaxeTask {
 
 	public String getBaseName()
 	{
-		return baseName == null ? project.name : baseName
+		return baseName ? baseName : project.name
 	}
 
 	String classifier

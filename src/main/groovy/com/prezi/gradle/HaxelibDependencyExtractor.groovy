@@ -41,7 +41,7 @@ class HaxelibDependencyExtractor {
 				extractDependenciesFromInternal(dependentConfiguration, sourcePath, resourcePath)
 
 				dependentConfiguration.allArtifacts.withType(HarPublishArtifact) { HarPublishArtifact artifact ->
-					def libName = artifact.name + (artifact.classifier == null ? "" : "-" + artifact.classifier)
+					def libName = artifact.name + (artifact.classifier ? "-" + artifact.classifier : "")
 					extractFile(libName, artifact.file, false, sourcePath, resourcePath)
 				}
 			}
