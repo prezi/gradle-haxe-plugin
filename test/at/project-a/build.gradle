@@ -1,13 +1,17 @@
 import com.prezi.gradle.CompileHaxe
+import com.prezi.gradle.MUnit
 import org.gradle.api.publish.ivy.IvyPublication
 
 configurations {
 	runtime
+	test.extendsFrom runtime
 	node.extendsFrom runtime
 }
 
 dependencies {
-	runtime group: "haxelib", name: "munit", version: "0.9.5.2"
+	test group: "haxelib", name: "hamcrest", version: "1.0.1"
+	test group: "haxelib", name: "mlib", version: "0.4.3"
+	test group: "haxelib", name: "munit", version: "0.9.5.2"
 }
 
 task sayHello << {
@@ -21,6 +25,12 @@ task lajos(type: CompileHaxe) {
 	source "src/main/haxe/js"
 	targetPlatform "js"
 	main "prezi.test.Main"
+}
+
+task testLajos(type: MUnit) {
+	test lajos
+	testConfiguration configurations.test
+	testSource "src/test/haxe/common"
 }
 
 task "lajos-node"(type: CompileHaxe) {
@@ -47,8 +57,9 @@ task lajosDep {
 publishing {
 	publications {
 		ivy(IvyPublication) {
-			artifact(lajos.sourceBundle)
-			artifact(tasks["lajos-node"].sourceBundle)
+			artifact(lajos.sources)
+			artifact(testLajos.tests)
+			artifact(tasks["lajos-node"].sources)
 		}
 	}
 }

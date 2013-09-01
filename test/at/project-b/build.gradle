@@ -31,8 +31,8 @@ task friciNode(type: CompileHaxe) {
 publishing {
 	publications {
 		ivy(IvyPublication) {
-			artifact(frici.sourceBundle)
-			artifact(friciNode.sourceBundle)
+			artifact(frici.sources)
+			artifact(friciNode.sources)
 		}
 	}
 }

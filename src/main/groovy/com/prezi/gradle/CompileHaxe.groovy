@@ -3,15 +3,10 @@ package com.prezi.gradle
 import org.gradle.api.DefaultTask
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.Dependency
-import org.gradle.api.artifacts.ModuleDependency
-import org.gradle.api.artifacts.ProjectDependency
 import org.gradle.api.artifacts.PublishArtifact
 import org.gradle.api.file.FileCollection
 import org.gradle.api.internal.file.FileResolver
 import org.gradle.api.internal.file.UnionFileCollection
-import org.gradle.api.internal.file.copy.FileCopyActionImpl
-import org.gradle.api.internal.file.copy.FileCopySpecVisitor
-import org.gradle.api.internal.file.copy.SyncCopySpecVisitor
 import org.gradle.api.tasks.InputFiles
 import org.gradle.api.tasks.Optional
 import org.gradle.api.tasks.OutputDirectory
@@ -19,31 +14,23 @@ import org.gradle.api.tasks.OutputFile
 import org.gradle.api.tasks.SkipWhenEmpty
 import org.gradle.api.tasks.TaskAction
 import org.gradle.internal.reflect.Instantiator
-import org.gradle.process.internal.ExecException
 
-class CompileHaxe extends DefaultTask {
-
-	public static final String EXTRACTED_HAXELIBS_PATH = "haxelibs"
-
-	PublishArtifact sourceBundle
+class CompileHaxe extends DefaultTask implements HaxeTask {
 
 	@TaskAction
 	void compile()
 	{
-		Set<File> sourcePath = []
-		Set<File> resourcePath = []
+		Instantiator instantiator = getServices().get(Instantiator.class)
+		FileResolver fileResolver = getServices().get(FileResolver.class)
+		def extractor = new HaxelibDependencyExtractor(project, instantiator, fileResolver)
 
-		sourcePath.addAll(sources.files)
-		resourcePath.addAll(resources.files)
+		LinkedHashSet<File> sourcePath = []
+		LinkedHashSet<File> resourcePath = []
+		sourcePath.addAll(sourceTree.files)
+		resourcePath.addAll(resourceTree.files)
+		extractor.extractDependenciesFrom(getConfiguration(), sourcePath, resourcePath)
 
-		def configuration = getConfiguration()
-
-		configuration.hierarchy.each { Configuration config ->
-			extractDependenciesFrom(config, sourcePath, resourcePath)
-		}
-
-		String cmd = new CmdBuilder()
-				.withMain(main)
+		String cmd = new HaxeCommandBuilder("haxe", " ", "")
 				.withTarget(targetPlatform, getAndCreateOutput())
 				.withMacros(macros)
 				.withIncludePackages(includePackages)
@@ -52,26 +39,19 @@ class CompileHaxe extends DefaultTask {
 				.withResources(resourcePath)
 				.withFlags(flags)
 				.withDebugFlags(debug)
+				.withMain(main)
 				.build()
 
-		def res = project.exec {
-			executable = 'bash'
-			args "-c", cmd
-			setIgnoreExitValue true
-		}
-		if (res.exitValue != 0)
-		{
-			throw new ExecException("Command finished with non-zero exit value (${res.exitValue}):\n${cmd}")
-		}
+		CommandExecutor.execute(project, cmd)
 
-		FileResolver fileResolver = getServices().get(FileResolver.class)
-		Instantiator instantiator = getServices().get(Instantiator.class)
 		def copyAction = new HarCopyAction(instantiator, fileResolver, temporaryDirFactory,
-				getSourceArchive(), sources, resources)
+				getSourceArchive(), sourceTree, resourceTree)
 		copyAction.execute()
 	}
 
-	public PublishArtifact getSourceBundle()
+	private PublishArtifact sourceBundle
+
+	public PublishArtifact getSources()
 	{
 		if (sourceBundle == null)
 		{
@@ -80,59 +60,7 @@ class CompileHaxe extends DefaultTask {
 		return sourceBundle
 	}
 
-	void extractDependenciesFrom(Configuration configuration, Set<File> sourcePath, Set<File> resourcePath)
-	{
-		configuration.dependencies.each { ModuleDependency dependency ->
-			if (dependency instanceof ProjectDependency)
-			{
-				def projectDependency = dependency as ProjectDependency
-				def dependentConfiguration = projectDependency.projectConfiguration
-				extractDependenciesFrom(dependentConfiguration, sourcePath, resourcePath)
-
-				dependentConfiguration.allArtifacts.withType(HarPublishArtifact) { HarPublishArtifact artifact ->
-					extractFile(
-							artifact.name + (artifact.classifier == null ? "" : "-" + artifact.classifier),
-							artifact.file,
-							false,
-							sourcePath,
-							resourcePath)
-				}
-			}
-			else
-			{
-				configuration.files(dependency).each { File file ->
-					extractFile(dependency.name, file, dependency.group == "haxelib", sourcePath, resourcePath)
-				}
-			}
-		}
-	}
-
-	private void extractFile(String name, File file, boolean legacyHaxelib, Set<File> sourcePath, Set<File> resourcePath)
-	{
-		def targetPath = project.file("${project.buildDir}/${EXTRACTED_HAXELIBS_PATH}/${name}")
-		println "Extracting Haxe library file: " + file
-		Instantiator instantiator = getServices().get(Instantiator.class);
-		FileResolver fileResolver = getServices().get(FileResolver.class);
-
-		def copy = new FileCopyActionImpl(instantiator, fileResolver, new SyncCopySpecVisitor(new FileCopySpecVisitor()));
-		copy.from(project.zipTree(file))
-		copy.into targetPath
-		copy.execute()
-
-		// TODO Determine this based on the manifest
-		if (legacyHaxelib)
-		{
-			sourcePath.add(targetPath)
-		} else
-		{
-			def sources = new File(targetPath, "sources")
-			def resources = new File(targetPath, "resources")
-			if (sources.exists()) sourcePath.add(sources)
-			if (resources.exists()) sourcePath.add(resources)
-		}
-	}
-
-	public File getSourceArchive()
+	private File getSourceArchive()
 	{
 		return new File(project.buildDir, getFullName() + ".har")
 	}
@@ -155,7 +83,8 @@ class CompileHaxe extends DefaultTask {
 		{
 			output = getOutputDirectory()
 			dirToMake = output
-		} else
+		}
+		else
 		{
 			output = getOutputFile()
 			dirToMake = output.parentFile
@@ -164,37 +93,7 @@ class CompileHaxe extends DefaultTask {
 		return output
 	}
 
-	@InputFiles
-	@SkipWhenEmpty
-	FileCollection sources = new UnionFileCollection()
-
-	@InputFiles
-	@SkipWhenEmpty
-	FileCollection resources = new UnionFileCollection()
-
-	File outputFile
-
-	File outputDirectory
-
 	Configuration configuration
-
-	String main = ""
-
-	List macros = []
-
-	List includePackages = []
-
-	List excludePackages = []
-
-	String flags = ''
-
-	String targetPlatform
-
-	boolean debug
-
-	String classifier
-
-	String baseName
 
 	public Configuration getConfiguration()
 	{
@@ -210,48 +109,25 @@ class CompileHaxe extends DefaultTask {
 		this.configuration = configuration
 	}
 
-	public macro(String m)
-	{
-		macros.add(m)
-	}
-
-	public includePackage(String pkg)
-	{
-		includePackages.add(pkg)
-	}
-
-	public excludePackage(String pkg)
-	{
-		excludePackages.add(pkg)
-	}
+	@InputFiles
+	@SkipWhenEmpty
+	FileCollection sourceTree = new UnionFileCollection()
 
 	public void source(paths)
 	{
-		sources.add(project.files(paths))
+		sourceTree.add(project.files(paths))
 	}
+
+	@InputFiles
+	@SkipWhenEmpty
+	FileCollection resourceTree = new UnionFileCollection()
 
 	public resource(paths)
 	{
-		resources.add(project.files(paths))
+		resourceTree.add(project.files(paths))
 	}
 
-	public void setTargetPlatform(String platform)
-	{
-		this.targetPlatform = platform
-	}
-
-	boolean isOutputInADirectory()
-	{
-		if (outputFile != null)
-		{
-			return false;
-		}
-		if (outputDirectory != null)
-		{
-			return true;
-		}
-		return targetPlatform == "as3"
-	}
+	private File outputFile
 
 	@OutputFile
 	@Optional
@@ -260,10 +136,12 @@ class CompileHaxe extends DefaultTask {
 		if (outputFile != null)
 		{
 			return outputFile
-		} else if (outputDirectory != null)
+		}
+		else if (outputDirectory != null)
 		{
 			return null
-		} else
+		}
+		else
 		{
 			switch (targetPlatform)
 			{
@@ -277,6 +155,14 @@ class CompileHaxe extends DefaultTask {
 		}
 	}
 
+	public void setOutputFile(Object file)
+	{
+		outputFile = project.file(file)
+		outputDirectory = null
+	}
+
+	private File outputDirectory
+
 	@OutputDirectory
 	@Optional
 	public File getOutputDirectory()
@@ -284,10 +170,12 @@ class CompileHaxe extends DefaultTask {
 		if (outputFile != null)
 		{
 			return null
-		} else if (outputDirectory != null)
+		}
+		else if (outputDirectory != null)
 		{
 			return outputDirectory
-		} else
+		}
+		else
 		{
 			switch (targetPlatform)
 			{
@@ -299,22 +187,58 @@ class CompileHaxe extends DefaultTask {
 		}
 	}
 
-	public void setOutputFile(Object file)
-	{
-		outputFile = project.file(file)
-		outputDirectory = null
-	}
-
 	public void setOutputDirectory(Object dir)
 	{
 		outputDirectory = project.file(dir)
 		outputFile = null
 	}
 
+	private boolean isOutputInADirectory()
+	{
+		if (outputFile != null)
+		{
+			return false;
+		}
+		if (outputDirectory != null)
+		{
+			return true;
+		}
+		return targetPlatform == "as3"
+	}
+
+	String targetPlatform
+
+	String main
+
+	List macros = []
+
+	public macro(String m)
+	{
+		macros.add(m)
+	}
+
+	LinkedHashSet<String> includePackages = []
+
+	public includePackage(String pkg)
+	{
+		includePackages.add(pkg)
+	}
+
+	LinkedHashSet<String> excludePackages = []
+
+	public excludePackage(String pkg)
+	{
+		excludePackages.add(pkg)
+	}
+
+	LinkedHashSet<String> flags = []
+
 	public void flag(String flag)
 	{
-		flags += " $flag"
+		flags.add(flag)
 	}
+
+	String baseName
 
 	public baseName(String baseName)
 	{
@@ -326,13 +250,12 @@ class CompileHaxe extends DefaultTask {
 		return baseName == null ? project.name : baseName
 	}
 
+	String classifier
+
 	public classifier(String classifier)
 	{
 		this.classifier = classifier
 	}
 
-	String describe()
-	{
-		return "Builds " + componentName
-	}
+	boolean debug
 }

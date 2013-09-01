@@ -4,10 +4,10 @@ import org.gradle.api.internal.artifacts.publish.AbstractPublishArtifact
 
 public class HarPublishArtifact extends AbstractPublishArtifact {
 
-	private final CompileHaxe task
+	private final HaxeTask task
 	private final File archiveFile
 
-	HarPublishArtifact(CompileHaxe task, File archiveFile)
+	HarPublishArtifact(HaxeTask task, File archiveFile)
 	{
 		super(task)
 		this.task = task

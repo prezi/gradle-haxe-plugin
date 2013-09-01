@@ -20,7 +20,7 @@ public class HarCopyAction extends AbstractHarCopyAction {
 	private final CopySpec resources
 
 	HarCopyAction(Instantiator instantiator, FileResolver fileResolver, Factory<File> temporaryDirFactory,
-					  File archivePath, Object sources, Object resources)
+				  File archivePath, Object sources, Object resources)
 	{
 		super(instantiator, fileResolver, archivePath);
 		this.sources = rootSpec.addChild()
