@@ -37,6 +37,7 @@ public class HarCopyAction extends AbstractHarCopyAction {
 			MapFileTree manifestSource = new MapFileTree(temporaryDirFactory)
 			manifestSource.add('MANIFEST.MF') { OutputStream outstr ->
 				Manifest manifest = getManifest() ?: new DefaultManifest(null)
+				manifest.attributes.put("Library-Version", "1.0")
 				manifest.writeTo(new OutputStreamWriter(outstr))
 			}
 			return new FileTreeAdapter(manifestSource)

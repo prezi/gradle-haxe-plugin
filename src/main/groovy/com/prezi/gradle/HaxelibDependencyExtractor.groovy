@@ -4,10 +4,13 @@ import org.gradle.api.Project
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.ModuleDependency
 import org.gradle.api.artifacts.ProjectDependency
+import org.gradle.api.file.FileVisitDetails
 import org.gradle.api.internal.file.FileResolver
 import org.gradle.api.internal.file.copy.FileCopyActionImpl
 import org.gradle.api.internal.file.copy.FileCopySpecVisitor
 import org.gradle.api.internal.file.copy.SyncCopySpecVisitor
+import org.gradle.api.java.archives.Manifest
+import org.gradle.api.java.archives.internal.DefaultManifest
 import org.gradle.internal.reflect.Instantiator
 
 class HaxelibDependencyExtractor {
@@ -42,39 +45,52 @@ class HaxelibDependencyExtractor {
 
 				dependentConfiguration.allArtifacts.withType(HarPublishArtifact) { HarPublishArtifact artifact ->
 					def libName = artifact.name + (artifact.classifier ? "-" + artifact.classifier : "")
-					extractFile(libName, artifact.file, false, sourcePath, resourcePath)
+					extractFile(libName, artifact.file, sourcePath, resourcePath)
 				}
 			}
 			else
 			{
 				configuration.files(dependency).each { File file ->
-					extractFile(dependency.name, file, dependency.group == "haxelib", sourcePath, resourcePath)
+					extractFile(dependency.name, file, sourcePath, resourcePath)
 				}
 			}
 		}
 	}
 
-	private void extractFile(String libName, File file, boolean legacyHaxelib, Set<File> sourcePath, Set<File> resourcePath)
+	private void extractFile(String libName, File file, Set<File> sourcePath, Set<File> resourcePath)
 	{
 		def targetPath = project.file("${project.buildDir}/${EXTRACTED_HAXELIBS_DIR}/${libName}")
 		println "Extracting Haxe library file: " + file
 
 		def copy = new FileCopyActionImpl(instantiator, fileResolver, new SyncCopySpecVisitor(new FileCopySpecVisitor()));
-		copy.from(project.zipTree(file))
+		def zip = project.zipTree(file)
+		copy.from(zip)
 		copy.into targetPath
 		copy.execute()
 
-		// TODO Determine this based on the manifest
-		if (legacyHaxelib)
-		{
-			sourcePath.add(targetPath)
+		Manifest manifest = null
+		zip.visit { FileVisitDetails details ->
+			if (details.name == "MANIFEST.MF"
+					&& details.relativePath.parent
+					&& details.relativePath.parent.getLastName() == "META-INF"
+					&& details.relativePath.parent.parent)
+			{
+				manifest = new DefaultManifest(details.file, fileResolver)
+				println ">>>>>>> We have a manifest: " + manifest
+				details.stopVisiting()
+			}
 		}
-		else
+
+		if (manifest != null && manifest.getAttributes().get("Library-Version") == "1.0")
 		{
 			def sources = new File(targetPath, "sources")
 			def resources = new File(targetPath, "resources")
 			if (sources.exists()) sourcePath.add(sources)
 			if (resources.exists()) resourcePath.add(resources)
+		}
+		else
+		{
+			sourcePath.add(targetPath)
 		}
 	}
 }
