@@ -41,6 +41,14 @@ class HaxePlugin implements Plugin<Project> {
 			project.configurations.create(Dependency.DEFAULT_CONFIGURATION)
 		}
 
+		// Map default values
+		def haxeExtension = project.extensions.create "haxe", HaxeExtension
+		project.beforeEvaluate {
+			project.tasks.withType(CompileHaxe) { CompileHaxe compileTask ->
+				haxeExtension.mapTo(compileTask)
+			}
+		}
+
 		// Add build task
 		def buildTask = project.tasks.findByName("build")
 		if (buildTask == null)
