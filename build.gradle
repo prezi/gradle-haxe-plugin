@@ -11,7 +11,7 @@ dependencies {
 
 task run(type: Exec) {
 	workingDir "test/at"
-	commandLine = [ "gradle", "clean", "project-a:testLajos", "--info", "--stacktrace" ]
+	commandLine = [ "gradle", "clean", "munit", "publish", "--info", "--stacktrace" ]
 }
 
 uploadArchives {

@@ -14,6 +14,7 @@ import javax.inject.Inject
 class HaxePlugin implements Plugin<Project> {
 
 	private static final String BUILD_TASKS_GROUP = "build"
+	private static final String TEST_TASKS_GROUP = "test"
 
 	private final Instantiator instantiator
 	private final ProjectConfigurationActionContainer configurationActions
@@ -52,6 +53,21 @@ class HaxePlugin implements Plugin<Project> {
 			project.tasks.withType(CompileHaxe) { CompileHaxe compileTask ->
 				compileTask.group = BUILD_TASKS_GROUP
 				buildTask.dependsOn compileTask
+			}
+		}
+
+		// Add test task
+		def testAllTask = project.tasks.findByName("munit")
+		if (testAllTask == null)
+		{
+			testAllTask = project.tasks.create("munit")
+			testAllTask.group = TEST_TASKS_GROUP
+			testAllTask.description = "Test built Haxe artifacts"
+		}
+		project.beforeEvaluate {
+			project.tasks.withType(MUnit) { MUnit munitTask ->
+				munitTask.group = TEST_TASKS_GROUP
+				testAllTask.dependsOn munitTask
 			}
 		}
 
