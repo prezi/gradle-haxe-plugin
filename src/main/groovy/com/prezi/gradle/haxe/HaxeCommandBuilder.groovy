@@ -1,4 +1,4 @@
-package com.prezi.gradle
+package com.prezi.gradle.haxe
 
 class HaxeCommandBuilder {
 	private String cmd

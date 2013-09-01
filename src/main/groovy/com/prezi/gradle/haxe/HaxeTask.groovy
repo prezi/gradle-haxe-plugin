@@ -1,4 +1,4 @@
-package com.prezi.gradle
+package com.prezi.gradle.haxe
 
 interface HaxeTask {
 	String getBaseName()

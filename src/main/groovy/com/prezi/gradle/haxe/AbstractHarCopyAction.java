@@ -1,4 +1,4 @@
-package com.prezi.gradle;
+package com.prezi.gradle.haxe;
 
 import groovy.lang.Closure;
 import org.gradle.api.file.CopySpec;

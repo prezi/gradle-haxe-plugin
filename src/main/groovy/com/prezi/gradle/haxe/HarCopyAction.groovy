@@ -1,4 +1,4 @@
-package com.prezi.gradle
+package com.prezi.gradle.haxe
 
 import org.gradle.api.file.CopySpec
 import org.gradle.api.file.FileCopyDetails

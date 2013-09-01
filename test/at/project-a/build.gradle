@@ -1,5 +1,5 @@
-import com.prezi.gradle.CompileHaxe
-import com.prezi.gradle.MUnit
+import com.prezi.gradle.haxe.CompileHaxe
+import com.prezi.gradle.haxe.MUnit
 import org.gradle.api.publish.ivy.IvyPublication
 
 configurations {

@@ -1,4 +1,4 @@
-package com.prezi.gradle
+package com.prezi.gradle.haxe
 
 import org.gradle.api.DefaultTask
 import org.gradle.api.artifacts.Configuration
