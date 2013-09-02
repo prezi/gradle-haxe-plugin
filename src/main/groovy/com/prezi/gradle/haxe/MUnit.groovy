@@ -50,7 +50,7 @@ class MUnit extends DefaultTask implements HaxeTask {
 		def output = getOutput()
 		project.mkdir(output.parentFile)
 
-		def haxeCmd = new HaxeCommandBuilder("", "", "\n")
+		def haxeCmd = new HaxeCommandBuilder("", "", "\n", false)
 				.withIncludePackages(compileTask.includePackages)
 				.withExcludePackages(compileTask.excludePackages)
 				.withSources(sourcePath)
@@ -64,9 +64,11 @@ class MUnit extends DefaultTask implements HaxeTask {
 				.build()
 
 		def testHxml = new File(workDir, "test.hxml")
+		testHxml.delete()
 		testHxml << haxeCmd
 
 		def munitConfig = new File(workDir, ".munit")
+		munitConfig.delete()
 		munitConfig << "version=2.0.0\n"
 		munitConfig << "src=${testSourcesDirectory}\n"
 		munitConfig << "bin=${workDir}\n"

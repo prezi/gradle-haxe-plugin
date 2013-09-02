@@ -4,12 +4,14 @@ class HaxeCommandBuilder {
 	private String cmd
 	private final String prefix
 	private final String suffix
+	private final boolean useQuote
 
-	public HaxeCommandBuilder(String cmd, String prefix, String suffix)
+	public HaxeCommandBuilder(String cmd, String prefix, String suffix, boolean useQuote)
 	{
 		this.cmd = cmd
 		this.suffix = suffix
 		this.prefix = prefix
+		this.useQuote = useQuote
 	}
 
 	String build()
@@ -33,25 +35,25 @@ class HaxeCommandBuilder {
 
 	HaxeCommandBuilder withTarget(String target, File output)
 	{
-		append("-$target $output")
+		append("-$target " + quote(output))
 		this
 	}
 
 	HaxeCommandBuilder withIncludePackages(def packages)
 	{
-		packages.each { append("--macro \"include('$it')\"") }
+		packages.each { append("--macro " + quote("include('$it')")) }
 		this
 	}
 
 	HaxeCommandBuilder withExcludePackages(def packages)
 	{
-		packages.each { append("--macro \"exclude('$it')\"") }
+		packages.each { append("--macro " + quote("exclude('$it')")) }
 		this
 	}
 
 	HaxeCommandBuilder withMacros(def macros)
 	{
-		macros.each { append("--macro \"${it.replaceAll('"', '\\"')}\"") }
+		macros.each { append("--macro " + quote(it)) }
 		this
 	}
 
@@ -83,14 +85,14 @@ class HaxeCommandBuilder {
 			{
 				def handle = prefix + resource.name
 				def filePath = resource.getAbsolutePath()
-				append("-resource \"${filePath.replaceAll('\"', '\\\"')}@${handle.replaceAll('\"', '\\\"')}\"")
+				append("-resource " + quote("${filePath}@${handle}"))
 			}
 		}
 	}
 
 	HaxeCommandBuilder withSources(def sources)
 	{
-		sources.each { append("-cp ${it}") }
+		sources.each { append("-cp " + quote(it)) }
 		this
 	}
 
@@ -109,5 +111,17 @@ class HaxeCommandBuilder {
 			withFlags(["-D fdb", "-debug"])
 		}
 		this
+	}
+
+	String quote(Object object)
+	{
+		if (useQuote)
+		{
+			return '"' + String.valueOf(object).replaceAll('"', '\\"') + '"'
+		}
+		else
+		{
+			return String.valueOf(object)
+		}
 	}
 }
