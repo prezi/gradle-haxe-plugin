@@ -110,7 +110,7 @@ class MUnit extends DefaultTask implements HaxeTask {
 
 	private String getFullName()
 	{
-		return compileTask.getBaseName() + getClassifier()
+		return compileTask.getBaseName() + "-" + getClassifier()
 	}
 
 	private File getOutput()
