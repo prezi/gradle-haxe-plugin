@@ -32,10 +32,10 @@ class HaxeExtension {
 		excludePackages.add(pkg)
 	}
 
-	LinkedHashSet<String> flags = []
+	LinkedHashSet<String> flagList = []
 	public flag(String flag)
 	{
-		flags.add(flag)
+		flagList.add(flag)
 	}
 
 	FileCollection resourceTree = new UnionFileCollection()
@@ -57,7 +57,7 @@ class HaxeExtension {
 		compileTask.includePackages = new LinkedHashSet<>(includePackages)
 		compileTask.excludePackages = new LinkedHashSet<>(excludePackages)
 		compileTask.resourceTree = new UnionFileCollection(resourceTree)
-		compileTask.flags = new LinkedHashSet<>(flags)
+		compileTask.flagList = new LinkedHashSet<>(flagList)
 		compileTask.debug = debug
 		compileTask.configuration = configuration
 	}

@@ -57,7 +57,7 @@ class MUnit extends DefaultTask implements HaxeTask {
 				.withResources(resourcePath)
 				.withMacros(compileTask.macros)
 				.withFlags(testFlags)
-				.withFlags(compileTask.flags)
+				.withFlags(compileTask.flagList)
 				.withDebugFlags(compileTask.debug)
 				.withTarget(compileTask.targetPlatform, output)
 				.withMain("TestMain")

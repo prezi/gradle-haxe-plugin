@@ -37,7 +37,7 @@ class CompileHaxe extends DefaultTask implements HaxeTask {
 				.withExcludePackages(excludePackages)
 				.withSources(sourcePath)
 				.withResources(resourcePath)
-				.withFlags(flags)
+				.withFlags(flagList)
 				.withDebugFlags(debug)
 				.withMain(main)
 				.build()
@@ -250,11 +250,24 @@ class CompileHaxe extends DefaultTask implements HaxeTask {
 		excludePackages.add(pkg)
 	}
 
-	LinkedHashSet<String> flags = []
+	LinkedHashSet<String> flagList = []
+
+	/**
+	 * Use {@link #flag(String)} instead.
+	 * @param flag
+	 */
+	@Deprecated
+	public void setFlags(String flagsToAdd)
+	{
+		println ">>>>>> Processign flags: '$flagsToAdd'"
+		((" " + flagsToAdd.trim()).split(" -")).each { flag("-$it") }
+		this
+	}
 
 	public void flag(String flag)
 	{
-		flags.add(flag)
+		println "Adding flag: $flag"
+		flagList.add(flag)
 	}
 
 	String baseName
