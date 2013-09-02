@@ -33,29 +33,6 @@ You can safely depend on the `.har` artifact in another project without having t
 The `CompileHaxe` task handles HAR dependencies automatically, but it also accepts 0.x-style `hxsrc` archives and standard Haxelibs, too.
 
 
-## Easier testing
-
-The 0.x version only supported one MUnit test to be run, with tests contained in the `src/common` directory. Now you can have a test task for each of your builds with different tests for each platform:
-
-	task buildServer(type: CompileHaxe) {
-		configuration configurations.runtime
-		source "src/main/haxe/common"
-		source "src/main/haxe/js"
-		resource "src/main/resources"
-		targetPlatform "js"
-	}
-	
-	task testServer(type: MUnit) {
-		// The build to test
-		test buildServer
-		// Tests can be found in these directories
-		testSource "src/test/haxe/common"
-		testSource "src/test/haxe/js"
-		// You can add resources for testing
-		testResource "src/test/resources"
-	}
-
-
 ## Dependencies between projects in a multi-project build
 
 Suppose you have a build like this:
@@ -75,6 +52,29 @@ Then you can do this in `project-b/build.gradle`:
 	}
 
 If you build `project-b` only, it will run the required tasks from `project-a` as well.
+
+
+## Easier testing
+
+The 0.x version only supported one MUnit test task to be run, with tests contained in the `src/common` directory. Now you can have a test task for each of your builds with different tests for each platform:
+
+	task buildServer(type: CompileHaxe) {
+		configuration configurations.runtime
+		source "src/main/haxe/common"
+		source "src/main/haxe/js"
+		resource "src/main/resources"
+		targetPlatform "js"
+	}
+	
+	task testServer(type: MUnit) {
+		// The build to test
+		test buildServer
+		// Tests can be found in these directories
+		testSource "src/test/haxe/common"
+		testSource "src/test/haxe/js"
+		// You can add resources for testing
+		testResource "src/test/resources"
+	}
 
 
 ## Easier publishing
