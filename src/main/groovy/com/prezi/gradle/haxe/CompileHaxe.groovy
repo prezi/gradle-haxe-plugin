@@ -22,7 +22,7 @@ class CompileHaxe extends DefaultTask implements HaxeTask {
 	{
 		Instantiator instantiator = getServices().get(Instantiator.class)
 		FileResolver fileResolver = getServices().get(FileResolver.class)
-		def extractor = new HaxelibDependencyExtractor(project, instantiator, fileResolver)
+		def extractor = new HaxelibDependencyExtractor(project, legacyPlatformPaths, instantiator, fileResolver)
 
 		LinkedHashSet<File> sourcePath = []
 		LinkedHashSet<File> resourcePath = []
@@ -31,6 +31,7 @@ class CompileHaxe extends DefaultTask implements HaxeTask {
 		extractor.extractDependenciesFrom(getConfiguration(), sourcePath, resourcePath)
 
 		String cmd = new HaxeCommandBuilder("haxe", " ", "", true)
+				.withMain(main)
 				.withTarget(targetPlatform, getAndCreateOutput())
 				.withMacros(macros)
 				.withIncludePackages(includePackages)
@@ -39,7 +40,6 @@ class CompileHaxe extends DefaultTask implements HaxeTask {
 				.withResources(resourcePath)
 				.withFlags(flagList)
 				.withDebugFlags(debug)
-				.withMain(main)
 				.build()
 
 		CommandExecutor.execute(project, cmd)
@@ -131,19 +131,25 @@ class CompileHaxe extends DefaultTask implements HaxeTask {
 	@InputFiles
 	@SkipWhenEmpty
 	FileCollection sourceTree = new UnionFileCollection()
+	LinkedHashSet<String> legacyPlatformPaths = []
 
-	public void source(paths)
+	public void source(Object path)
 	{
-		sourceTree.add(project.files(paths))
+		sourceTree.add(project.files(path))
+		if (path instanceof String
+				&& path.startsWith("src/"))
+		{
+			legacyPlatformPaths << path.substring(4)
+		}
 	}
 
 	@InputFiles
 	@SkipWhenEmpty
 	FileCollection resourceTree = new UnionFileCollection()
 
-	public resource(paths)
+	public resource(Object path)
 	{
-		resourceTree.add(project.files(paths))
+		resourceTree.add(project.files(path))
 	}
 
 	private File outputFile
@@ -259,14 +265,12 @@ class CompileHaxe extends DefaultTask implements HaxeTask {
 	@Deprecated
 	public void setFlags(String flagsToAdd)
 	{
-		println ">>>>>> Processign flags: '$flagsToAdd'"
-		((" " + flagsToAdd.trim()).split(" -")).each { flag("-$it") }
+		((" " + flagsToAdd.trim()).split(" -")).each { if (it) flag("-$it") }
 		this
 	}
 
 	public void flag(String flag)
 	{
-		println "Adding flag: $flag"
 		flagList.add(flag)
 	}
 

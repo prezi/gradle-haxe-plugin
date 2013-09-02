@@ -17,14 +17,16 @@ class HaxelibDependencyExtractor {
 	static final String EXTRACTED_HAXELIBS_DIR = "haxelibs"
 
 	private final Project project
+	private final Iterable<String> legacyPlatformPaths
 	private final Instantiator instantiator
 	private final FileResolver fileResolver
 
-	HaxelibDependencyExtractor(Project project, Instantiator instantiator, FileResolver fileResolver)
+	HaxelibDependencyExtractor(Project project, Iterable<String> legacyPlatformPaths, Instantiator instantiator, FileResolver fileResolver)
 	{
+		this.project = project
+		this.legacyPlatformPaths = legacyPlatformPaths
 		this.fileResolver = fileResolver
 		this.instantiator = instantiator
-		this.project = project
 	}
 
 	void extractDependenciesFrom(Configuration configuration, Set<File> sourcePath, Set<File> resourcePath)
@@ -51,7 +53,10 @@ class HaxelibDependencyExtractor {
 			else
 			{
 				configuration.files(dependency).each { File file ->
-					extractFile(dependency.name, file, sourcePath, resourcePath)
+					extractFile(file.name, file, sourcePath, resourcePath)
+				}
+				dependency.artifacts.each {
+					println ">>>>>> Artifact: " + it.name + " / " + it.class
 				}
 			}
 		}
@@ -60,7 +65,8 @@ class HaxelibDependencyExtractor {
 	private void extractFile(String libName, File file, Set<File> sourcePath, Set<File> resourcePath)
 	{
 		def targetPath = project.file("${project.buildDir}/${EXTRACTED_HAXELIBS_DIR}/${libName}")
-		println "Extracting Haxe library file: " + file
+		println "Extracting Haxe library file: $file"
+		println " -- into $targetPath"
 
 		def copy = new FileCopyActionImpl(instantiator, fileResolver, new SyncCopySpecVisitor(new FileCopySpecVisitor()));
 		def zip = project.zipTree(file)
@@ -89,7 +95,21 @@ class HaxelibDependencyExtractor {
 		}
 		else
 		{
-			sourcePath.add(targetPath)
+			def platformPathAdded = false;
+			legacyPlatformPaths.each { String legacyPlatformPath ->
+				def platformPath = new File(targetPath, legacyPlatformPath)
+				if (platformPath.directory)
+				{
+					sourcePath.add(platformPath)
+					platformPathAdded = true;
+				}
+			}
+
+			// If we haven't found any platform paths, add the root
+			if (!platformPathAdded)
+			{
+				sourcePath.add(targetPath)
+			}
 		}
 	}
 }

@@ -37,7 +37,7 @@ class MUnit extends DefaultTask implements HaxeTask {
 
 		LinkedHashSet<File> sourcePath = []
 		LinkedHashSet<File> resourcePath = []
-		def extractor = new HaxelibDependencyExtractor(project, instantiator, fileResolver)
+		def extractor = new HaxelibDependencyExtractor(project, compileTask.legacyPlatformPaths, instantiator, fileResolver)
 
 		sourcePath.add(testSourcesDirectory)
 		extractor.extractDependenciesFrom(getTestConfiguration(), sourcePath, resourcePath)
