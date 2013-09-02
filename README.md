@@ -16,19 +16,19 @@ The advantage is that you can depend on the `.har` artifact in another project w
 
 Suppose you have a build like this:
 
-  root
-   +- project-a
-   |   +- build.gradle
-   +- project-b
-   |   +- build.gradle
-   +- build.gradle
-   +- settings.gradle
+	root
+	+- project-a
+	|   +- build.gradle
+	+- project-b
+	|   +- build.gradle
+	+- build.gradle
+	+- settings.gradle
     
 Then you can do this in `project-b`:
 
-  dependencies {
-    runtime project(path: "project-a", configuration: "runtime")
-  }
+	dependencies {
+		runtime project(path: "project-a", configuration: "runtime")
+	}
 
 If you build `project-b` only, it will run the required tasks from `project-a` as well.
 
@@ -37,31 +37,31 @@ If you build `project-b` only, it will run the required tasks from `project-a` a
 You can publish via the `ivy-publish` plugin like this:
 
 	apply plugin: "ivy-publish"
-
-  task buildServer(type: CompileHaxe) {
-  	configuration configurations.runtime
-  	source "src/main/haxe/common"
-  	source "src/main/haxe/js"
-  	resource "src/main/resources"
-  	resource "build.gradle"
-  	targetPlatform "js"
-  }
-  
-  publishing {
+	
+	task buildServer(type: CompileHaxe) {
+		configuration configurations.runtime
+		source "src/main/haxe/common"
+		source "src/main/haxe/js"
+		resource "src/main/resources"
+		resource "build.gradle"
+		targetPlatform "js"
+	}
+	
+	publishing {
 		repositories {
 			ivy {
 				// Define Ivy repository
 			}
 		}
-  	publications {
-  		ivy(IvyPublication) {
-  		  // This is the built JS file
-  			artifact(buildServer.artifact)
-  			// This is the HAR archive of sources and resources
-  			artifact(buildServer.sources)
-  		}
-  	}
-  }
+		publications {
+			ivy(IvyPublication) {
+				// This is the built JS file
+				artifact(buildServer.artifact)
+				// This is the HAR archive of sources and resources
+				artifact(buildServer.sources)
+			}
+		}
+	}
 
 # Planned improvements
 
