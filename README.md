@@ -1,6 +1,17 @@
 Gradle Haxe Plugin
 ==================
 
+# How to try it
+
+If you want to test it, you can try:
+
+	# Let's build
+	gradle clean install
+	# This will run the test build
+	gradle run
+
+This will run the [test-project](tree/master/test/at). Once you've installed the plugin, you can also run the test project manually with `gradle build` in the `test/at` directory.
+
 # Improvements over version 0.x
 
 ## Bundling sources and resources
