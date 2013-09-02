@@ -28,6 +28,8 @@ task lajos(type: CompileHaxe) {
 	configuration configurations.runtime
 	source "src/main/haxe/common"
 	source "src/main/haxe/js"
+	resource "src/main/resources"
+	resource "build.gradle"
 	targetPlatform "js"
 }
 

@@ -57,12 +57,35 @@ class HaxeCommandBuilder {
 
 	HaxeCommandBuilder withResources(def resources)
 	{
-		resources.each {
-			def fileName = it.name
-			def filePath = it.getAbsolutePath()
-			append("-resource \"${filePath.replaceAll('\"', '\\\"')}@${fileName.replaceAll('\"', '\\\"')}\"")
+		println ">>> Resources: " + resources
+		resources.each { File resource ->
+			if (resource.isDirectory())
+			{
+				appendResources(resource.listFiles(), "")
+			}
+			else
+			{
+				appendResources([resource], "")
+			}
 		}
 		this
+	}
+
+	private appendResources(def resources, String prefix)
+	{
+		resources.each { File resource ->
+			if (resource.directory)
+			{
+				def subPrefix = prefix + resource.name + "/"
+				appendResources(resource.listFiles(), subPrefix)
+			}
+			else
+			{
+				def handle = prefix + resource.name
+				def filePath = resource.getAbsolutePath()
+				append("-resource \"${filePath.replaceAll('\"', '\\\"')}@${handle.replaceAll('\"', '\\\"')}\"")
+			}
+		}
 	}
 
 	HaxeCommandBuilder withSources(def sources)
@@ -83,7 +106,7 @@ class HaxeCommandBuilder {
 	{
 		if (debug)
 		{
-			withFlags([ "-D fdb", "-debug" ])
+			withFlags(["-D fdb", "-debug"])
 		}
 		this
 	}
