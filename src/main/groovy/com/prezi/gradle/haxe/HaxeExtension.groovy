@@ -53,11 +53,11 @@ class HaxeExtension {
 	void mapTo(CompileHaxe compileTask)
 	{
 		compileTask.main = main
-		compileTask.macros = macros
-		compileTask.includePackages = includePackages
-		compileTask.excludePackages = excludePackages
-		compileTask.resourceTree = resourceTree
-		compileTask.flags = flags
+		compileTask.macros = new ArrayList<>(macros)
+		compileTask.includePackages = new LinkedHashSet<>(includePackages)
+		compileTask.excludePackages = new LinkedHashSet<>(excludePackages)
+		compileTask.resourceTree = new UnionFileCollection(resourceTree)
+		compileTask.flags = new LinkedHashSet<>(flags)
 		compileTask.debug = debug
 		compileTask.configuration = configuration
 	}
