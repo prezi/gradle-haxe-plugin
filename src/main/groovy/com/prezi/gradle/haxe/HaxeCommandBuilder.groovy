@@ -59,7 +59,6 @@ class HaxeCommandBuilder {
 
 	HaxeCommandBuilder withResources(def resources)
 	{
-		println ">>> Resources: " + resources
 		resources.each { File resource ->
 			if (resource.isDirectory())
 			{
