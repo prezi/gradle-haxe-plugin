@@ -68,10 +68,10 @@ Suppose you have a build like this:
 	+- build.gradle
 	+- settings.gradle
     
-Then you can do this in `project-b`:
+Then you can do this in `project-b/build.gradle`:
 
 	dependencies {
-		runtime project(path: "project-a", configuration: "runtime")
+		runtime project(path: ":project-a", configuration: "runtime")
 	}
 
 If you build `project-b` only, it will run the required tasks from `project-a` as well.
