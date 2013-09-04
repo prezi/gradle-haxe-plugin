@@ -107,6 +107,10 @@ You can publish via the `ivy-publish` plugin like this:
 		}
 	}
 
+## No reliance on Java plugins
+
+The old version of the Haxe plugin depends on the Java plugin, and piece-by-piece removes functionality (.jar artifacts etc.) that are not required. The new plugin avoids these pitfalls.
+
 
 # Planned improvements
 
@@ -125,3 +129,7 @@ It would be nice to have something resembling dynamic linking a well: you take t
 The Haxe plugin could generate another artifact that includes the built JS/SWC output of the build, plus "header" Haxe files, i.e. Haxe classes that are only `extern`s of the original classes.
 
 This should be fairly simple to implement wiht the plugin.
+
+## Rename 'build' task to 'compile'
+
+So you can go `gradle compile` and `gradle test` on your project.
