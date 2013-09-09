@@ -62,14 +62,13 @@ class HaxelibDependencyExtractor {
 	private void extractFile(String libName, File file, Set<File> sourcePath, Set<File> resourcePath)
 	{
 		def targetPath = project.file("${project.buildDir}/${EXTRACTED_HAXELIBS_DIR}/${libName}")
-		println "Extracting Haxe library file: $file"
-		println " -- into $targetPath"
+		project.logger.info("Extracting Haxe library file: {} into {}", file, targetPath)
 
-		def copy = new FileCopyActionImpl(instantiator, fileResolver, new SyncCopySpecVisitor(new FileCopySpecVisitor()));
+		def sync = new FileCopyActionImpl(instantiator, fileResolver, new SyncCopySpecVisitor(new FileCopySpecVisitor()));
 		def zip = project.zipTree(file)
-		copy.from(zip)
-		copy.into targetPath
-		copy.execute()
+		sync.from(zip)
+		sync.into targetPath
+		sync.execute()
 
 		Manifest manifest = null
 		zip.visit { FileVisitDetails details ->
