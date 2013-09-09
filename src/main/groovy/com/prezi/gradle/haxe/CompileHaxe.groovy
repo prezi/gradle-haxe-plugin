@@ -143,6 +143,18 @@ class CompileHaxe extends DefaultTask implements HaxeTask {
 		}
 	}
 
+	public void legacySource(String path)
+	{
+		if (path.startsWith("src/"))
+		{
+			legacyPlatformPaths << path.substring(4)
+		}
+		else
+		{
+			throw new IllegalArgumentException("Invalid legacy source path (should start with 'src/'): " + path)
+		}
+	}
+
 	@InputFiles
 	@SkipWhenEmpty
 	FileCollection resourceTree = new UnionFileCollection()
