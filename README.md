@@ -120,6 +120,11 @@ The old version of the Haxe plugin depends on the Java plugin, and piece-by-piec
 The Haxe plugin does not include the definition of default Prezi repositories and publishing rules. There should be a separate "Prezi" plugin for this. It's in the works.
 
 
+## Built-in combining of JS files
+
+Sometimes you need to combine your JS-built Haxe code with other JS files. Instead of using a separate task, we could add this functionality to the Haxe compiler task, so the end result of the compilation would already include any such preambles and postfixes.
+
+
 ## Bundling Haxe "headers" with built output
 
 It is already possible to use the HAR artifact as a self-contained dependency that can be used to build your sources togther with the dependency sources (and resources). This is like static linking in C.
