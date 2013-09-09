@@ -18,7 +18,7 @@ task run(type: Exec) {
 uploadArchives {
     repositories {
         mavenDeployer {
-            repository(url: "$nexusRepositoriesUrl/snapshots/") {
+            repository(url: "https://artifactory.prezi.com/plugins-snapshot-local/") {
                 authentication(userName: nexusUser, password: nexusPassword)
             }
         }
