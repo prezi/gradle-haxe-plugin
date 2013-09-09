@@ -57,7 +57,7 @@ class MUnit extends DefaultTask implements HaxeTask {
 				.withResources(resourcePath)
 				.withMacros(compileTask.macros)
 				.withFlags(testFlags)
-				.withFlags(compileTask.flagList)
+				.withFlags(compileTask.flagList.findAll({ it != "--js-modern" }))
 				.withDebugFlags(compileTask.debug)
 				.withTarget(compileTask.targetPlatform, output)
 				.withMain("TestMain")
