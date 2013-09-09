@@ -70,42 +70,68 @@ class HaxelibDependencyExtractor {
 		sync.into targetPath
 		sync.execute()
 
-		Manifest manifest = null
+		HaxelibType type = HaxelibType.VERSION_0_X
 		zip.visit { FileVisitDetails details ->
 			if (details.name == "MANIFEST.MF"
 					&& details.relativePath.parent
 					&& details.relativePath.parent.getLastName() == "META-INF"
-					&& details.relativePath.parent.parent)
+					&& details.relativePath.parent.parent
+					&& !details.relativePath.parent.parent.parent)
 			{
-				manifest = new DefaultManifest(details.file, fileResolver)
+				def manifest = new DefaultManifest(details.file, fileResolver)
+				if (manifest.getAttributes().get("Library-Version") == "1.0")
+				{
+					type = HaxelibType.VERSION_1_0
+					details.stopVisiting()
+				}
+			}
+			else if (details.name == "haxelib.xml"
+					&& details.relativePath.parent
+					&& !details.relativePath.parent.parent)
+			{
+				type = HaxelibType.HAXELIB
 				details.stopVisiting()
 			}
 		}
 
-		if (manifest && manifest.getAttributes().get("Library-Version") == "1.0")
-		{
-			def sources = new File(targetPath, "sources")
-			def resources = new File(targetPath, "resources")
-			if (sources.exists()) sourcePath.add(sources)
-			if (resources.exists()) resourcePath.add(resources)
-		}
-		else
-		{
-			def platformPathAdded = false;
-			legacyPlatformPaths.each { String legacyPlatformPath ->
-				def platformPath = new File(targetPath, legacyPlatformPath)
-				if (platformPath.directory)
-				{
-					sourcePath.add(platformPath)
-					platformPathAdded = true;
-				}
-			}
+		switch (type) {
+			case HaxelibType.VERSION_1_0:
+				def sources = new File(targetPath, "sources")
+				def resources = new File(targetPath, "resources")
+				if (sources.exists()) sourcePath.add(sources)
+				if (resources.exists()) resourcePath.add(resources)
+				break
 
-			// If we haven't found any platform paths, add the root
-			if (!platformPathAdded)
-			{
+			case HaxelibType.VERSION_0_X:
+				legacyPlatformPaths.each { String legacyPlatformPath ->
+					def platformPath = new File(targetPath, legacyPlatformPath)
+					if (platformPath.directory)
+					{
+						sourcePath.add(platformPath)
+					}
+				}
+				break
+
+			case HaxelibType.HAXELIB:
 				sourcePath.add(targetPath)
-			}
+				break
 		}
 	}
+}
+
+enum HaxelibType {
+	/**
+	 * Normal library.
+	 */
+	VERSION_1_0,
+
+	/**
+	 * Legacy library built with Haxe plugin 0.x.
+	 */
+	VERSION_0_X,
+
+	/**
+	 * Haxelib downloaded from official Haxe repositories.
+	 */
+	HAXELIB;
 }
