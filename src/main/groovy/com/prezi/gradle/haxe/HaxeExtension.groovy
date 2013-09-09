@@ -50,6 +50,12 @@ class HaxeExtension {
 		this.configuration = configuration
 	}
 
+	String targetPlatform
+	public targetPlatform(String targetPlatform)
+	{
+		this.targetPlatform = targetPlatform
+	}
+
 	void mapTo(CompileHaxe compileTask)
 	{
 		compileTask.main = main
@@ -60,5 +66,6 @@ class HaxeExtension {
 		compileTask.flagList = new LinkedHashSet<>(flagList)
 		compileTask.debug = debug
 		compileTask.configuration = configuration
+		compileTask.targetPlatform = targetPlatform
 	}
 }
