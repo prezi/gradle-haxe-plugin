@@ -171,11 +171,11 @@ class CompileHaxe extends DefaultTask implements HaxeTask {
 			switch (targetPlatform)
 			{
 				case "js":
-					return project.file("${project.buildDir}/compiled-haxe/${name}.js")
+					return project.file("${project.buildDir}/compiled-haxe/${getFullName()}.js")
 				case "swf":
-					return project.file("${project.buildDir}/compiled-haxe/${name}.swc")
+					return project.file("${project.buildDir}/compiled-haxe/${getFullName()}.swc")
 				default:
-					return null
+					throw new IllegalStateException("Unsopported platform: " + targetPlatform);
 			}
 		}
 	}
