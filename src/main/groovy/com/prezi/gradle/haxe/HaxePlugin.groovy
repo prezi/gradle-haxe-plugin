@@ -81,8 +81,8 @@ class HaxePlugin implements Plugin<Project> {
 			project.tasks.withType(CompileHaxe) { CompileHaxe compileTask ->
 				compileTask.configuration.artifacts.add(compileTask.sources)
 
-				compileTask.configuration.dependencies.withType(ProjectDependency) { ProjectDependency dependency ->
-					dependency.projectConfiguration.artifacts.withType(HarPublishArtifact) { HarPublishArtifact artifact ->
+				compileTask.configuration.allDependencies.withType(ProjectDependency) { ProjectDependency dependency ->
+					dependency.projectConfiguration.allArtifacts.withType(HarPublishArtifact) { HarPublishArtifact artifact ->
 						compileTask.dependsOn(artifact.buildDependencies.getDependencies(compileTask))
 					}
 				}
@@ -90,8 +90,8 @@ class HaxePlugin implements Plugin<Project> {
 			project.tasks.withType(MUnit) { MUnit munitTask ->
 				munitTask.testConfiguration.artifacts.add(munitTask.tests)
 
-				munitTask.testConfiguration.dependencies.withType(ProjectDependency) { ProjectDependency dependency ->
-					dependency.projectConfiguration.artifacts.withType(HarPublishArtifact) { HarPublishArtifact artifact ->
+				munitTask.testConfiguration.allDependencies.withType(ProjectDependency) { ProjectDependency dependency ->
+					dependency.projectConfiguration.allArtifacts.withType(HarPublishArtifact) { HarPublishArtifact artifact ->
 						munitTask.dependsOn(artifact.buildDependencies.getDependencies(munitTask))
 					}
 				}

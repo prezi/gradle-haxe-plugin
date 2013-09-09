@@ -38,7 +38,7 @@ class HaxelibDependencyExtractor {
 
 	private void extractDependenciesFromInternal(Configuration configuration, Set<File> sourcePath, Set<File> resourcePath)
 	{
-		configuration.dependencies.each { ModuleDependency dependency ->
+		configuration.allDependencies.each { ModuleDependency dependency ->
 			if (dependency instanceof ProjectDependency)
 			{
 				def projectDependency = dependency as ProjectDependency
@@ -54,9 +54,6 @@ class HaxelibDependencyExtractor {
 			{
 				configuration.files(dependency).each { File file ->
 					extractFile(file.name, file, sourcePath, resourcePath)
-				}
-				dependency.artifacts.each {
-					println ">>>>>> Artifact: " + it.name + " / " + it.class
 				}
 			}
 		}
