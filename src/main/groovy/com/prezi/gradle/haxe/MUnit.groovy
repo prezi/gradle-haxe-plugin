@@ -53,6 +53,8 @@ class MUnit extends DefaultTask implements HaxeTask {
 		def haxeCmd = new HaxeCommandBuilder("", "", "\n", false)
 				.withIncludePackages(compileTask.includePackages)
 				.withExcludePackages(compileTask.excludePackages)
+				.withIncludePackages(includePackages)
+				.withExcludePackages(excludePackages)
 				.withSources(sourcePath)
 				.withResources(resourcePath)
 				.withMacros(compileTask.macros)
@@ -166,6 +168,20 @@ class MUnit extends DefaultTask implements HaxeTask {
 	public testResource(paths)
 	{
 		testResourceTree.add(project.files(paths))
+	}
+
+	LinkedHashSet<String> includePackages = []
+
+	public includePackage(String pkg)
+	{
+		includePackages.add(pkg)
+	}
+
+	LinkedHashSet<String> excludePackages = []
+
+	public excludePackage(String pkg)
+	{
+		excludePackages.add(pkg)
 	}
 
 	private String classifier
