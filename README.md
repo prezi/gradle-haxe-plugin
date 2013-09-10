@@ -1,5 +1,5 @@
-Gradle Haxe Plugin Manual
-=========================
+Gradle Haxe Plugin
+==================
 
 # Basics
 
