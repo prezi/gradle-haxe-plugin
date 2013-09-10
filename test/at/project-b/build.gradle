@@ -4,7 +4,7 @@ import org.gradle.api.publish.ivy.IvyPublication
 configurations {
 	haxelibs
 	runtime
-	node.extendsFrom runtime
+	node { extendsFrom runtime }
 }
 
 dependencies {

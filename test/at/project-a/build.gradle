@@ -4,8 +4,8 @@ import org.gradle.api.publish.ivy.IvyPublication
 
 configurations {
 	runtime
-	test.extendsFrom runtime
-	node.extendsFrom runtime
+	test { extendsFrom runtime }
+	node { extendsFrom runtime }
 }
 
 dependencies {
