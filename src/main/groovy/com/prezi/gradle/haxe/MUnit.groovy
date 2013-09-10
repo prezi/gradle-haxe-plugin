@@ -89,7 +89,16 @@ class MUnit extends DefaultTask implements HaxeTask {
 		munitConfig << "bin=${workDir}\n"
 		munitConfig << "report=${workDir}/report\n"
 		munitConfig << "hxml=${testHxml}\n"
-		// munitConfig << "templates=src/munit/templates\n"
+
+		// Issue #1 -- Use UTF-8 compatible JS runner template
+		if (compileTask.targetPlatform == "js")
+		{
+			munitConfig << "templates=${workDir}/templates\n"
+			def templatesDir = new File(workDir, "templates")
+			project.mkdir(templatesDir)
+			def jsRunnerTemplate = new File(templatesDir, "js_runner-html.mtt")
+			jsRunnerTemplate << this.class.getResourceAsStream("/js_runner-html.mtt")
+		}
 
 		def munitCmd = new MUnitCommandBuilder(project)
 				.build()
