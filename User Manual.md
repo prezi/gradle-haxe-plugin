@@ -21,32 +21,30 @@ A `CompileHaxe` task will create two output artifacts:
 Syntax:
 
 	task compile(type: com.prezi.gradle.haxe.CompileHaxe) {
+		source "<directory>"
+		targetPlatform "<js|swf|as3>"
 
-Specify a source directory (repeat `source` clause for multiple source directories):
-
-		source <directory>
-
-Specify target platform:
-
-		targetPlatform "js|swf|as3"
-
-Optional parameters:
-
-Haxe resources are read from resource directories:
-
+		// Optional parameters
 		resource <directory>
-
-For JS and SWF use outputFile, for AS3 outputDirectory
-
+		includePackage "<package|class>"
+		excludePackage "<package|class>"
 		outputFile <file>
-		outputDirectory <directory> // For AS3 output
-
-Things like `"-D node"` or `"--js-modern"`
-
+		outputDirectory <directory>
 		flag <flag>
-
 		debug true|false
 	}
+
+Parameters:
+
+* `source` -- specify a source directory. Repeat `source` clause for multiple source directories.
+* `resource` -- specify a resource directory. Repeat `resource` clause for multiple resource directories.
+* `includePackage`, `excludePackage` -- adds `--macro include('…')` to the build path.
+* `targetPlatform` -- specify the target platform.
+* `output(File|Directory)` -- For JS and SWF use `outputFile`, for AS3 use `outputDirectory`. If not specified, defaults to `${project.name}-${classifier}.{targetPlatform}`.
+* `flag` -- add flag on Haxe command path, such as `"-D node"` or `"--js-modern"`.
+* `debug` -- well, debug.
+
+
 
 ### Testing
 
