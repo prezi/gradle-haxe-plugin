@@ -63,14 +63,14 @@ class HaxePlugin implements Plugin<Project> {
 		}
 
 		// Add test task
-		def testAllTask = project.tasks.findByName("munit")
+		def testAllTask = project.tasks.findByName("test")
 		if (testAllTask == null)
 		{
-			testAllTask = project.tasks.create("munit")
+			testAllTask = project.tasks.create("test")
 			testAllTask.group = TEST_TASKS_GROUP
 			testAllTask.description = "Test built Haxe artifacts"
 		}
-		project.beforeEvaluate {
+		project.afterEvaluate {
 			project.tasks.withType(MUnit) { MUnit munitTask ->
 				munitTask.group = TEST_TASKS_GROUP
 				testAllTask.dependsOn munitTask

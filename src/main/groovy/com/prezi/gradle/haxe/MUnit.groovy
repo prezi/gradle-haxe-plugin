@@ -78,8 +78,7 @@ class MUnit extends DefaultTask implements HaxeTask {
 		munitConfig << "hxml=${testHxml}\n"
 		// munitConfig << "templates=src/munit/templates\n"
 
-		def munitCmd = new MUnitCommandBuilder()
-				.withDebug(debug)
+		def munitCmd = new MUnitCommandBuilder(project)
 				.build()
 
 		CommandExecutor.execute(project, munitCmd, workDir)
@@ -224,6 +223,4 @@ class MUnit extends DefaultTask implements HaxeTask {
 	{
 		testFlags += " $flag"
 	}
-
-	boolean debug
 }
