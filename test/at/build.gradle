@@ -26,8 +26,10 @@ configure(allprojects) {
 			url "http://intra.prezi.com:8081/nexus/content/groups/public/"
 		}
 	}
+}
 
-	publishing {
+configure(subprojects) {
+	install {
 		repositories {
 			ivy {
 				url "file://$rootProject.buildDir/repo"

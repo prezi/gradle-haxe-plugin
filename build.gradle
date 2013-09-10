@@ -12,7 +12,7 @@ dependencies {
 
 task run(type: Exec) {
 	workingDir "test/at"
-	commandLine = [ "gradle", "clean", "munit", "publish", "--info", "--stacktrace" ]
+	commandLine = [ "gradle", "clean", "test", "install", "-Pmunit.kill-browser", "--info", "--stacktrace" ]
 }
 
 uploadArchives {

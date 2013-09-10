@@ -57,14 +57,3 @@ task tibor(type: CompileHaxe) {
 task lajosDep {
 	dependsOn lajos
 }
-
-publishing {
-	publications {
-		ivy(IvyPublication) {
-			artifact(lajos.artifact)
-			artifact(lajos.sources)
-			artifact(testLajos.tests)
-			artifact(tasks["lajos-node"].sources)
-		}
-	}
-}

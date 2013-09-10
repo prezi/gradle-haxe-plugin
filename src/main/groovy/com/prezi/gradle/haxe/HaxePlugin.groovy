@@ -2,10 +2,12 @@ package com.prezi.gradle.haxe
 
 import org.gradle.api.Plugin
 import org.gradle.api.Project
+import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.Dependency
 import org.gradle.api.artifacts.ProjectDependency
 import org.gradle.api.internal.tasks.TaskResolver
 import org.gradle.api.tasks.Delete
+import org.gradle.api.tasks.Upload
 import org.gradle.configuration.project.ProjectConfigurationActionContainer
 import org.gradle.internal.reflect.Instantiator
 
@@ -47,6 +49,18 @@ class HaxePlugin implements Plugin<Project> {
 			haxeExtension.mapTo(compileTask)
 		}
 
+		// Add "archives" and "testArchives" configuration
+		Configuration archivesConfig = project.configurations.findByName("archives")
+		if (archivesConfig == null)
+		{
+			archivesConfig = project.configurations.create("archives")
+		}
+		Configuration testArchivesConfig = project.configurations.findByName("testArchives")
+		if (testArchivesConfig == null)
+		{
+			testArchivesConfig = project.configurations.create("testArchives")
+		}
+
 		// Add build task
 		def buildTask = project.tasks.findByName("build")
 		if (buildTask == null)
@@ -77,9 +91,23 @@ class HaxePlugin implements Plugin<Project> {
 			}
 		}
 
+		// Add install tasks
+		Upload installTask = project.tasks.create(name: "install", type: Upload)
+		installTask.configuration = archivesConfig
+		Upload installTestsTask = project.tasks.create(name: "installTests", type: Upload)
+		installTestsTask.configuration = testArchivesConfig
+
+		// Add uploadArchives tasks
+		Upload uploadArchivesTask = project.tasks.create(name: "uploadArchives", type: Upload)
+		uploadArchivesTask.configuration = archivesConfig
+		Upload uploadTestArchivesTask = project.tasks.create(name: "uploadTestArchives", type: Upload)
+		uploadTestArchivesTask.configuration = testArchivesConfig
+
 		project.afterEvaluate {
 			project.tasks.withType(CompileHaxe) { CompileHaxe compileTask ->
-				compileTask.configuration.artifacts.add(compileTask.sources)
+				def artifacts = [ compileTask.artifact, compileTask.sources ]
+				compileTask.configuration.artifacts.addAll(artifacts)
+				archivesConfig.artifacts.addAll(artifacts)
 
 				compileTask.configuration.allDependencies.withType(ProjectDependency) { ProjectDependency dependency ->
 					dependency.projectConfiguration.allArtifacts.withType(HarPublishArtifact) { HarPublishArtifact artifact ->
@@ -89,6 +117,7 @@ class HaxePlugin implements Plugin<Project> {
 			}
 			project.tasks.withType(MUnit) { MUnit munitTask ->
 				munitTask.testConfiguration.artifacts.add(munitTask.tests)
+				testArchivesConfig.artifacts.add(munitTask.tests)
 
 				munitTask.testConfiguration.allDependencies.withType(ProjectDependency) { ProjectDependency dependency ->
 					dependency.projectConfiguration.allArtifacts.withType(HarPublishArtifact) { HarPublishArtifact artifact ->

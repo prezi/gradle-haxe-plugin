@@ -27,12 +27,3 @@ task friciNode(type: CompileHaxe) {
 	classifier "node"
 	main "prezi.test.Main"
 }
-
-publishing {
-	publications {
-		ivy(IvyPublication) {
-			artifact(frici.sources)
-			artifact(friciNode.sources)
-		}
-	}
-}
