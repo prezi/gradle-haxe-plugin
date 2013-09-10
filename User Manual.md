@@ -33,7 +33,7 @@ Syntax:
 
 Parameters:
 
-* `classifier` -- the classifier to use for the 
+* `classifier` -- the classifier to use for the built artifacts.
 * `configuration` -- the Gradle configuration to bind the resulting artifacts to, and to search for dependencies from.
 * `debug` -- enables `-debug` and `-D fdb`.
 * `excludePackage` -- adds `--macro exclude('…')` to the build command.
@@ -53,12 +53,16 @@ The `MUnit` task tests the results of a compilation task with [MassiveUnit](http
 
 	task munit(type: com.prezi.gradle.haxe.MUnit) {
 		test <task>
-		testResource <directory>
 		testSource <directory>
+
+		// Optional parameters
+		testResource <directory>
+		debug <true|false>
 	}
 
 Parameters:
 
+* `debug` -- run tests tagged with `@TestDebug` only.
 * `test` -- the `CompileHaxe` task to test.
 * `testResource` -- directory with test resources. Repeat clause for multiple directories.
 * `testSource` -- directory with test sources. Repeat clause for multiple directories.
