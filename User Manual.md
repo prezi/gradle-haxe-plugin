@@ -3,8 +3,6 @@ Gradle Haxe Plugin Manual
 
 # Basics
 
-## Workflow
-
 The Haxe plugin consists of three parts:
 
 * compilation and source bundling
@@ -13,37 +11,40 @@ The Haxe plugin consists of three parts:
 
 ### Compilation
 
-A `CompileHaxe` task will create two output artifacts:
-
-* `output`: the compiled code, i.e. the `.js` or `.swf` file. You can use this output as is.
-* `soruces`: the `.har` archive that you can use to link your module together with other projects on the source level.
-
 Syntax:
 
 	task compile(type: com.prezi.gradle.haxe.CompileHaxe) {
-		source "<directory>"
+		main "<main-class>"
+		source <directory>
 		targetPlatform "<js|swf|as3>"
-
+	
 		// Optional parameters
-		resource <directory>
-		includePackage "<package|class>"
+		classifier "<classifier>"
+		configuration <configuration>
+		debug <true|false>
 		excludePackage "<package|class>"
-		outputFile <file>
+		flag "<flag>"
+		includePackage "<package|class>"
+		macro "<macro>"
 		outputDirectory <directory>
-		flag <flag>
-		debug true|false
+		outputFile <file>
+		resource <directory>
 	}
 
 Parameters:
 
-* `source` -- specify a source directory. Repeat `source` clause for multiple source directories.
-* `resource` -- specify a resource directory. Repeat `resource` clause for multiple resource directories.
-* `includePackage`, `excludePackage` -- adds `--macro include('…')` to the build path.
-* `targetPlatform` -- specify the target platform.
-* `output(File|Directory)` -- For JS and SWF use `outputFile`, for AS3 use `outputDirectory`. If not specified, defaults to `${project.name}-${classifier}.{targetPlatform}`.
+* `classifier` -- the classifier to use for the 
+* `configuration` -- the Gradle configuration to bind the resulting artifacts to, and to search for dependencies from.
+* `debug` -- enables `-debug` and `-D fdb`.
+* `excludePackage` -- adds `--macro exclude('…')` to the build command.
 * `flag` -- add flag on Haxe command path, such as `"-D node"` or `"--js-modern"`.
-* `debug` -- well, debug.
-
+* `includePackage` -- adds `--macro include('…')` to the build command.
+* `macro` -- adds `--macro "…"` on the build command.
+* `main` -- specifies main class.
+* `resource` -- specify a resource directory. Repeat `resource` clause for multiple resource directories.
+* `output(File|Directory)` -- For JS and SWF use `outputFile`, for AS3 use `outputDirectory`. If not specified, defaults to `${project.name}-${classifier}.{targetPlatform}`.
+* `source` -- specify a source directory. Repeat `source` clause for multiple source directories.
+* `targetPlatform` -- specify the target platform.
 
 
 ### Testing
@@ -51,9 +52,39 @@ Parameters:
 The `MUnit` task tests the results of a compilation task with [MassiveUnit](https://github.com/massiveinteractive/MassiveUnit). To set it up you need to provide two things:
 
 	task munit(type: com.prezi.gradle.haxe.MUnit) {
-		test <compile-task-name>
-		testSource <directory-with-test-sources>
+		test <task>
+		testResource <directory>
+		testSource <directory>
 	}
+
+Parameters:
+
+* `test` -- the `CompileHaxe` task to test.
+* `testResource` -- directory with test resources. Repeat clause for multiple directories.
+* `testSource` -- directory with test sources. Repeat clause for multiple directories.
+
+
+### Publishing
+
+A `CompileHaxe` task will create two output artifacts:
+
+* `artifact`: the compiled code, i.e. the `.js` or `.swf` file. You can use this output as is.
+* `soruces`: the `.har` archive that you can use to link your module together with other projects on the source level.
+
+You can publish these via the `ivy-publish` plugin:
+
+	apply plugin: "ivy-publish"
+
+	publishing {
+		publications {
+			ivy(IvyPublication) {
+				artifact(compileTask.artifact)
+				artifact(compileTask.sources)
+			}
+		}
+	}
+
+The artifacts pick up configuration parameters (like `classifier` and `configuration`) from the compile task.
 
 # Examples
 
@@ -67,7 +98,7 @@ You have a project with the following source folders for separate platforms:
 	/src/browser -- code when used from a web browser
 	/src/as      -- ActionScript-specific stuff
 
-You can set up three builds for Node, web browser and AS as such:
+You can set up three builds for Node, web browser and AS as follows:
 
 	task compileBrowser(type: CompileHaxe) {
 		targetPlatform "js"
@@ -95,11 +126,18 @@ You can set up three builds for Node, web browser and AS as such:
 		source "src/as"
 	}
 
-This will give you three `.har` archives, each containing sources from their respective source folders:
+Each task will give you two artifacts: the built code and the source `.har` archive:
 
-* `project-browser.har` -- `src/common`, `src/js`, `src/browser`
-* `project-node.har` -- `src/common`, `src/js`, `src/node`
-* `project-as.har` -- `src/common`, `src/as`
+* `compileBrowser`:
+	* `project-browser.js`
+	* `project-browser.har` -- including `src/common`, `src/js`, `src/browser`
+* `compileNode`:
+	* `project-node.js`
+	* `project-node.har` -- including `src/common`, `src/js`, `src/node`
+* `compileAS`:
+	* `project-as.swf`	
+	* `project-as.har` -- including `src/common`, `src/as`
+
 
 ### Resources
 
