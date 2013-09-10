@@ -1,140 +1,190 @@
-Gradle Haxe Plugin
-==================
+Gradle Haxe Plugin Manual
+=========================
 
-# How to try it
+# Basics
 
-If you want to test it, you can try:
+The Haxe plugin consists of three parts:
 
-	# Let's build
-	gradle clean install
-	# This will run the test build
-	gradle run
+* compilation and source bundling
+* testing
+* publishing
 
-This will run the [test-project](test/at). Once you've installed the plugin, you can also run the test project manually with `gradle build` in the `test/at` directory.
+### Compilation
 
+Syntax:
 
-# Improvements over version 0.x
-
-
-## Bundling sources and resources
-
-With the 0.x version of the plugin, it is hard to follow which source folders from which dependency participate in a build.
-
-The 1.0 version of the `CompileHaxe` task builds two output artifacts:
-
-* the output of the Haxe compiler (i.e. your output JS or SWF file)
-* a HAR (Haxe ARchive) containing the sources and the resources required to build the project
-
-You can safely depend on the `.har` artifact in another project without having to worry about
-
-* which source folders to include (the HAR has only one `sources` folder with only the sources to build one specific platform), or
-* how to access resources (they are in the HAR file).
-
-The `CompileHaxe` task handles HAR dependencies automatically, but it also accepts 0.x-style `hxsrc` archives and standard Haxelibs, too.
-
-
-## Dependencies between projects in a multi-project build
-
-Suppose you have a build like this:
-
-	root
-	+- project-a
-	|   +- build.gradle
-	+- project-b
-	|   +- build.gradle
-	+- build.gradle
-	+- settings.gradle
-    
-Then you can do this in `project-b/build.gradle`:
-
-	dependencies {
-		runtime project(path: ":project-a", configuration: "runtime")
-	}
-
-If you build `project-b` only, it will run the required tasks from `project-a` as well.
-
-
-## Easier testing
-
-The 0.x version only supported one MUnit test task to be run, with tests contained in the `src/common` directory. Now you can have a test task for each of your builds with different tests for each platform:
-
-	task buildServer(type: CompileHaxe) {
-		configuration configurations.runtime
-		source "src/main/haxe/common"
-		source "src/main/haxe/js"
-		resource "src/main/resources"
-		targetPlatform "js"
-	}
+	task compile(type: com.prezi.gradle.haxe.CompileHaxe) {
+		main "<main-class>"
+		source <directory>
+		targetPlatform "<js|swf|as3>"
 	
-	task testServer(type: MUnit) {
-		// The build to test
-		test buildServer
-		// Tests can be found in these directories
-		testSource "src/test/haxe/common"
-		testSource "src/test/haxe/js"
-		// You can add resources for testing
-		testResource "src/test/resources"
+		// Optional parameters
+		classifier "<classifier>"
+		configuration <configuration>
+		debug <true|false>
+		excludePackage "<package|class>"
+		flag "<flag>"
+		includePackage "<package|class>"
+		macro "<macro>"
+		outputDirectory <directory>
+		outputFile <file>
+		resource <directory>
 	}
 
+Parameters:
 
-## Easier publishing
+* `classifier` -- the classifier to use for the built artifacts.
+* `configuration` -- the Gradle configuration to bind the resulting artifacts to, and to search for dependencies from.
+* `debug` -- enables `-debug` and `-D fdb`.
+* `excludePackage` -- adds `--macro exclude('…')` to the build command.
+* `flag` -- add flag on Haxe command path, such as `"-D node"` or `"--js-modern"`.
+* `includePackage` -- adds `--macro include('…')` to the build command.
+* `macro` -- adds `--macro "…"` on the build command.
+* `main` -- specifies main class.
+* `resource` -- specify a resource directory. Repeat `resource` clause for multiple resource directories.
+* `output(File|Directory)` -- For JS and SWF use `outputFile`, for AS3 use `outputDirectory`. If not specified, defaults to `${project.name}-${classifier}.{targetPlatform}`.
+* `source` -- specify a source directory. Repeat `source` clause for multiple source directories.
+* `targetPlatform` -- specify the target platform.
 
-You can publish via the `ivy-publish` plugin like this:
+
+### Testing
+
+The `MUnit` task tests the results of a compilation task with [MassiveUnit](https://github.com/massiveinteractive/MassiveUnit). To set it up you need to provide two things:
+
+	task munit(type: com.prezi.gradle.haxe.MUnit) {
+		test <task>
+		testSource <directory>
+
+		// Optional parameters
+		testResource <directory>
+		debug <true|false>
+	}
+
+Parameters:
+
+* `debug` -- run tests tagged with `@TestDebug` only.
+* `test` -- the `CompileHaxe` task to test.
+* `testResource` -- directory with test resources. Repeat clause for multiple directories.
+* `testSource` -- directory with test sources. Repeat clause for multiple directories.
+
+
+### Publishing
+
+A `CompileHaxe` task will create two output artifacts:
+
+* `artifact`: the compiled code, i.e. the `.js` or `.swf` file. You can use this output as is.
+* `soruces`: the `.har` archive that you can use to link your module together with other projects on the source level.
+
+You can publish these via the `ivy-publish` plugin:
 
 	apply plugin: "ivy-publish"
-	
-	task buildServer(type: CompileHaxe) {
-		configuration configurations.runtime
-		source "src/main/haxe/common"
-		source "src/main/haxe/js"
-		resource "src/main/resources"
-		targetPlatform "js"
-	}
-	
+
 	publishing {
-		repositories {
-			ivy {
-				// Define Ivy repository
-			}
-		}
 		publications {
 			ivy(IvyPublication) {
-				// This is the built JS file
-				artifact(buildServer.artifact)
-				// This is the HAR archive of sources and resources
-				artifact(buildServer.sources)
+				artifact(compileTask.artifact)
+				artifact(compileTask.sources)
 			}
 		}
 	}
 
-## No reliance on Java plugins
+The artifacts pick up configuration parameters (like `classifier` and `configuration`) from the compile task.
 
-The old version of the Haxe plugin depends on the Java plugin, and piece-by-piece removes functionality (.jar artifacts etc.) that are not required. The new plugin avoids these pitfalls.
+# Examples
+
+## Compilation: the `CompileHaxe` task
+
+You have a project with the following source folders for separate platforms:
+
+	/src/common  -- shared code for all platforms
+	/src/js      -- JS-specific code (i.e. for Node.JS and browser)
+	/src/node    -- code used only from Node.JS
+	/src/browser -- code when used from a web browser
+	/src/as      -- ActionScript-specific stuff
+
+You can set up three builds for Node, web browser and AS as follows:
+
+	task compileBrowser(type: CompileHaxe) {
+		targetPlatform "js"
+		classifier "browser"
+		configuration configurations.browser
+		source "src/common"
+		source "src/js"
+		source "src/browser"
+	}
+
+	task compileNode(type: CompileHaxe) {
+		targetPlatform "js"
+		classifier "node"
+		configuration configurations.node
+		source "src/common"
+		source "src/js"
+		source "src/node"
+	}
+
+	task compileAS(type: CompileHaxe) {
+		targetPlatform "swf"
+		classifier "as"
+		configuration configurations.as
+		source "src/common"
+		source "src/as"
+	}
+
+Each task will give you two artifacts: the built code and the source `.har` archive:
+
+* `compileBrowser`:
+	* `project-browser.js`
+	* `project-browser.har` -- including `src/common`, `src/js`, `src/browser`
+* `compileNode`:
+	* `project-node.js`
+	* `project-node.har` -- including `src/common`, `src/js`, `src/node`
+* `compileAS`:
+	* `project-as.swf`	
+	* `project-as.har` -- including `src/common`, `src/as`
 
 
-# Planned improvements
+### Resources
+
+TBD
+
+### The `.har` archive
+
+The `.har` archive includes everything needed to build your project:
+
+	+- META-INF
+	|   +- MANIFEST.MF  -- manifest describing the archive
+	+- sources          -- all source files copied into one folder
+	+- resources        -- all resources copied into one folder
+
+Each compile task builds a `.har` artifact for one specific platform. This means if you want to build a project for JS and AS3 as well, you will end up with two archives. See example below.
+
+### The `build` task
+
+A task called `build` is automatically generated by the Haxe plugin that automatically depends on all `CompileHaxe` tasks. So in order to build everything in your project, you can simply issue
+
+	gradle build
+
+## Testing: the `MUnit` task
+
+If you want to test your code with MUnit, you will need to define some test tasks. Keeping with the example above, here's how you could test the browser artifact:
+
+	task munitBrowser(type: MUnit) {
+		test compileBrowser
+		testSource "test/common"
+		testSource "test/some-tests-for-browser-only"
+	}
+
+You can then run the tests via
+
+	gradle munitBrowser
 
 
-## "Prezi" plugin
 
-The Haxe plugin does not include the definition of default Prezi repositories and publishing rules. There should be a separate "Prezi" plugin for this. It's in the works.
+### The `test` tasks
 
+Similar to the auto-generated `build` task, the Haxe plugin also creates a catch-all task for all tasks of type `MUnit` called `test`. So to run all MUnit tests on your project you can go:
 
-## Built-in combining of JS files
+	gradle test
 
-Sometimes you need to combine your JS-built Haxe code with other JS files. Instead of using a separate task, we could add this functionality to the Haxe compiler task, so the end result of the compilation would already include any such preambles and postfixes.
+## Publishing
 
-
-## Bundling Haxe "headers" with built output
-
-It is already possible to use the HAR artifact as a self-contained dependency that can be used to build your sources togther with the dependency sources (and resources). This is like static linking in C.
-
-It would be nice to have something resembling dynamic linking a well: you take the built JS/SWC output of a module, and use that in another Haxe module. To do this, the dependent module must know about the structure of the JS/SWC file.
-
-The Haxe plugin could generate another artifact that includes the built JS/SWC output of the build, plus "header" Haxe files, i.e. Haxe classes that are only `extern`s of the original classes.
-
-This should be fairly simple to implement wiht the plugin.
-
-## Rename 'build' task to 'compile'
-
-So you can go `gradle compile` and `gradle test` on your project.
