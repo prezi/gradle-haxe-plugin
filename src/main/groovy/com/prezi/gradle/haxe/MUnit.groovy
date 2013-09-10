@@ -15,8 +15,11 @@ import org.gradle.api.tasks.SkipWhenEmpty
 import org.gradle.api.tasks.TaskAction
 import org.gradle.internal.reflect.Instantiator
 
+import java.util.regex.Pattern
+
 class MUnit extends DefaultTask implements HaxeTask {
 	static final String WORKING_DIRECTORY_PREFIX = "munit-work"
+	static final Pattern SUCCESSFUL_TEST_PATTERN = ~/(?m)^PLATFORMS TESTED: \d+, PASSED: \d+, FAILED: 0, ERRORS: 0, TIME:/
 
 	@TaskAction
 	void munit()
@@ -50,7 +53,7 @@ class MUnit extends DefaultTask implements HaxeTask {
 		def output = getOutput()
 		project.mkdir(output.parentFile)
 
-		def haxeCmd = new HaxeCommandBuilder("", "", "\n", false)
+		def haxeCmdParts = new HaxeCommandBuilder()
 				.withIncludePackages(compileTask.includePackages)
 				.withExcludePackages(compileTask.excludePackages)
 				.withIncludePackages(includePackages)
@@ -64,6 +67,16 @@ class MUnit extends DefaultTask implements HaxeTask {
 				.withTarget(compileTask.targetPlatform, output)
 				.withMain("TestMain")
 				.build()
+
+		def haxeCmd = "";
+		haxeCmdParts.each {
+			if (it.startsWith("-")) {
+				haxeCmd += "\n"
+			} else {
+				haxeCmd += " "
+			}
+			haxeCmd += it
+		}
 
 		def testHxml = new File(workDir, "test.hxml")
 		testHxml.delete()
@@ -81,7 +94,12 @@ class MUnit extends DefaultTask implements HaxeTask {
 		def munitCmd = new MUnitCommandBuilder(project)
 				.build()
 
-		CommandExecutor.execute(project, munitCmd, workDir)
+		def result = CommandExecutor.execute(project, munitCmd, workDir)
+		if (!SUCCESSFUL_TEST_PATTERN.matcher(result).find())
+		{
+			logger.warn("{}", result)
+			throw new RuntimeException("There are failing tests");
+		}
 
 		def copyAction = new HarCopyAction(instantiator, fileResolver, temporaryDirFactory,
 				getTestSourceArchive(), testSourceTree, testResourceTree)
@@ -217,10 +235,10 @@ class MUnit extends DefaultTask implements HaxeTask {
 		this.workingDirectory = project.file(workingDirectory)
 	}
 
-	private String testFlags = ''
+	private List<String> testFlags = []
 
-	public void testFlag(String flag)
+	public void testFlag(String... flag)
 	{
-		testFlags += " $flag"
+		testFlags.addAll(flag)
 	}
 }

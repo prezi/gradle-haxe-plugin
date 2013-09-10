@@ -30,7 +30,7 @@ class CompileHaxe extends DefaultTask implements HaxeTask {
 		resourcePath.addAll(resourceTree.files)
 		extractor.extractDependenciesFrom(getConfiguration(), sourcePath, resourcePath)
 
-		String cmd = new HaxeCommandBuilder("haxe", " ", "", true)
+		String[] cmd = new HaxeCommandBuilder("haxe")
 				.withMain(main)
 				.withTarget(targetPlatform, getAndCreateOutput())
 				.withMacros(macros)
@@ -281,9 +281,9 @@ class CompileHaxe extends DefaultTask implements HaxeTask {
 		this
 	}
 
-	public void flag(String flag)
+	public void flag(String... flag)
 	{
-		flagList.add(flag)
+		flagList.addAll(flag)
 	}
 
 	String baseName

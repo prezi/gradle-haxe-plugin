@@ -9,7 +9,6 @@ import org.gradle.api.internal.file.FileResolver
 import org.gradle.api.internal.file.copy.FileCopyActionImpl
 import org.gradle.api.internal.file.copy.FileCopySpecVisitor
 import org.gradle.api.internal.file.copy.SyncCopySpecVisitor
-import org.gradle.api.java.archives.Manifest
 import org.gradle.api.java.archives.internal.DefaultManifest
 import org.gradle.internal.reflect.Instantiator
 

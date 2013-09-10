@@ -4,20 +4,24 @@ import org.gradle.api.Project
 import org.gradle.process.internal.ExecException
 
 class CommandExecutor {
-	public static void execute(Project project, String cmd, File dir = null)
+	public static String execute(Project project, String[] cmd, File dir = null)
 	{
-		def res = project.exec {
-			executable = 'bash'
-			args "-c", cmd
-			setIgnoreExitValue true
-			if (dir != null)
-			{
-				workingDir dir
-			}
+		project.logger.info("Executing in {}: {}", dir, cmd)
+		def output = new StringWriter()
+		def proc = cmd.execute((String[]) null, dir)
+		proc.in.eachLine { line ->
+			project.logger.info("{}", line)
+			output.println(line)
 		}
-		if (res.exitValue != 0)
+		proc.err.eachLine { line ->
+			project.logger.warn("{}", line)
+			output.println(line)
+		}
+		proc.waitFor()
+		if (proc.exitValue() != 0)
 		{
-			throw new ExecException("Command finished with non-zero exit value (${res.exitValue}):\n${cmd}")
+			throw new ExecException("Command finished with non-zero exit value (${proc.exitValue()}):\n${cmd}")
 		}
+		return output.toString()
 	}
 }
