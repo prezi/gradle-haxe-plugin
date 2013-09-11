@@ -22,9 +22,21 @@ apply plugin: 'maven'
 apply plugin: 'idea'
 apply plugin: 'prezi'
 
+repositories {
+	mavenLocal()
+	maven {
+		credentials {
+			username nexusUser
+			password nexusPassword
+		}
+		url "https://artifactory.prezi.com/plugins-snapshot"
+	}
+}
+
 dependencies {
-    compile gradleApi()
-    compile localGroovy()
+	compile gradleApi()
+	compile localGroovy()
+	compile "com.prezi.gradle:gradle-prezi-plugin:1.0-SNAPSHOT"
 }
 
 task run(type: Exec) {
@@ -33,11 +45,11 @@ task run(type: Exec) {
 }
 
 uploadArchives {
-    repositories {
-        mavenDeployer {
-            repository(url: "https://artifactory.prezi.com/plugins-snapshot-local/") {
-                authentication(userName: nexusUser, password: nexusPassword)
-            }
-        }
-    }
+	repositories {
+		mavenDeployer {
+			repository(url: "https://artifactory.prezi.com/plugins-snapshot-local/") {
+				authentication(userName: nexusUser, password: nexusPassword)
+			}
+		}
+	}
 }

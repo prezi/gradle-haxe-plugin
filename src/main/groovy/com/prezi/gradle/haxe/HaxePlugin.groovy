@@ -1,5 +1,7 @@
 package com.prezi.gradle.haxe
 
+import com.prezi.gradle.PreziPlugin;
+
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.artifacts.Configuration
@@ -33,6 +35,8 @@ class HaxePlugin implements Plugin<Project> {
 	@Override
 	void apply(Project project)
 	{
+		project.getPlugins().apply(PreziPlugin.class);
+
 		// Add clean task
 		def cleanTask = project.tasks.create("clean", Delete)
 		cleanTask.delete(project.buildDir)
