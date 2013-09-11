@@ -111,7 +111,8 @@ class HaxePlugin implements Plugin<Project> {
 
 				compileTask.configuration.allDependencies.withType(ProjectDependency) { ProjectDependency dependency ->
 					dependency.projectConfiguration.allArtifacts.withType(HarPublishArtifact) { HarPublishArtifact artifact ->
-						compileTask.dependsOn(artifact.buildDependencies.getDependencies(compileTask))
+						compileTask.dependsOn(artifact)
+						compileTask.inputs.file(artifact.file)
 					}
 				}
 			}
@@ -121,7 +122,8 @@ class HaxePlugin implements Plugin<Project> {
 
 				munitTask.testConfiguration.allDependencies.withType(ProjectDependency) { ProjectDependency dependency ->
 					dependency.projectConfiguration.allArtifacts.withType(HarPublishArtifact) { HarPublishArtifact artifact ->
-						munitTask.dependsOn(artifact.buildDependencies.getDependencies(munitTask))
+						munitTask.dependsOn(artifact)
+						munitTask.inputs.file(artifact.file)
 					}
 				}
 			}
