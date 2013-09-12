@@ -84,7 +84,7 @@ class HaxelibDependencyExtractor {
 					details.stopVisiting()
 				}
 			}
-			else if (details.name == "haxelib.xml"
+			else if ((details.name == "haxelib.json" || details.name == "haxelib.xml")
 					&& details.relativePath.parent
 					&& !details.relativePath.parent.parent)
 			{
