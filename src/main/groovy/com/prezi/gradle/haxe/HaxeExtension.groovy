@@ -13,6 +13,10 @@ class HaxeExtension {
 	}
 
 	boolean debug = false
+	public debug(boolean value)
+	{
+		this.debug = value
+	}
 
 	List<String> macros = []
 	public macro(String m)
