@@ -10,5 +10,8 @@ class CompileHaxe extends com.prezi.gradle.haxe.CompileHaxe {
 	CompileHaxe()
 	{
 		DeprecationLogger.nagUserOfReplacedTaskType(name, com.prezi.gradle.haxe.CompileHaxe.name)
+
+		// Legacy projects work with 'hxsrc' as their default configuration
+		configuration = project.configurations.findByName("hxsrc")
 	}
 }
