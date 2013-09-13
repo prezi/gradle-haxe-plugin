@@ -1,6 +1,6 @@
 package com.prezi.gradle.task
 
-import org.gradle.api.tasks.TaskAction;
+import com.prezi.gradle.haxe.DeprecationLogger
 
 /**
  * Only here for backwards compatibility, use {@link com.prezi.gradle.haxe.CompileHaxe} instead.
@@ -9,6 +9,6 @@ import org.gradle.api.tasks.TaskAction;
 class CompileHaxe extends com.prezi.gradle.haxe.CompileHaxe {
 	CompileHaxe()
 	{
-		logger.warn("Please don\'t use '${CompileHaxe}' as it is deprecated. Use '${com.prezi.gradle.haxe.CompileHaxe}' instead.")
+		DeprecationLogger.nagUserOfReplacedTaskType(name, com.prezi.gradle.haxe.CompileHaxe.name)
 	}
 }

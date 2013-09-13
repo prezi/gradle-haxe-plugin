@@ -1,4 +1,5 @@
 group = 'com.prezi.gradle'
+version = "1.0-SNAPSHOT"
 
 buildscript {
 	repositories {

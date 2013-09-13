@@ -143,8 +143,10 @@ class CompileHaxe extends DefaultTask implements HaxeTask {
 		}
 	}
 
+	@Deprecated
 	public void legacySource(String path)
 	{
+		DeprecationLogger.nagUserOfReplacedProperty("legacySource", "includeLegacyPlatform")
 		if (path.startsWith("src/"))
 		{
 			legacyPlatformPaths << path.substring(4)
@@ -153,6 +155,11 @@ class CompileHaxe extends DefaultTask implements HaxeTask {
 		{
 			throw new IllegalArgumentException("Invalid legacy source path (should start with 'src/'): " + path)
 		}
+	}
+
+	public void includeLegacyPlatform(String platform)
+	{
+		legacyPlatformPaths << path
 	}
 
 	@InputFiles
@@ -277,6 +284,7 @@ class CompileHaxe extends DefaultTask implements HaxeTask {
 	@Deprecated
 	public void setFlags(String flagsToAdd)
 	{
+		DeprecationLogger.nagUserOfReplacedProperty("flags", "flag")
 		((" " + flagsToAdd.trim()).split(" -")).each { if (it) flag("-$it") }
 		this
 	}
