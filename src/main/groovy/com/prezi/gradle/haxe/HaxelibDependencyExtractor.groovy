@@ -97,21 +97,39 @@ class HaxelibDependencyExtractor {
 			case HaxelibType.VERSION_1_0:
 				def sources = new File(targetPath, "sources")
 				def resources = new File(targetPath, "resources")
-				if (sources.exists()) sourcePath.add(sources)
-				if (resources.exists()) resourcePath.add(resources)
+				if (sources.exists())
+				{
+					project.logger.debug("Prezi Haxelib 1.0, adding sources at {}", sources)
+					sourcePath.add(sources)
+				}
+				if (resources.exists())
+				{
+					project.logger.debug("Prezi Haxelib 1.0, adding resources at {}", sources)
+					resourcePath.add(resources)
+				}
 				break
 
 			case HaxelibType.VERSION_0_X:
+				def platformAdded = false
 				legacyPlatformPaths.each { String legacyPlatformPath ->
 					def platformPath = new File(targetPath, legacyPlatformPath)
 					if (platformPath.directory)
 					{
+						project.logger.debug("Prezi Haxelib 0.x, adding platform {} at {}",
+								legacyPlatformPath, platformPath)
 						sourcePath.add(platformPath)
+						platformAdded = true
 					}
+				}
+				if (!platformAdded)
+				{
+					project.logger.debug("Prezi Haxelib 0.x, adding root at {}", targetPath)
+					sourcePath.add(targetPath)
 				}
 				break
 
 			case HaxelibType.HAXELIB:
+				project.logger.debug("Official Haxelib, adding root at {}", targetPath)
 				sourcePath.add(targetPath)
 				break
 		}
