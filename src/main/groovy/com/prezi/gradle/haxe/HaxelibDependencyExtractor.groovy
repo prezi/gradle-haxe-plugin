@@ -69,6 +69,8 @@ class HaxelibDependencyExtractor {
 		sync.into targetPath
 		sync.execute()
 
+		File libraryRoot = targetPath
+
 		HaxelibType type = HaxelibType.VERSION_0_X
 		zip.visit { FileVisitDetails details ->
 			if (details.name == "MANIFEST.MF"
@@ -85,18 +87,18 @@ class HaxelibDependencyExtractor {
 				}
 			}
 			else if ((details.name == "haxelib.json" || details.name == "haxelib.xml")
-					&& details.relativePath.parent
-					&& !details.relativePath.parent.parent)
+					&& details.relativePath.parent)
 			{
 				type = HaxelibType.HAXELIB
+				libraryRoot = details.relativePath.parent.getFile(targetPath)
 				details.stopVisiting()
 			}
 		}
 
 		switch (type) {
 			case HaxelibType.VERSION_1_0:
-				def sources = new File(targetPath, "sources")
-				def resources = new File(targetPath, "resources")
+				def sources = new File(libraryRoot, "sources")
+				def resources = new File(libraryRoot, "resources")
 				if (sources.exists())
 				{
 					project.logger.debug("Prezi Haxelib 1.0, adding sources at {}", sources)
@@ -112,7 +114,7 @@ class HaxelibDependencyExtractor {
 			case HaxelibType.VERSION_0_X:
 				def platformAdded = false
 				legacyPlatformPaths.each { String legacyPlatformPath ->
-					def platformPath = new File(targetPath, legacyPlatformPath)
+					def platformPath = new File(libraryRoot, legacyPlatformPath)
 					if (platformPath.directory)
 					{
 						project.logger.debug("Prezi Haxelib 0.x, adding platform {} at {}",
@@ -123,14 +125,14 @@ class HaxelibDependencyExtractor {
 				}
 				if (!platformAdded)
 				{
-					project.logger.debug("Prezi Haxelib 0.x, adding root at {}", targetPath)
-					sourcePath.add(targetPath)
+					project.logger.debug("Prezi Haxelib 0.x, adding root at {}", libraryRoot)
+					sourcePath.add(libraryRoot)
 				}
 				break
 
 			case HaxelibType.HAXELIB:
-				project.logger.debug("Official Haxelib, adding root at {}", targetPath)
-				sourcePath.add(targetPath)
+				project.logger.debug("Official Haxelib, adding root at {}", libraryRoot)
+				sourcePath.add(libraryRoot)
 				break
 		}
 	}
