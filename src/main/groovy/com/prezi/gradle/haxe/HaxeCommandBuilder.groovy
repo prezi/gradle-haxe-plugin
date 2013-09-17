@@ -30,6 +30,10 @@ class HaxeCommandBuilder {
 	HaxeCommandBuilder withTarget(String target, File output)
 	{
 		append("-$target", output)
+		if (target == "swf")
+		{
+			append("-swf-version", 11)
+		}
 		this
 	}
 
