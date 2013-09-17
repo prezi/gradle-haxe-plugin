@@ -59,6 +59,7 @@ class CompileHaxe extends DefaultTask implements HaxeTask {
 			{
 				case "js":
 				case "swf":
+				case "neko":
 					artifactBundle = new HaxeBuildPublishArtifact(this)
 					break;
 				default:
@@ -193,6 +194,8 @@ class CompileHaxe extends DefaultTask implements HaxeTask {
 					return project.file("${project.buildDir}/compiled-haxe/${getFullName()}.js")
 				case "swf":
 					return project.file("${project.buildDir}/compiled-haxe/${getFullName()}.swc")
+				case "neko":
+					return project.file("${project.buildDir}/compiled-haxe/${getFullName()}.n")
 				default:
 					throw new IllegalStateException("Unsopported platform: " + targetPlatform);
 			}

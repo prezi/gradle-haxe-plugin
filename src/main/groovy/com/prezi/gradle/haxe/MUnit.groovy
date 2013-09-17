@@ -149,6 +149,8 @@ class MUnit extends DefaultTask implements HaxeTask {
 				return new File(getWorkingDirectory(), "js_test.js")
 			case "swf":
 				return new File(getWorkingDirectory(), "swf_test.swc")
+			case "neko":
+				return new File(getWorkingDirectory(), "neko_test.n")
 			case "as3":
 			default:
 				throw new IllegalStateException("Cannot test platform " + targetPlatform)
