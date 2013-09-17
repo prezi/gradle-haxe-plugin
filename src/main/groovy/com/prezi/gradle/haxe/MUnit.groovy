@@ -148,7 +148,7 @@ class MUnit extends DefaultTask implements HaxeTask {
 			case "js":
 				return new File(getWorkingDirectory(), "js_test.js")
 			case "swf":
-				return new File(getWorkingDirectory(), "swf_test.swc")
+				return new File(getWorkingDirectory(), "swf_test.swf")
 			case "neko":
 				return new File(getWorkingDirectory(), "neko_test.n")
 			case "as3":
