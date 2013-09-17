@@ -4,7 +4,7 @@ import org.gradle.api.Project
 
 class MUnitCommandBuilder {
 	private final Project project
-	private List<String> cmd = [ "haxelib", "run", "munit", "test" ]
+	private List<String> cmd = [ "haxe", "--run", "tools.haxelib.Main", "run", "munit", "test" ]
 
 	public MUnitCommandBuilder(Project project)
 	{
