@@ -37,32 +37,10 @@ class HaxePlugin implements Plugin<Project> {
 	{
 		project.getPlugins().apply(PreziPlugin.class);
 
-		// Add clean task
-		def cleanTask = project.tasks.create("clean", Delete)
-		cleanTask.delete(project.buildDir)
-
-		// Create default configuration
-		if (project.configurations.findByName(Dependency.DEFAULT_CONFIGURATION) == null)
-		{
-			project.configurations.create(Dependency.DEFAULT_CONFIGURATION)
-		}
-
 		// Map default values
 		def haxeExtension = project.extensions.create "haxe", HaxeExtension
 		project.tasks.withType(CompileHaxe) { CompileHaxe compileTask ->
 			haxeExtension.mapTo(compileTask)
-		}
-
-		// Add "archives" and "testArchives" configuration
-		Configuration archivesConfig = project.configurations.findByName("archives")
-		if (archivesConfig == null)
-		{
-			archivesConfig = project.configurations.create("archives")
-		}
-		Configuration testArchivesConfig = project.configurations.findByName("testArchives")
-		if (testArchivesConfig == null)
-		{
-			testArchivesConfig = project.configurations.create("testArchives")
 		}
 
 		// Add build task
@@ -95,17 +73,32 @@ class HaxePlugin implements Plugin<Project> {
 			}
 		}
 
-		// Add install tasks
-		Upload installTask = project.tasks.create(name: "install", type: Upload)
-		installTask.configuration = archivesConfig
-		Upload installTestsTask = project.tasks.create(name: "installTests", type: Upload)
-		installTestsTask.configuration = testArchivesConfig
+		def archivesConfig = project.configurations.getByName("archives")
 
-		// Add uploadArchives tasks
-		Upload uploadArchivesTask = project.tasks.create(name: "uploadArchives", type: Upload)
-		uploadArchivesTask.configuration = archivesConfig
-		Upload uploadTestArchivesTask = project.tasks.create(name: "uploadTestArchives", type: Upload)
-		uploadTestArchivesTask.configuration = testArchivesConfig
+		// Add "testArchives" configuration
+		Configuration testArchivesConfig = project.configurations.findByName("testArchives")
+		if (testArchivesConfig == null)
+		{
+			testArchivesConfig = project.configurations.create("testArchives")
+		}
+
+		// Add installTestArchives tasks
+		Upload installTask = project.tasks.getByName("install") as Upload
+		if (project.tasks.findByName("installTests") == null)
+		{
+			Upload installTestsTask = project.tasks.create(name: "installTests", type: Upload)
+			installTestsTask.configuration = testArchivesConfig
+			installTestsTask.repositories.addAll(installTask.repositories)
+		}
+
+		// Add uploadTestArchives tasks
+		Upload uploadArchivesTask = project.tasks.getByName("uploadArchives") as Upload
+		if (project.tasks.findByName("uploadTestArchives") == null)
+		{
+			Upload uploadTestArchivesTask = project.tasks.create(name: "uploadTestArchives", type: Upload)
+			uploadTestArchivesTask.configuration = testArchivesConfig
+			uploadTestArchivesTask.repositories.addAll(uploadArchivesTask.repositories)
+		}
 
 		project.afterEvaluate {
 			project.tasks.withType(CompileHaxe) { CompileHaxe compileTask ->
