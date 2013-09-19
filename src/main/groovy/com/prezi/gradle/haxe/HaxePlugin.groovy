@@ -108,9 +108,8 @@ class HaxePlugin implements Plugin<Project> {
 
 		project.afterEvaluate {
 			project.tasks.withType(CompileHaxe) { CompileHaxe compileTask ->
-				def artifacts = [ compileTask.artifact, compileTask.sources ]
-				compileTask.configuration.artifacts.addAll(artifacts)
-				archivesConfig.artifacts.addAll(artifacts)
+				compileTask.configuration.artifacts.add(compileTask.sources)
+				archivesConfig.artifacts.addAll([ compileTask.artifact, compileTask.sources ])
 
 				compileTask.configuration.allDependencies.withType(ProjectDependency) { ProjectDependency dependency ->
 					dependency.projectConfiguration.allArtifacts.withType(HarPublishArtifact) { HarPublishArtifact artifact ->
