@@ -86,18 +86,24 @@ class HaxePlugin implements Plugin<Project> {
 		Upload installTask = project.tasks.getByName("install") as Upload
 		if (project.tasks.findByName("installTests") == null)
 		{
-			Upload installTestsTask = project.tasks.create(name: "installTests", type: Upload)
-			installTestsTask.configuration = testArchivesConfig
-			installTestsTask.repositories.addAll(installTask.repositories)
+			project.tasks.create(name: "installTests", type: Upload) {
+				configuration = testArchivesConfig
+				repositories.addAll(installTask.repositories)
+				uploadDescriptor = installTask.uploadDescriptor
+				descriptorDestination = new File(project.getBuildDir(), 'ivy-installTest.xml')
+			}
 		}
 
 		// Add uploadTestArchives tasks
 		Upload uploadArchivesTask = project.tasks.getByName("uploadArchives") as Upload
 		if (project.tasks.findByName("uploadTestArchives") == null)
 		{
-			Upload uploadTestArchivesTask = project.tasks.create(name: "uploadTestArchives", type: Upload)
-			uploadTestArchivesTask.configuration = testArchivesConfig
-			uploadTestArchivesTask.repositories.addAll(uploadArchivesTask.repositories)
+			project.tasks.create(name: "uploadTestArchives", type: Upload) {
+				configuration = testArchivesConfig
+				repositories.addAll(uploadArchivesTask.repositories)
+				uploadDescriptor = uploadArchivesTask.uploadDescriptor
+				descriptorDestination = new File(project.getBuildDir(), 'ivy-uploadTest.xml')
+			}
 		}
 
 		project.afterEvaluate {
