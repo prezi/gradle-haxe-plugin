@@ -25,13 +25,7 @@ apply plugin: 'prezi'
 
 repositories {
 	mavenLocal()
-	maven {
-		credentials {
-			username nexusUser
-			password nexusPassword
-		}
-		url "https://artifactory.prezi.com/plugins-snapshot"
-	}
+	add preziRepo("plugins-snapshot")
 }
 
 dependencies {
@@ -47,10 +41,6 @@ task run(type: Exec) {
 
 uploadArchives {
 	repositories {
-		mavenDeployer {
-			repository(url: "https://artifactory.prezi.com/plugins-snapshot-local/") {
-				authentication(userName: nexusUser, password: nexusPassword)
-			}
-		}
+		add preziRepo("plugins-snapshot-local")
 	}
 }
