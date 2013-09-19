@@ -5,10 +5,8 @@ import com.prezi.gradle.PreziPlugin;
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.artifacts.Configuration
-import org.gradle.api.artifacts.Dependency
 import org.gradle.api.artifacts.ProjectDependency
 import org.gradle.api.internal.tasks.TaskResolver
-import org.gradle.api.tasks.Delete
 import org.gradle.api.tasks.Upload
 import org.gradle.configuration.project.ProjectConfigurationActionContainer
 import org.gradle.internal.reflect.Instantiator
@@ -17,8 +15,13 @@ import javax.inject.Inject
 
 class HaxePlugin implements Plugin<Project> {
 
-	private static final String BUILD_TASKS_GROUP = "build"
-	private static final String TEST_TASKS_GROUP = "test"
+	public static final String COMPILE_TASK_NAME = "compile"
+	public static final String COMPILE_TASKS_GROUP = "compile"
+	public static final String TEST_TASK_NAME = "test"
+	public static final String TEST_TASKS_GROUP = "test"
+	public static final String INSTALL_TESTS_TASK_NAME = "installTests"
+	public static final String UPLOAD_TESTS_TASK_NAME = "uploadTestArchives"
+	public static final String TEST_ARCHIVES_CONFIG_NAME = "testArchives"
 
 	private final Instantiator instantiator
 	private final ProjectConfigurationActionContainer configurationActions
@@ -43,50 +46,52 @@ class HaxePlugin implements Plugin<Project> {
 			haxeExtension.mapTo(compileTask)
 		}
 
-		// Add build task
-		def buildTask = project.tasks.findByName("build")
-		if (buildTask == null)
+		// Add compile task
+		def compileTask = project.tasks.findByName(COMPILE_TASK_NAME)
+		if (compileTask == null)
 		{
-			buildTask = project.tasks.create("build")
-			buildTask.group = BUILD_TASKS_GROUP
-			buildTask.description = "Build all Haxe artifacts"
+			compileTask = project.tasks.create(COMPILE_TASK_NAME)
+			compileTask.group = COMPILE_TASKS_GROUP
+			compileTask.description = "Compile all Haxe artifacts"
 		}
-		project.beforeEvaluate {
-			project.tasks.withType(CompileHaxe) { CompileHaxe compileTask ->
-				compileTask.group = BUILD_TASKS_GROUP
-				buildTask.dependsOn compileTask
+		project.afterEvaluate {
+			project.tasks.withType(CompileHaxe) { CompileHaxe task ->
+				task.group = COMPILE_TASKS_GROUP
+				compileTask.dependsOn task
 			}
 		}
 
 		// Add test task
-		def testAllTask = project.tasks.findByName("test")
-		if (testAllTask == null)
+		def testTask = project.tasks.findByName(TEST_TASK_NAME)
+		if (testTask == null)
 		{
-			testAllTask = project.tasks.create("test")
-			testAllTask.group = TEST_TASKS_GROUP
-			testAllTask.description = "Test built Haxe artifacts"
+			testTask = project.tasks.create(TEST_TASK_NAME)
+			testTask.group = TEST_TASKS_GROUP
+			testTask.description = "Test built Haxe artifacts"
 		}
 		project.afterEvaluate {
-			project.tasks.withType(MUnit) { MUnit munitTask ->
-				munitTask.group = TEST_TASKS_GROUP
-				testAllTask.dependsOn munitTask
+			project.tasks.withType(MUnit) { MUnit task ->
+				task.group = TEST_TASKS_GROUP
+				testTask.dependsOn task
 			}
 		}
 
-		def archivesConfig = project.configurations.getByName("archives")
+		def archivesConfig = project.configurations.getByName(PreziPlugin.ARCHIVES_CONFIG_NAME)
 
 		// Add "testArchives" configuration
-		Configuration testArchivesConfig = project.configurations.findByName("testArchives")
+		Configuration testArchivesConfig = project.configurations.findByName(TEST_ARCHIVES_CONFIG_NAME)
 		if (testArchivesConfig == null)
 		{
-			testArchivesConfig = project.configurations.create("testArchives")
+			testArchivesConfig = project.configurations.create(TEST_ARCHIVES_CONFIG_NAME)
 		}
 
-		// Add installTestArchives tasks
-		Upload installTask = project.tasks.getByName("install") as Upload
-		if (project.tasks.findByName("installTests") == null)
+		// Add installTests tasks
+		Upload installTask = project.tasks.getByName(PreziPlugin.INSTALL_TASK_NAME) as Upload
+		if (project.tasks.findByName(INSTALL_TESTS_TASK_NAME) == null)
 		{
-			project.tasks.create(name: "installTests", type: Upload) {
+			project.tasks.create(name: INSTALL_TESTS_TASK_NAME, type: Upload) {
+				description = "Installs the '${TEST_ARCHIVES_CONFIG_NAME}' artifacts into the local Maven repository."
+				group = PreziPlugin.INSTALL_TASKS_GROUP
 				configuration = testArchivesConfig
 				repositories.addAll(installTask.repositories)
 				uploadDescriptor = installTask.uploadDescriptor
@@ -95,10 +100,12 @@ class HaxePlugin implements Plugin<Project> {
 		}
 
 		// Add uploadTestArchives tasks
-		Upload uploadArchivesTask = project.tasks.getByName("uploadArchives") as Upload
-		if (project.tasks.findByName("uploadTestArchives") == null)
+		Upload uploadArchivesTask = project.tasks.getByName(PreziPlugin.UPLOAD_TASK_NAME) as Upload
+		if (project.tasks.findByName(UPLOAD_TESTS_TASK_NAME) == null)
 		{
-			project.tasks.create(name: "uploadTestArchives", type: Upload) {
+			project.tasks.create(name: UPLOAD_TESTS_TASK_NAME, type: Upload) {
+				description = "Uploads all artifacts belonging to configuration ':${TEST_ARCHIVES_CONFIG_NAME}'"
+				group = PreziPlugin.UPLOAD_TASKS_GROUP
 				configuration = testArchivesConfig
 				repositories.addAll(uploadArchivesTask.repositories)
 				uploadDescriptor = uploadArchivesTask.uploadDescriptor
@@ -107,25 +114,27 @@ class HaxePlugin implements Plugin<Project> {
 		}
 
 		project.afterEvaluate {
-			project.tasks.withType(CompileHaxe) { CompileHaxe compileTask ->
-				compileTask.configuration.artifacts.add(compileTask.sources)
-				archivesConfig.artifacts.addAll([ compileTask.artifact, compileTask.sources ])
+			project.tasks.withType(CompileHaxe) { CompileHaxe task ->
+				def sources = task.sources
+				task.configuration.artifacts.add(sources)
+				archivesConfig.artifacts.add(sources)
 
-				compileTask.configuration.allDependencies.withType(ProjectDependency) { ProjectDependency dependency ->
+				task.configuration.allDependencies.withType(ProjectDependency) { ProjectDependency dependency ->
 					dependency.projectConfiguration.allArtifacts.withType(HarPublishArtifact) { HarPublishArtifact artifact ->
-						compileTask.dependsOn(artifact)
-						compileTask.inputs.file(artifact.file)
+						task.dependsOn artifact
+						task.inputs.file artifact.file
 					}
 				}
 			}
-			project.tasks.withType(MUnit) { MUnit munitTask ->
-				munitTask.testConfiguration.artifacts.add(munitTask.tests)
-				testArchivesConfig.artifacts.add(munitTask.tests)
+			project.tasks.withType(MUnit) { MUnit task ->
+				def tests = task.tests
+				task.testConfiguration.artifacts.add(tests)
+				testArchivesConfig.artifacts.add(tests)
 
-				munitTask.testConfiguration.allDependencies.withType(ProjectDependency) { ProjectDependency dependency ->
+				task.testConfiguration.allDependencies.withType(ProjectDependency) { ProjectDependency dependency ->
 					dependency.projectConfiguration.allArtifacts.withType(HarPublishArtifact) { HarPublishArtifact artifact ->
-						munitTask.dependsOn(artifact)
-						munitTask.inputs.file(artifact.file)
+						task.dependsOn artifact
+						task.inputs.file artifact.file
 					}
 				}
 			}
