@@ -1,5 +1,6 @@
 package com.prezi.gradle.haxe
 
+import com.prezi.gradle.DeprecationLogger
 import org.gradle.api.DefaultTask
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.Dependency

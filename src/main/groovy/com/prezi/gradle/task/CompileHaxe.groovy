@@ -1,6 +1,6 @@
 package com.prezi.gradle.task
 
-import com.prezi.gradle.haxe.DeprecationLogger
+import com.prezi.gradle.DeprecationLogger
 
 /**
  * Only here for backwards compatibility, use {@link com.prezi.gradle.haxe.CompileHaxe} instead.
