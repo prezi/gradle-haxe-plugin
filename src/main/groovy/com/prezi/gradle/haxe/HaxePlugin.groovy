@@ -124,18 +124,18 @@ class HaxePlugin implements Plugin<Project> {
 					}
 				}
 			}
-			project.tasks.withType(MUnit) { MUnit task ->
-				def tests = task.tests
-				task.testConfiguration.artifacts.add(tests)
-				testArchivesConfig.artifacts.add(tests)
-
-				task.testConfiguration.allDependencies.withType(ProjectDependency) { ProjectDependency dependency ->
-					dependency.projectConfiguration.allArtifacts.withType(HarPublishArtifact) { HarPublishArtifact artifact ->
-						task.dependsOn artifact
-						task.inputs.file artifact.file
-					}
-				}
-			}
+//			project.tasks.withType(MUnit) { MUnit task ->
+//				def tests = task.tests
+//				task.testConfiguration.artifacts.add(tests)
+//				testArchivesConfig.artifacts.add(tests)
+//
+//				task.testConfiguration.allDependencies.withType(ProjectDependency) { ProjectDependency dependency ->
+//					dependency.projectConfiguration.allArtifacts.withType(HarPublishArtifact) { HarPublishArtifact artifact ->
+//						task.dependsOn artifact
+//						task.inputs.file artifact.file
+//					}
+//				}
+//			}
 		}
 	}
 }
