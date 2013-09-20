@@ -24,7 +24,7 @@ apply plugin: 'prezi'
 
 repositories {
 	mavenLocal()
-	add preziRepo("plugins-snapshot")
+	maven preziRepo("plugins-snapshot")
 }
 
 dependencies {
@@ -40,6 +40,6 @@ task run(type: Exec) {
 
 uploadArchives {
 	repositories {
-		add preziRepo("plugins-snapshot-local")
+		maven preziRepo("plugins-snapshot-local")
 	}
 }
