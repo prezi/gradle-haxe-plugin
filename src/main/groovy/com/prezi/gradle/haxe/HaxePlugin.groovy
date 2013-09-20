@@ -25,12 +25,10 @@ class HaxePlugin implements Plugin<Project> {
 
 	private final Instantiator instantiator
 	private final ProjectConfigurationActionContainer configurationActions
-	private final TaskResolver taskResolver
 
 	@Inject
 	public HaxePlugin(Instantiator instantiator, ProjectConfigurationActionContainer configurationActions)
 	{
-		this.taskResolver = taskResolver
 		this.configurationActions = configurationActions
 		this.instantiator = instantiator
 	}
