@@ -35,11 +35,20 @@ dependencies {
 
 task run(type: Exec) {
 	workingDir "test/at"
-	commandLine = [ "gradle", "clean", "test", "install", "-Pmunit.kill-browser", "--info", "--stacktrace" ]
+	commandLine = ["gradle", "clean", "test", "install", "-Pmunit.kill-browser", "--info", "--stacktrace"]
 }
 
 uploadArchives {
 	repositories {
-		maven preziRepo("plugins-snapshot-local")
+		repositories {
+			mavenDeployer {
+				repository(url: "https://artifactory.prezi.com/plugins-release-local/") {
+					authentication(userName: nexusUser, password: nexusPassword)
+				}
+				snapshotRepository(url: "https://artifactory.prezi.com/plugins-snapshot-local/") {
+					authentication(userName: nexusUser, password: nexusPassword)
+				}
+			}
+		}
 	}
 }
