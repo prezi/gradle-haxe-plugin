@@ -66,7 +66,7 @@ class HaxeExtension {
 		compileTask.macros = new ArrayList<>(macros)
 		compileTask.includePackages = new LinkedHashSet<>(includePackages)
 		compileTask.excludePackages = new LinkedHashSet<>(excludePackages)
-		compileTask.resourcePaths = resourcePaths
+		compileTask.resourcePaths = new ArrayList<>(resourcePaths)
 		compileTask.flagList = new LinkedHashSet<>(flagList)
 		compileTask.debug = debug
 		compileTask.configuration = configuration
