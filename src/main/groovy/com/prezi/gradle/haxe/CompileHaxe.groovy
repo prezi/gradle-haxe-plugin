@@ -7,7 +7,6 @@ import org.gradle.api.artifacts.Dependency
 import org.gradle.api.artifacts.PublishArtifact
 import org.gradle.api.file.FileCollection
 import org.gradle.api.internal.file.FileResolver
-import org.gradle.api.internal.file.UnionFileCollection
 import org.gradle.api.tasks.InputFiles
 import org.gradle.api.tasks.Optional
 import org.gradle.api.tasks.OutputDirectory
@@ -27,8 +26,8 @@ class CompileHaxe extends DefaultTask implements HaxeTask {
 
 		LinkedHashSet<File> sourcePath = []
 		LinkedHashSet<File> resourcePath = []
-		sourcePath.addAll(sourceTree.files)
-		resourcePath.addAll(resourceTree.files)
+		sourcePath.addAll(getSourceFiles().files)
+		resourcePath.addAll(getResourceFiles().files)
 		extractor.extractDependenciesFrom(getConfiguration(), sourcePath, resourcePath)
 
 		String[] cmd = new HaxeCommandBuilder("haxe")
@@ -46,7 +45,7 @@ class CompileHaxe extends DefaultTask implements HaxeTask {
 		CommandExecutor.execute(project, cmd)
 
 		def copyAction = new HarCopyAction(instantiator, fileResolver, temporaryDirFactory,
-				getSourceArchive(), sourceTree, resourceTree)
+				getSourceArchive(), getSourceFiles(), getResourceFiles())
 		copyAction.execute()
 	}
 
@@ -110,14 +109,19 @@ class CompileHaxe extends DefaultTask implements HaxeTask {
 		this.configuration = configuration
 	}
 
+	List<Object> sourcePaths = []
+	LinkedHashSet<String> legacyPlatformPaths = []
+
 	@InputFiles
 	@SkipWhenEmpty
-	FileCollection sourceTree = new UnionFileCollection()
-	LinkedHashSet<String> legacyPlatformPaths = []
+	public FileCollection getSourceFiles()
+	{
+		return project.files(sourcePaths)
+	}
 
 	public void source(Object path)
 	{
-		sourceTree.add(project.files(path))
+		sourcePaths.add(path)
 		if (path instanceof String
 				&& path.startsWith("src/"))
 		{
@@ -144,13 +148,18 @@ class CompileHaxe extends DefaultTask implements HaxeTask {
 		legacyPlatformPaths << path
 	}
 
+	List<Object> resourcePaths = []
+
 	@InputFiles
 	@SkipWhenEmpty
-	FileCollection resourceTree = new UnionFileCollection()
+	public FileCollection getResourceFiles()
+	{
+		return project.files(resourcePaths)
+	}
 
 	public resource(Object path)
 	{
-		resourceTree.add(project.files(path))
+		resourcePaths.add(path)
 	}
 
 	private File outputFile

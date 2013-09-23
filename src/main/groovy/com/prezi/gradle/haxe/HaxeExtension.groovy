@@ -42,10 +42,10 @@ class HaxeExtension {
 		flagList.add(flag)
 	}
 
-	FileCollection resourceTree = new UnionFileCollection()
-	public resource(paths)
+	List<Object> resourcePaths = []
+	public resource(path)
 	{
-		resourceTree.add(project.files(paths))
+		resourcePaths.add(path)
 	}
 
 	Configuration configuration
@@ -66,7 +66,7 @@ class HaxeExtension {
 		compileTask.macros = new ArrayList<>(macros)
 		compileTask.includePackages = new LinkedHashSet<>(includePackages)
 		compileTask.excludePackages = new LinkedHashSet<>(excludePackages)
-		compileTask.resourceTree = new UnionFileCollection(resourceTree)
+		compileTask.resourcePaths = resourcePaths
 		compileTask.flagList = new LinkedHashSet<>(flagList)
 		compileTask.debug = debug
 		compileTask.configuration = configuration

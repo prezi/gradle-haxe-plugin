@@ -1,6 +1,8 @@
 package com.prezi.gradle.haxe
 
 import org.gradle.api.file.CopySpec
+import org.gradle.api.file.DuplicatesStrategy
+import org.gradle.api.file.FileCollection
 import org.gradle.api.file.FileCopyDetails
 import org.gradle.api.internal.file.FileResolver
 import org.gradle.api.internal.file.collections.FileTreeAdapter
@@ -20,15 +22,17 @@ public class HarCopyAction extends AbstractHarCopyAction {
 	private final CopySpec resources
 
 	HarCopyAction(Instantiator instantiator, FileResolver fileResolver, Factory<File> temporaryDirFactory,
-				  File archivePath, Object sources, Object resources)
+				  File archivePath, FileCollection sources, FileCollection resources)
 	{
 		super(instantiator, fileResolver, archivePath);
 		this.sources = rootSpec.addChild()
 				.into('sources')
-				.from(sources)
+				.from(sources.files.toArray().reverse())
 		this.resources = rootSpec.addChild()
 				.into('resources')
-				.from(resources)
+				.from(resources.files.toArray().reverse())
+
+		duplicatesStrategy = DuplicatesStrategy.EXCLUDE
 
 		manifest = new DefaultManifest(fileResolver)
 		// Add these as separate specs, so they are not affected by the changes to the main spec

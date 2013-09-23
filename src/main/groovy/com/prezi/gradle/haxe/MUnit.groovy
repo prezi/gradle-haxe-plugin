@@ -6,7 +6,6 @@ import org.gradle.api.artifacts.Dependency
 import org.gradle.api.artifacts.PublishArtifact
 import org.gradle.api.file.FileCollection
 import org.gradle.api.internal.file.FileResolver
-import org.gradle.api.internal.file.UnionFileCollection
 import org.gradle.api.internal.file.copy.FileCopyActionImpl
 import org.gradle.api.internal.file.copy.FileCopySpecVisitor
 import org.gradle.api.internal.file.copy.SyncCopySpecVisitor
@@ -34,7 +33,7 @@ class MUnit extends DefaultTask implements HaxeTask {
 		def testSourcesDirectory = new File(workDir, "tests")
 		def copyTestSources = instantiator.newInstance(FileCopyActionImpl.class, instantiator, fileResolver,
 				new SyncCopySpecVisitor(new FileCopySpecVisitor()));
-		copyTestSources.from(testSourceTree)
+		copyTestSources.from(getTestSourceFiles().files)
 		copyTestSources.into(testSourcesDirectory)
 		copyTestSources.execute()
 
@@ -44,11 +43,11 @@ class MUnit extends DefaultTask implements HaxeTask {
 
 		sourcePath.add(testSourcesDirectory)
 		extractor.extractDependenciesFrom(getTestConfiguration(), sourcePath, resourcePath)
-		sourcePath.addAll(compileTask.sourceTree.files)
+		sourcePath.addAll(compileTask.getSourceFiles().files)
 		extractor.extractDependenciesFrom(compileTask.getConfiguration(), sourcePath, resourcePath)
 
-		resourcePath.addAll(testResourceTree.files)
-		resourcePath.addAll(compileTask.resourceTree.files)
+		resourcePath.addAll(getTestResourceFiles().files)
+		resourcePath.addAll(compileTask.getResourceFiles().files)
 
 		def output = getOutput()
 		project.mkdir(output.parentFile)
@@ -111,7 +110,7 @@ class MUnit extends DefaultTask implements HaxeTask {
 		}
 
 		def copyAction = new HarCopyAction(instantiator, fileResolver, temporaryDirFactory,
-				getTestSourceArchive(), testSourceTree, testResourceTree)
+				getTestSourceArchive(), getTestSourceFiles(), getTestResourceFiles())
 		copyAction.execute()
 	}
 
@@ -181,21 +180,31 @@ class MUnit extends DefaultTask implements HaxeTask {
 		this.testConfiguration = configuration
 	}
 
+	List<Object> testSourcePaths = []
+
 	@InputFiles
 	@SkipWhenEmpty
-	private FileCollection testSourceTree = new UnionFileCollection()
-
-	public void testSource(paths)
+	public FileCollection getTestSourceFiles()
 	{
-		testSourceTree.add(project.files(paths))
+		return project.files(testSourcePaths)
 	}
 
-	@InputFiles
-	private FileCollection testResourceTree = new UnionFileCollection()
-
-	public testResource(paths)
+	public void testSource(path)
 	{
-		testResourceTree.add(project.files(paths))
+		testSourcePaths.add(path)
+	}
+
+	List<Object> testResourcePaths = []
+
+	@InputFiles
+	public FileCollection getTestResourceFiles()
+	{
+		return project.files(testResourcePaths)
+	}
+
+	public testResource(path)
+	{
+		testResourcePaths.add(path)
 	}
 
 	LinkedHashSet<String> includePackages = []

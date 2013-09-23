@@ -1,12 +1,10 @@
 package com.prezi.gradle.haxe
 
-import com.prezi.gradle.PreziPlugin;
-
+import com.prezi.gradle.PreziPlugin
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.ProjectDependency
-import org.gradle.api.internal.tasks.TaskResolver
 import org.gradle.api.tasks.Upload
 import org.gradle.configuration.project.ProjectConfigurationActionContainer
 import org.gradle.internal.reflect.Instantiator
