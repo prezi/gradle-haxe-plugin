@@ -4,7 +4,7 @@ import org.gradle.api.Project
 import org.gradle.process.internal.ExecException
 
 class CommandExecutor {
-	public static String execute(Project project, String[] cmd, File dir = null)
+	public static void execute(Project project, String[] cmd, File dir, Closure c)
 	{
 		project.logger.info("Executing in {}: {}", dir, cmd)
 		def output = new StringWriter()
@@ -18,10 +18,17 @@ class CommandExecutor {
 			output.println(line)
 		}
 		proc.waitFor()
-		if (proc.exitValue() != 0)
-		{
-			throw new ExecException("Command finished with non-zero exit value (${proc.exitValue()}):\n${cmd}")
-		}
-		return output.toString()
+		def result = new ExecutionResult(output.toString(), proc.exitValue())
+		c(result)
+	}
+}
+
+class ExecutionResult {
+	final String output;
+	final int exitValue;
+	public ExecutionResult(String output, int exitValue)
+	{
+		this.output = output
+		this.exitValue = exitValue
 	}
 }

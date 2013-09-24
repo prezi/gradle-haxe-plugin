@@ -1,10 +1,14 @@
 package com.prezi.gradle.haxe
 
+import org.gradle.api.Project
+
 class HaxeCommandBuilder {
+	private final Project project
 	private List<String> cmd
 
-	public HaxeCommandBuilder(String... cmd)
+	public HaxeCommandBuilder(Project project, String... cmd)
 	{
+		this.project = project
 		this.cmd = cmd
 	}
 

@@ -14,6 +14,7 @@ import org.gradle.api.tasks.OutputFile
 import org.gradle.api.tasks.SkipWhenEmpty
 import org.gradle.api.tasks.TaskAction
 import org.gradle.internal.reflect.Instantiator
+import org.gradle.process.internal.ExecException
 
 class CompileHaxe extends DefaultTask implements HaxeTask {
 
@@ -30,7 +31,7 @@ class CompileHaxe extends DefaultTask implements HaxeTask {
 		resourcePath.addAll(getResourceFiles().files)
 		extractor.extractDependenciesFrom(getConfiguration(), sourcePath, resourcePath)
 
-		String[] cmd = new HaxeCommandBuilder("haxe")
+		String[] cmd = new HaxeCommandBuilder(project, "haxe")
 				.withMain(main)
 				.withTarget(targetPlatform, getAndCreateOutput())
 				.withMacros(macros)
@@ -42,7 +43,12 @@ class CompileHaxe extends DefaultTask implements HaxeTask {
 				.withDebugFlags(debug)
 				.build()
 
-		CommandExecutor.execute(project, cmd)
+		CommandExecutor.execute(project, cmd, null) { ExecutionResult result ->
+			if (result.exitValue != 0)
+			{
+				throw new ExecException("Command finished with non-zero exit value (${proc.exitValue()}):\n${cmd}")
+			}
+		}
 
 		def copyAction = new HarCopyAction(instantiator, fileResolver, temporaryDirFactory,
 				getSourceArchive(), getSourceFiles(), getResourceFiles())

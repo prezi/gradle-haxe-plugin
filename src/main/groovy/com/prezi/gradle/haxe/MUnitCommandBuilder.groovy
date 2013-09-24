@@ -4,15 +4,25 @@ import org.gradle.api.Project
 
 class MUnitCommandBuilder {
 	private final Project project
-	private List<String> cmd = [ "haxelib", "run", "munit", "test" ]
+	private List<String> cmd
 
-	public MUnitCommandBuilder(Project project)
+	public MUnitCommandBuilder(Project project, String... cmd)
 	{
 		this.project = project
+		this.cmd = cmd
 	}
 
 	String[] build()
 	{
+		if (isSet('munit.haxeRunner'))
+		{
+			cmd << "haxe" << "--run" << "tools.haxelib.Main"
+		}
+		else
+		{
+			cmd << "haxelib"
+		}
+		cmd << "run" << "munit" << "test"
 		processCommandLineOptions()
 		cmd
 	}

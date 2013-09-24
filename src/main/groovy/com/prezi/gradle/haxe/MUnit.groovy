@@ -52,7 +52,7 @@ class MUnit extends DefaultTask implements HaxeTask {
 		def output = getOutput()
 		project.mkdir(output.parentFile)
 
-		def haxeCmdParts = new HaxeCommandBuilder()
+		def haxeCmdParts = new HaxeCommandBuilder(project)
 				.withIncludePackages(compileTask.includePackages)
 				.withExcludePackages(compileTask.excludePackages)
 				.withIncludePackages(includePackages)
@@ -102,11 +102,21 @@ class MUnit extends DefaultTask implements HaxeTask {
 		def munitCmd = new MUnitCommandBuilder(project)
 				.build()
 
-		def result = CommandExecutor.execute(project, munitCmd, workDir)
-		if (!SUCCESSFUL_TEST_PATTERN.matcher(result).find())
-		{
-			logger.warn("{}", result)
-			throw new RuntimeException("There are failing tests");
+		CommandExecutor.execute(project, munitCmd, workDir) { ExecutionResult result ->
+			def errorExit = result.exitValue != 0
+			def testsFailing = !SUCCESSFUL_TEST_PATTERN.matcher(result.output).find()
+			if (errorExit || testsFailing)
+			{
+				logger.warn("{}", result.output)
+			}
+			if (errorExit)
+			{
+				throw new RuntimeException("Error while running tests")
+			}
+			else if (testsFailing)
+			{
+				throw new RuntimeException("There are failing tests");
+			}
 		}
 
 		def copyAction = new HarCopyAction(instantiator, fileResolver, temporaryDirFactory,
