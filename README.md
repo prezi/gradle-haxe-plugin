@@ -90,6 +90,12 @@ You can publish these via the `ivy-publish` plugin:
 
 The artifacts pick up configuration parameters (like `classifier` and `configuration`) from the compile task.
 
+### To Develop the plugin
+
+* Generate IDEA project by `gradle idea`
+* Make sure you have Groovy plugin installed in IDEA
+* Open the generated `gradle-haxe-plugin-ng.ipr` file and import the generated module `gradle-haxe-plugin-ng.iml`
+
 # Examples
 
 ## Compilation: the `CompileHaxe` task
