@@ -186,8 +186,10 @@ class CompileHaxe extends DefaultTask implements HaxeTask {
 					return project.file("${project.buildDir}/compiled-haxe/${getFullName()}.swc")
 				case "neko":
 					return project.file("${project.buildDir}/compiled-haxe/${getFullName()}.n")
+                case "as3":
+                    return project.file("${project.buildDir}/compiled-haxe/${getFullName()}-as3")
 				default:
-					throw new IllegalStateException("Unsopported platform: " + targetPlatform);
+					throw new IllegalStateException("Unsupported platform: " + targetPlatform);
 			}
 		}
 	}

@@ -95,6 +95,9 @@ The artifacts pick up configuration parameters (like `classifier` and `configura
 * Generate IDEA project by `gradle idea`
 * Make sure you have Groovy plugin installed in IDEA
 * Open the generated `gradle-haxe-plugin-ng.ipr` file and import the generated module `gradle-haxe-plugin-ng.iml`
+* hack, hack, hack
+* use `gradle build` to compile the plugin
+* note that by default `gradle uploadArchives` release the plugin (=update in artifactory) with version `com.prezi.gradle:gradle-haxe-plugin-ng:v0.0-SNAPSHOT`, use this for testing (for now). To release, create a pull request from your changes.
 
 # Examples
 
