@@ -24,16 +24,16 @@ class HaxeExtension {
 		macros.add(m)
 	}
 
-	LinkedHashSet<String> includePackages = []
-	public includePackage(String pkg)
+	LinkedHashSet<String> includes = []
+	public include(String pkg)
 	{
-		includePackages.add(pkg)
+		includes.add(pkg)
 	}
 
-	LinkedHashSet<String> excludePackages = []
-	public excludePackage(String pkg)
+	LinkedHashSet<String> excludes = []
+	public exclude(String pkg)
 	{
-		excludePackages.add(pkg)
+		excludes.add(pkg)
 	}
 
 	LinkedHashSet<String> flagList = []
@@ -58,8 +58,8 @@ class HaxeExtension {
 	{
 		compileTask.main = main
 		compileTask.macros = new ArrayList<>(macros)
-		compileTask.includes = new LinkedHashSet<>(includePackages)
-		compileTask.excludes = new LinkedHashSet<>(excludePackages)
+		compileTask.includes = new LinkedHashSet<>(includes)
+		compileTask.excludes = new LinkedHashSet<>(excludes)
 		compileTask.resourcePaths = new ArrayList<>(resourcePaths)
 		compileTask.flagList = new LinkedHashSet<>(flagList)
 		compileTask.debug = debug
