@@ -4,7 +4,7 @@ buildscript {
 	}
 
 	dependencies {
-		classpath "com.prezi.gradle:gradle-haxe-plugin:1.0-SNAPSHOT"
+		classpath "com.prezi.gradle:gradle-haxe-plugin:1.1-SNAPSHOT"
 	}
 }
 
@@ -18,13 +18,7 @@ configure(allprojects) {
 	repositories {
 		mavenLocal()
 
-		maven {
-			credentials {
-				username "$nexusUser"
-				password "$nexusPassword"
-			}
-			url "http://intra.prezi.com:8081/nexus/content/groups/public/"
-		}
+		maven preziRepo("repo")
 	}
 }
 

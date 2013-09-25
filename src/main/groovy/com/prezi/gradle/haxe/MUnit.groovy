@@ -21,7 +21,7 @@ class MUnit extends DefaultTask implements HaxeTask {
 	static final Pattern SUCCESSFUL_TEST_PATTERN = ~/(?m)^PLATFORMS TESTED: \d+, PASSED: \d+, FAILED: 0, ERRORS: 0, TIME:/
 
 	@TaskAction
-	void munit()
+	void mUnit()
 	{
 		Instantiator instantiator = getServices().get(Instantiator.class)
 		FileResolver fileResolver = getServices().get(FileResolver.class)
@@ -53,10 +53,10 @@ class MUnit extends DefaultTask implements HaxeTask {
 		project.mkdir(output.parentFile)
 
 		def haxeCmdParts = new HaxeCommandBuilder(project)
-				.withIncludePackages(compileTask.includePackages)
-				.withExcludePackages(compileTask.excludePackages)
-				.withIncludePackages(includePackages)
-				.withExcludePackages(excludePackages)
+				.withIncludes(compileTask.includes)
+				.withExcludes(compileTask.excludes)
+				.withIncludes(includePackages)
+				.withExcludes(excludePackages)
 				.withSources(sourcePath)
 				.withResources(resourcePath)
 				.withMacros(compileTask.macros)
@@ -152,23 +152,25 @@ class MUnit extends DefaultTask implements HaxeTask {
 
 	private File getOutput()
 	{
-		switch (compileTask.targetPlatform)
+		File out
+		File dirToCreate
+		if (compileTask instanceof CompileHaxeWithFileTarget)
 		{
-			case "js":
-				return new File(getWorkingDirectory(), "js_test.js")
-			case "swf":
-				return new File(getWorkingDirectory(), "swf_test.swf")
-			case "neko":
-				return new File(getWorkingDirectory(), "neko_test.n")
-			case "as3":
-			default:
-				throw new IllegalStateException("Cannot test platform " + targetPlatform)
+			out = new File(getWorkingDirectory(), "test." + compileTask.defaultExtension)
+			dirToCreate = getWorkingDirectory()
 		}
+		else
+		{
+			out = new File(getWorkingDirectory(), "test")
+			dirToCreate = out
+		}
+		project.mkdir(dirToCreate)
+		return out
 	}
 
-	private CompileHaxe compileTask
+	private AbstractCompileHaxe compileTask
 
-	public void test(CompileHaxe compileTask)
+	public void test(AbstractCompileHaxe compileTask)
 	{
 		this.compileTask = compileTask
 		dependsOn(compileTask)

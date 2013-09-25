@@ -34,20 +34,16 @@ class HaxeCommandBuilder {
 	HaxeCommandBuilder withTarget(String target, File output)
 	{
 		append("-$target", output)
-		if (target == "swf")
-		{
-			append("-swf-version", 11)
-		}
 		this
 	}
 
-	HaxeCommandBuilder withIncludePackages(def packages)
+	HaxeCommandBuilder withIncludes(def packages)
 	{
 		packages.each { append("--macro", "include('$it')") }
 		this
 	}
 
-	HaxeCommandBuilder withExcludePackages(def packages)
+	HaxeCommandBuilder withExcludes(def packages)
 	{
 		packages.each { append("--macro", "exclude('$it')") }
 		this
@@ -91,25 +87,36 @@ class HaxeCommandBuilder {
 		}
 	}
 
-	HaxeCommandBuilder withSources(def sources)
+	HaxeCommandBuilder withSources(Iterable<?> sources)
 	{
 		sources.each { append("-cp", it) }
 		this
 	}
 
-	HaxeCommandBuilder withFlags(def flags)
+	HaxeCommandBuilder withFlags(Iterable<String> flags)
 	{
 		flags.each { String flag ->
-			append(flag.split(" "))
+			withFlag(flag)
 		}
 		this
+	}
+	HaxeCommandBuilder withFlags(String... flags)
+	{
+		flags.each { String flag ->
+			withFlag(flag)
+		}
+		this
+	}
+	private withFlag(String flag)
+	{
+		append(flag.split(" "))
 	}
 
 	HaxeCommandBuilder withDebugFlags(boolean debug)
 	{
 		if (debug)
 		{
-			withFlags(["-D fdb", "-debug"])
+			withFlags("-D fdb", "-debug")
 		}
 		this
 	}

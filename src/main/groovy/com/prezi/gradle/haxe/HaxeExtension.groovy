@@ -54,22 +54,15 @@ class HaxeExtension {
 		this.configuration = configuration
 	}
 
-	String targetPlatform
-	public targetPlatform(String targetPlatform)
-	{
-		this.targetPlatform = targetPlatform
-	}
-
-	void mapTo(CompileHaxe compileTask)
+	void mapTo(AbstractCompileHaxe compileTask)
 	{
 		compileTask.main = main
 		compileTask.macros = new ArrayList<>(macros)
-		compileTask.includePackages = new LinkedHashSet<>(includePackages)
-		compileTask.excludePackages = new LinkedHashSet<>(excludePackages)
+		compileTask.includes = new LinkedHashSet<>(includePackages)
+		compileTask.excludes = new LinkedHashSet<>(excludePackages)
 		compileTask.resourcePaths = new ArrayList<>(resourcePaths)
 		compileTask.flagList = new LinkedHashSet<>(flagList)
 		compileTask.debug = debug
 		compileTask.configuration = configuration
-		compileTask.targetPlatform = targetPlatform
 	}
 }

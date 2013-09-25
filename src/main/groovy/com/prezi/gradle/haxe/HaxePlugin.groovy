@@ -38,7 +38,7 @@ class HaxePlugin implements Plugin<Project> {
 
 		// Map default values
 		def haxeExtension = project.extensions.create "haxe", HaxeExtension
-		project.tasks.withType(CompileHaxe) { CompileHaxe compileTask ->
+		project.tasks.withType(AbstractCompileHaxe) { AbstractCompileHaxe compileTask ->
 			haxeExtension.mapTo(compileTask)
 		}
 
@@ -51,7 +51,7 @@ class HaxePlugin implements Plugin<Project> {
 			compileTask.description = "Compile all Haxe artifacts"
 		}
 		project.afterEvaluate {
-			project.tasks.withType(CompileHaxe) { CompileHaxe task ->
+			project.tasks.withType(AbstractCompileHaxe) { AbstractCompileHaxe task ->
 				task.group = COMPILE_TASKS_GROUP
 				compileTask.dependsOn task
 			}
@@ -110,7 +110,7 @@ class HaxePlugin implements Plugin<Project> {
 		}
 
 		project.afterEvaluate {
-			project.tasks.withType(CompileHaxe) { CompileHaxe task ->
+			project.tasks.withType(AbstractCompileHaxe) { AbstractCompileHaxe task ->
 				def sources = task.sources
 				task.configuration.artifacts.add(sources)
 				archivesConfig.artifacts.add(sources)

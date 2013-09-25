@@ -4,9 +4,9 @@ import org.gradle.api.internal.artifacts.publish.AbstractPublishArtifact
 
 class HaxeBuildPublishArtifact extends AbstractPublishArtifact {
 
-	private final CompileHaxe task
+	private final CompileHaxeWithFileTarget task
 
-	HaxeBuildPublishArtifact(CompileHaxe task)
+	HaxeBuildPublishArtifact(CompileHaxeWithFileTarget task)
 	{
 		super(task)
 		this.task = task

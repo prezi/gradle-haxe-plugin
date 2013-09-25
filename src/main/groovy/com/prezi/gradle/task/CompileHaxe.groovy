@@ -1,17 +1,11 @@
 package com.prezi.gradle.task
 
-import com.prezi.gradle.DeprecationLogger
+import org.gradle.api.DefaultTask
 
-/**
- * Only here for backwards compatibility, use {@link com.prezi.gradle.haxe.CompileHaxe} instead.
- */
 @Deprecated
-class CompileHaxe extends com.prezi.gradle.haxe.CompileHaxe {
+class CompileHaxe extends DefaultTask {
 	CompileHaxe()
 	{
-		DeprecationLogger.nagUserOfReplacedTaskType(name, com.prezi.gradle.haxe.CompileHaxe.name)
-
-		// Legacy projects work with 'hxsrc' as their default configuration
-		configuration = project.configurations.findByName("hxsrc")
+		throw new IllegalStateException("Don't use this class")
 	}
 }
