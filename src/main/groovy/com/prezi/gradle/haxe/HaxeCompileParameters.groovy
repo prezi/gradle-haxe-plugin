@@ -14,6 +14,22 @@ class HaxeCompileParameters {
 		this.project = project
 	}
 
+	Configuration configuration
+
+	public Configuration getConfiguration()
+	{
+		if (configuration == null)
+		{
+			return project.configurations[Dependency.DEFAULT_CONFIGURATION]
+		}
+		return configuration
+	}
+
+	public void configuration(Configuration configuration)
+	{
+		this.configuration = configuration
+	}
+
 	String main
 
 	List<String> macros = []
@@ -48,6 +64,7 @@ class HaxeCompileParameters {
 	List<Object> sourcePaths = []
 	LinkedHashSet<String> legacyPlatformPaths = []
 	List<Object> resourcePaths = []
+	LinkedHashMap<String, File> embeddedResources = [:]
 
 	public void source(Object path)
 	{
@@ -69,20 +86,49 @@ class HaxeCompileParameters {
 		resourcePaths.add(path)
 	}
 
-	Configuration configuration
-
-	public Configuration getConfiguration()
+	public embed(String name, Object file)
 	{
-		if (configuration == null)
-		{
-			return project.configurations[Dependency.DEFAULT_CONFIGURATION]
-		}
-		return configuration
+		embeddedResources.put(name, project.file(file))
 	}
 
-	public void configuration(Configuration configuration)
+	public embed(Object file)
 	{
-		this.configuration = configuration
+		def realFile = project.file(file)
+		embed(realFile.name, realFile)
+	}
+
+	public embed(Map<String, ?> resources)
+	{
+		resources.each { String name, Object file ->
+			embed(name, file)
+		}
+	}
+
+	public embedAll(Object directory)
+	{
+		def realDir = project.file(directory)
+		if (!realDir.directory)
+		{
+			throw new IllegalArgumentException("embedAll requires a directory: " + directory)
+		}
+		realDir.eachFileRecurse { embed(it) }
+	}
+
+	// Clone
+
+	protected void copyTo(HaxeCompileParameters params)
+	{
+		params.configuration = configuration
+		params.main = main
+		params.macros.addAll(macros)
+		params.includes.addAll(includes)
+		params.excludes.addAll(excludes)
+		params.flagList.addAll(flagList)
+		params.debug = debug
+		params.sourcePaths.addAll(sourcePaths)
+		params.legacyPlatformPaths.addAll(legacyPlatformPaths)
+		params.resourcePaths.addAll(resourcePaths)
+		params.embeddedResources.putAll(embeddedResources)
 	}
 
 	// Deprecated properties

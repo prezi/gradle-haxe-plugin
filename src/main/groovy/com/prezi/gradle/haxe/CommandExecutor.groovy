@@ -1,7 +1,6 @@
 package com.prezi.gradle.haxe
 
 import org.gradle.api.Project
-import org.gradle.process.internal.ExecException
 
 class CommandExecutor {
 	public static void execute(Project project, String[] cmd, File dir, Closure c)

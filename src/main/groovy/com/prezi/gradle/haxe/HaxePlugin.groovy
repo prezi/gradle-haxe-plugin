@@ -37,9 +37,11 @@ class HaxePlugin implements Plugin<Project> {
 		project.getPlugins().apply(PreziPlugin.class);
 
 		// Map default values
-		def haxeExtension = project.extensions.create "haxe", HaxeExtension
-		project.tasks.withType(AbstractCompileHaxe) { AbstractCompileHaxe compileTask ->
-			haxeExtension.mapTo(compileTask)
+		def haxeExtension = project.extensions.create "haxe", HaxeExtension, project
+		project.beforeEvaluate {
+			project.tasks.withType(AbstractCompileHaxe) { AbstractCompileHaxe compileTask ->
+				haxeExtension.mapTo(compileTask)
+			}
 		}
 
 		// Add compile task

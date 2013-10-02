@@ -4,6 +4,7 @@ import org.gradle.api.DefaultTask
 import org.gradle.api.artifacts.PublishArtifact
 import org.gradle.api.file.FileCollection
 import org.gradle.api.internal.file.FileResolver
+import org.gradle.api.internal.file.collections.SimpleFileCollection
 import org.gradle.api.tasks.InputFiles
 import org.gradle.api.tasks.SkipWhenEmpty
 import org.gradle.api.tasks.TaskAction
@@ -12,8 +13,8 @@ import org.gradle.process.internal.ExecException
 
 abstract class AbstractCompileHaxe extends DefaultTask implements HaxeTask {
 
-	@Delegate
-	private final HaxeCompileParameters params
+	@Delegate(deprecated = true)
+	final HaxeCompileParameters params
 	final String targetPlatform
 	private PublishArtifact sourceBundle
 
@@ -37,7 +38,9 @@ abstract class AbstractCompileHaxe extends DefaultTask implements HaxeTask {
 		LinkedHashSet<File> resourcePath = []
 		sourcePath.addAll(getSourceFiles().files)
 		resourcePath.addAll(getResourceFiles().files)
-		extractor.extractDependenciesFrom(getConfiguration(), sourcePath, resourcePath)
+		Map<String, File> allEmbeddedResources = [:]
+		extractor.extractDependenciesFrom(getConfiguration(), sourcePath, resourcePath, allEmbeddedResources)
+		allEmbeddedResources.putAll(embeddedResources)
 
 		def commandBuilder = new HaxeCommandBuilder(project, "haxe")
 		commandBuilder
@@ -47,7 +50,8 @@ abstract class AbstractCompileHaxe extends DefaultTask implements HaxeTask {
 				.withIncludes(includes)
 				.withExcludes(excludes)
 				.withSources(sourcePath)
-				.withResources(resourcePath)
+				.withSources(resourcePath)
+				.withEmbeddedResources(allEmbeddedResources)
 				.withFlags(flagList)
 				.withDebugFlags(debug)
 		configureCommandBuilder(commandBuilder)
@@ -61,7 +65,7 @@ abstract class AbstractCompileHaxe extends DefaultTask implements HaxeTask {
 		}
 
 		def copyAction = new HarCopyAction(instantiator, fileResolver, temporaryDirFactory,
-				getSourceArchive(), getSourceFiles(), getResourceFiles())
+				getSourceArchive(), getSourceFiles(), getResourceFiles(), embeddedResources)
 		copyAction.execute()
 	}
 
@@ -116,6 +120,13 @@ abstract class AbstractCompileHaxe extends DefaultTask implements HaxeTask {
 	public FileCollection getResourceFiles()
 	{
 		return project.files(resourcePaths)
+	}
+
+	@InputFiles
+	@SkipWhenEmpty
+	public FileCollection getEmbeddedResourceFiles()
+	{
+		return new SimpleFileCollection(embeddedResources.values())
 	}
 
 	abstract protected File getAndCreateOutput();

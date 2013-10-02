@@ -9,6 +9,7 @@ import org.gradle.api.internal.file.FileResolver
 import org.gradle.api.internal.file.copy.FileCopyActionImpl
 import org.gradle.api.internal.file.copy.FileCopySpecVisitor
 import org.gradle.api.internal.file.copy.SyncCopySpecVisitor
+import org.gradle.api.java.archives.Manifest
 import org.gradle.api.java.archives.internal.DefaultManifest
 import org.gradle.internal.reflect.Instantiator
 
@@ -28,37 +29,37 @@ class HaxelibDependencyExtractor {
 		this.instantiator = instantiator
 	}
 
-	void extractDependenciesFrom(Configuration configuration, Set<File> sourcePath, Set<File> resourcePath)
+	void extractDependenciesFrom(Configuration configuration, Set<File> sourcePath, Set<File> resourcePath, Map<String, File> embeds)
 	{
 		configuration.hierarchy.each { Configuration config ->
-			extractDependenciesFromInternal(config, sourcePath, resourcePath)
+			extractDependenciesFromInternal(config, sourcePath, resourcePath, embeds)
 		}
 	}
 
-	private void extractDependenciesFromInternal(Configuration configuration, Set<File> sourcePath, Set<File> resourcePath)
+	private void extractDependenciesFromInternal(Configuration configuration, Set<File> sourcePath, Set<File> resourcePath, Map<String, File> embeds)
 	{
 		configuration.allDependencies.each { ModuleDependency dependency ->
 			if (dependency instanceof ProjectDependency)
 			{
 				def projectDependency = dependency as ProjectDependency
 				def dependentConfiguration = projectDependency.projectConfiguration
-				extractDependenciesFromInternal(dependentConfiguration, sourcePath, resourcePath)
+				extractDependenciesFromInternal(dependentConfiguration, sourcePath, resourcePath, embeds)
 
 				dependentConfiguration.allArtifacts.withType(HarPublishArtifact) { HarPublishArtifact artifact ->
 					def libName = artifact.name + (artifact.classifier ? "-" + artifact.classifier : "")
-					extractFile(libName, artifact.file, sourcePath, resourcePath)
+					extractFile(libName, artifact.file, sourcePath, resourcePath, embeds)
 				}
 			}
 			else
 			{
 				configuration.files(dependency).each { File file ->
-					extractFile(file.name, file, sourcePath, resourcePath)
+					extractFile(file.name, file, sourcePath, resourcePath, embeds)
 				}
 			}
 		}
 	}
 
-	private void extractFile(String libName, File file, Set<File> sourcePath, Set<File> resourcePath)
+	private void extractFile(String libName, File file, Set<File> sourcePath, Set<File> resourcePath, Map<String, File> embeddedResources)
 	{
 		def targetPath = project.file("${project.buildDir}/${EXTRACTED_HAXELIBS_DIR}/${libName}")
 		project.logger.info("Extracting Haxe library file: {} into {}", file, targetPath)
@@ -71,6 +72,7 @@ class HaxelibDependencyExtractor {
 
 		File libraryRoot = targetPath
 
+		Manifest manifest = null
 		HaxelibType type = HaxelibType.VERSION_0_X
 		zip.visit { FileVisitDetails details ->
 			if (details.name == "MANIFEST.MF"
@@ -79,8 +81,8 @@ class HaxelibDependencyExtractor {
 					&& details.relativePath.parent.parent
 					&& !details.relativePath.parent.parent.parent)
 			{
-				def manifest = new DefaultManifest(details.file, fileResolver)
-				if (manifest.getAttributes().get("Library-Version") == "1.0")
+				manifest = new DefaultManifest(details.file, fileResolver)
+				if (manifest.getAttributes().get(HarCopyAction.MANIFEST_ATTR_LIBRARY_VERSION) == "1.0")
 				{
 					type = HaxelibType.VERSION_1_0
 					details.stopVisiting()
@@ -99,6 +101,7 @@ class HaxelibDependencyExtractor {
 			case HaxelibType.VERSION_1_0:
 				def sources = new File(libraryRoot, "sources")
 				def resources = new File(libraryRoot, "resources")
+				def embedded = new File(libraryRoot, "embedded")
 				if (sources.exists())
 				{
 					project.logger.debug("Prezi Haxelib 1.0, adding sources at {}", sources)
@@ -106,8 +109,16 @@ class HaxelibDependencyExtractor {
 				}
 				if (resources.exists())
 				{
-					project.logger.debug("Prezi Haxelib 1.0, adding resources at {}", sources)
+					project.logger.debug("Prezi Haxelib 1.0, adding resources at {}", resources)
 					resourcePath.add(resources)
+				}
+				if (embedded.exists())
+				{
+					project.logger.debug("Prezi Haxelib 1.0, adding embedded resources at {}", embedded)
+					resourcePath.add(embedded)
+					embeddedResources.putAll EmbeddedResourceEncoding.decode(
+							(String) manifest.getAt(HarCopyAction.MANIFEST_ATTR_EMBEDDED_RESOURCES),
+							embedded)
 				}
 				break
 
