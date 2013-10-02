@@ -34,7 +34,7 @@ dependencies {
 }
 
 task run(type: Exec) {
-	workingDir "test/at"
+	workingDir "src/test/at"
 	commandLine = ["gradle", "clean", "test", "install", "-Pmunit.kill-browser", "--info", "--stacktrace"]
 }
 
