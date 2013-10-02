@@ -29,13 +29,13 @@ class EmbeddedResourceEncodingTest {
 		def encoded = EmbeddedResourceEncoding.encode([
 			tibor: new File("/some/folder/somewhere/tibor.gif")
 		])
-		assertThat encoded, is("tibor@tibor.gif")
+		assertThat encoded, is("tibor.gif@tibor")
 	}
 
 	@Test
 	public void testDecodeSingle()
 	{
-		def decoded = EmbeddedResourceEncoding.decode("tibor@tibor.gif", new File("."))
+		def decoded = EmbeddedResourceEncoding.decode("tibor.gif@tibor", new File("."))
 		assertThat decoded.size(), is(1)
 		assertThat decoded.keySet(), hasItem("tibor")
 		assertThat decoded["tibor"], is(new File("./tibor.gif"))
@@ -66,13 +66,13 @@ class EmbeddedResourceEncodingTest {
 			tibor: new File("/some/folder/somewhere/tibor.gif"),
 			geza: new File("/another/folder/somewhere/geza.gif"),
 		])
-		assertThat encoded, is("tibor@tibor.gif geza@geza.gif")
+		assertThat encoded, is("tibor.gif@tibor geza.gif@geza")
 	}
 
 	@Test
 	public void testDecodeMultiple()
 	{
-		def decoded = EmbeddedResourceEncoding.decode("tibor@tibor.gif geza@geza.gif", new File("."))
+		def decoded = EmbeddedResourceEncoding.decode("tibor.gif@tibor geza.gif@geza", new File("."))
 		assertThat decoded.size(), is(2)
 		assertThat decoded.keySet(), hasItems("tibor", "geza")
 		assertThat decoded["tibor"], is(new File("./tibor.gif"))
@@ -84,17 +84,15 @@ class EmbeddedResourceEncodingTest {
 	{
 		def encoded = EmbeddedResourceEncoding.encode([
 			"t ibor": new File("tibor.gif"),
-			"lajos": new File("l ajos.gif"),
-			"geza": new File("g@za.gif")
+			"lajos": new File("l ajos.gif")
 		])
-		assertThat encoded, is("t+ibor@tibor.gif lajos@l+ajos.gif geza@g%40za.gif")
+		assertThat encoded, is("tibor.gif@t+ibor l+ajos.gif@lajos")
 
 		def decoded = EmbeddedResourceEncoding.decode(encoded, new File("."))
-		assertThat decoded.size(), is(3)
-		assertThat decoded.keySet(), hasItems("t ibor", "lajos", "geza")
+		assertThat decoded.size(), is(2)
+		assertThat decoded.keySet(), hasItems("t ibor", "lajos")
 		assertThat decoded["t ibor"], is(new File("./tibor.gif"))
 		assertThat decoded["lajos"], is(new File("./l ajos.gif"))
-		assertThat decoded["geza"], is(new File("./g@za.gif"))
 	}
 
 	@Test(expected = IllegalArgumentException)
@@ -102,6 +100,14 @@ class EmbeddedResourceEncodingTest {
 	{
 		EmbeddedResourceEncoding.encode([
 			"tibor@geza": new File("tibor-geza.gif")
+		])
+	}
+
+	@Test(expected = IllegalArgumentException)
+	public void testEncodeWithAtSignInFileName()
+	{
+		EmbeddedResourceEncoding.encode([
+			"tibor-geza": new File("tibor@geza.gif")
 		])
 	}
 }
