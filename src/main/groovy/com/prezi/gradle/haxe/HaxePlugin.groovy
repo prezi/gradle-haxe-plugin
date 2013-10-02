@@ -38,10 +38,11 @@ class HaxePlugin implements Plugin<Project> {
 
 		// Map default values
 		def haxeExtension = project.extensions.create "haxe", HaxeExtension, project
-		project.beforeEvaluate {
-			project.tasks.withType(AbstractCompileHaxe) { AbstractCompileHaxe compileTask ->
-				haxeExtension.mapTo(compileTask)
-			}
+		project.tasks.withType(AbstractCompileHaxe) { AbstractCompileHaxe task ->
+			haxeExtension.mapTo(task)
+		}
+		project.tasks.withType(MUnit) { MUnit task ->
+			haxeExtension.mapTo(task)
 		}
 
 		// Add compile task

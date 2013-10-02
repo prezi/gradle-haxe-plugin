@@ -37,15 +37,15 @@ class HaxeCommandBuilder {
 		this
 	}
 
-	HaxeCommandBuilder withIncludes(def packages)
+	HaxeCommandBuilder withIncludes(def inlcudes)
 	{
-		packages.each { append("--macro", "include('$it')") }
+		inlcudes.each { append("--macro", "include('$it')") }
 		this
 	}
 
-	HaxeCommandBuilder withExcludes(def packages)
+	HaxeCommandBuilder withExcludes(def excludes)
 	{
-		packages.each { append("--macro", "exclude('$it')") }
+		excludes.each { append("--macro", "exclude('$it')") }
 		this
 	}
 

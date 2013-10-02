@@ -1,11 +1,12 @@
 package com.prezi.gradle.haxe
 
+import com.prezi.gradle.DeprecationLogger
 import org.gradle.api.DefaultTask
 import org.gradle.api.artifacts.Configuration
-import org.gradle.api.artifacts.Dependency
 import org.gradle.api.artifacts.PublishArtifact
 import org.gradle.api.file.FileCollection
 import org.gradle.api.internal.file.FileResolver
+import org.gradle.api.internal.file.collections.SimpleFileCollection
 import org.gradle.api.internal.file.copy.FileCopyActionImpl
 import org.gradle.api.internal.file.copy.FileCopySpecVisitor
 import org.gradle.api.internal.file.copy.SyncCopySpecVisitor
@@ -17,8 +18,16 @@ import org.gradle.internal.reflect.Instantiator
 import java.util.regex.Pattern
 
 class MUnit extends DefaultTask implements HaxeTask {
+	@Delegate(deprecated = true)
+	final HaxeCompileParameters params
+
 	static final String WORKING_DIRECTORY_PREFIX = "munit-work"
 	static final Pattern SUCCESSFUL_TEST_PATTERN = ~/(?m)^PLATFORMS TESTED: \d+, PASSED: \d+, FAILED: 0, ERRORS: 0, TIME:/
+
+	public MUnit()
+	{
+		this.params = new HaxeCompileParameters(project)
+	}
 
 	@TaskAction
 	void mUnit()
@@ -33,29 +42,30 @@ class MUnit extends DefaultTask implements HaxeTask {
 		def testSourcesDirectory = new File(workDir, "tests")
 		def copyTestSources = instantiator.newInstance(FileCopyActionImpl.class, instantiator, fileResolver,
 				new SyncCopySpecVisitor(new FileCopySpecVisitor()));
-		copyTestSources.from(getTestSourceFiles().files)
+		copyTestSources.from(getSourceFiles().files)
 		copyTestSources.into(testSourcesDirectory)
 		copyTestSources.execute()
 
 		LinkedHashSet<File> sourcePath = []
 		LinkedHashSet<File> resourcePath = []
-		def extractor = new HaxelibDependencyExtractor(project, compileTask.legacyPlatformPaths, instantiator, fileResolver)
+		def extractor = new HaxelibDependencyExtractor(project, [ compileTask.legacyPlatformPaths, legacyPlatformPaths ].flatten(), instantiator, fileResolver)
 
 		sourcePath.add(testSourcesDirectory)
 		LinkedHashMap<String, File> testEmbeddedResources = [:]
-		extractor.extractDependenciesFrom(getTestConfiguration(), sourcePath, resourcePath, testEmbeddedResources)
-		// TODO maybe allow adding test embed stuff?
+		extractor.extractDependenciesFrom(getConfiguration(), sourcePath, resourcePath, testEmbeddedResources)
+		testEmbeddedResources.putAll(embeddedResources)
 
 		sourcePath.addAll(compileTask.getSourceFiles().files)
 		LinkedHashMap<String, File> compilerEmbeddedResources = [:]
 		extractor.extractDependenciesFrom(compileTask.getConfiguration(), sourcePath, resourcePath, compilerEmbeddedResources)
 		compilerEmbeddedResources.putAll(compileTask.embeddedResources)
+
 		LinkedHashMap<String, File> allEmbeddedResources = [:]
 		allEmbeddedResources.putAll(compilerEmbeddedResources)
 		allEmbeddedResources.putAll(testEmbeddedResources)
 
 		resourcePath.addAll(compileTask.getResourceFiles().files)
-		resourcePath.addAll(getTestResourceFiles().files)
+		resourcePath.addAll(getResourceFiles().files)
 
 		def output = getOutput()
 		project.mkdir(output.parentFile)
@@ -63,14 +73,14 @@ class MUnit extends DefaultTask implements HaxeTask {
 		def haxeCmdParts = new HaxeCommandBuilder(project)
 				.withIncludes(compileTask.includes)
 				.withExcludes(compileTask.excludes)
-				.withIncludes(includePackages)
-				.withExcludes(excludePackages)
+				.withIncludes(includes)
+				.withExcludes(excludes)
 				.withSources(sourcePath)
 				.withSources(resourcePath)
 				.withEmbeddedResources(allEmbeddedResources)
 				.withMacros(compileTask.macros)
-				.withFlags(testFlags)
-				.withFlags(compileTask.flagList.findAll({ it != "--js-modern" }))
+				.withFlags(flagList)
+				.withFlags(compileTask.flagList.findAll({ it != "--js-modern" && it != "--no-traces" }))
 				.withDebugFlags(compileTask.debug)
 				.withTarget(compileTask.targetPlatform, output)
 				.withMain("TestMain")
@@ -129,7 +139,7 @@ class MUnit extends DefaultTask implements HaxeTask {
 		}
 
 		def copyAction = new HarCopyAction(instantiator, fileResolver, temporaryDirFactory,
-				getTestSourceArchive(), getTestSourceFiles(), getTestResourceFiles(), allEmbeddedResources)
+				getTestSourceArchive(), getSourceFiles(), getResourceFiles(), embeddedResources)
 		copyAction.execute()
 	}
 
@@ -185,61 +195,46 @@ class MUnit extends DefaultTask implements HaxeTask {
 		dependsOn(compileTask)
 	}
 
-	private Configuration testConfiguration
-
-	public Configuration getTestConfiguration()
+	@Deprecated
+	public void testConfiguration(Configuration conf)
 	{
-		if (testConfiguration == null)
-		{
-			return project.configurations[Dependency.DEFAULT_CONFIGURATION]
-		}
-		return testConfiguration
+		DeprecationLogger.nagUserOfReplacedProperty("testConfiguration", "configuration")
+		configuration(conf)
 	}
-
-	public void testConfiguration(Configuration configuration)
-	{
-		this.testConfiguration = configuration
-	}
-
-	List<Object> testSourcePaths = []
 
 	@InputFiles
 	@SkipWhenEmpty
-	public FileCollection getTestSourceFiles()
+	public FileCollection getSourceFiles()
 	{
-		return project.files(testSourcePaths)
+		return project.files(sourcePaths)
 	}
 
+	@Deprecated
 	public void testSource(path)
 	{
-		testSourcePaths.add(path)
+		DeprecationLogger.nagUserOfReplacedProperty("testSource", "source")
+		source(path)
 	}
-
-	List<Object> testResourcePaths = []
 
 	@InputFiles
-	public FileCollection getTestResourceFiles()
+	@SkipWhenEmpty
+	public FileCollection getResourceFiles()
 	{
-		return project.files(testResourcePaths)
+		return project.files(resourcePaths)
 	}
 
+	@Deprecated
 	public testResource(path)
 	{
-		testResourcePaths.add(path)
+		DeprecationLogger.nagUserOfReplacedProperty("testReource", "resource")
+		resource(path)
 	}
 
-	LinkedHashSet<String> includePackages = []
-
-	public includePackage(String pkg)
+	@InputFiles
+	@SkipWhenEmpty
+	public FileCollection getEmbeddedResourceFiles()
 	{
-		includePackages.add(pkg)
-	}
-
-	LinkedHashSet<String> excludePackages = []
-
-	public excludePackage(String pkg)
-	{
-		excludePackages.add(pkg)
+		return new SimpleFileCollection(embeddedResources.values())
 	}
 
 	private String classifier
@@ -276,10 +271,10 @@ class MUnit extends DefaultTask implements HaxeTask {
 		this.workingDirectory = project.file(workingDirectory)
 	}
 
-	private List<String> testFlags = []
-
-	public void testFlag(String... flag)
+	@Deprecated
+	public void testFlag(String... flags)
 	{
-		testFlags.addAll(flag)
+		DeprecationLogger.nagUserOfReplacedProperty("testFlag", "flag")
+		flag(flags)
 	}
 }

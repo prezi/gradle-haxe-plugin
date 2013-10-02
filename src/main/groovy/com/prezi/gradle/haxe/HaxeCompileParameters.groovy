@@ -131,6 +131,37 @@ class HaxeCompileParameters {
 		params.embeddedResources.putAll(embeddedResources)
 	}
 
+	@Override
+	String toString()
+	{
+		def s = new StringBuilder()
+		def separator = "\n\t"
+		s.append "Haxe compiler config"
+		s.append separator
+		s.append "Configuration: ${configuration ? configuration.name : null}"
+		s.append separator
+		s.append "Main: ${main}"
+		s.append separator
+		s.append "Macros: ${macros}"
+		s.append separator
+		s.append "Includes: ${includes}"
+		s.append separator
+		s.append "Excludes: ${excludes}"
+		s.append separator
+		s.append "Flags: ${flagList}"
+		s.append separator
+		s.append "Debug: ${debug}"
+		s.append separator
+		s.append "Sources: ${sourcePaths}"
+		s.append separator
+		s.append "Resources: ${resourcePaths}"
+		s.append separator
+		s.append "Embedded resources: ${embeddedResources}"
+		s.append separator
+		s.append "Legacy platforms: ${legacyPlatformPaths}"
+		return s.toString()
+	}
+
 	// Deprecated properties
 
 	@Deprecated

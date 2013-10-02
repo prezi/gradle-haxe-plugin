@@ -24,7 +24,7 @@ apply plugin: 'prezi'
 
 repositories {
 	mavenLocal()
-	maven preziRepo("plugins-snapshot")
+	maven downloadRepo("plugins-snapshot")
 }
 
 dependencies {
