@@ -59,36 +59,13 @@ class HaxeCommandBuilder {
 		this
 	}
 
-	HaxeCommandBuilder withResources(def resources)
+	HaxeCommandBuilder withEmbeddedResources(Map<String, File> embeddedResources)
 	{
-		resources.each { File resource ->
-			if (resource.isDirectory())
-			{
-				appendResources(resource.listFiles(), "")
-			}
-			else
-			{
-				appendResources([resource], "")
-			}
+		embeddedResources.each { String name, File file ->
+			def filePath = file.getAbsolutePath()
+			append("-resource", "${filePath}@${name}")
 		}
 		this
-	}
-
-	private appendResources(def resources, String prefix)
-	{
-		resources.each { File resource ->
-			if (resource.directory)
-			{
-				def subPrefix = prefix + resource.name + "/"
-				appendResources(resource.listFiles(), subPrefix)
-			}
-			else
-			{
-				def handle = prefix + resource.name
-				def filePath = resource.getAbsolutePath()
-				append("-resource", "${filePath}@${handle}")
-			}
-		}
 	}
 
 	HaxeCommandBuilder withSources(def sources)

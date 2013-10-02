@@ -16,13 +16,17 @@ import org.gradle.util.ConfigureUtil
 public class HarCopyAction extends AbstractHarCopyAction {
 	public static final String DEFAULT_EXTENSION = 'har'
 
+	public static final String MANIFEST_ATTR_LIBRARY_VERSION = "Library-Version"
+	public static final String MANIFEST_ATTR_EMBEDDED_RESOURCES = "Embedded-Resources"
+
 	private Manifest manifest
 	private final CopySpec metaInf
 	private final CopySpec sources
 	private final CopySpec resources
+	private final CopySpec embedded
 
 	HarCopyAction(Instantiator instantiator, FileResolver fileResolver, Factory<File> temporaryDirFactory,
-				  File archivePath, FileCollection sources, FileCollection resources)
+				  File archivePath, FileCollection sources, FileCollection resources, Map<String, File> embeddedResources)
 	{
 		super(instantiator, fileResolver, archivePath);
 		this.sources = rootSpec.addChild()
@@ -31,6 +35,9 @@ public class HarCopyAction extends AbstractHarCopyAction {
 		this.resources = rootSpec.addChild()
 				.into('resources')
 				.from(resources.files.toArray().reverse())
+		this.embedded = rootSpec.addChild()
+				.into('embedded')
+				.from(embeddedResources.values().toArray().reverse())
 
 		duplicatesStrategy = DuplicatesStrategy.EXCLUDE
 
@@ -41,7 +48,11 @@ public class HarCopyAction extends AbstractHarCopyAction {
 			MapFileTree manifestSource = new MapFileTree(temporaryDirFactory)
 			manifestSource.add('MANIFEST.MF') { OutputStream outstr ->
 				Manifest manifest = getManifest() ?: new DefaultManifest(null)
-				manifest.attributes.put("Library-Version", "1.0")
+				manifest.attributes.put(MANIFEST_ATTR_LIBRARY_VERSION, "1.0")
+				if (!embeddedResources.empty)
+				{
+					manifest.attributes.put(MANIFEST_ATTR_EMBEDDED_RESOURCES, EmbeddedResourceEncoding.encode(embeddedResources))
+				}
 				manifest.writeTo(new OutputStreamWriter(outstr))
 			}
 			return new FileTreeAdapter(manifestSource)

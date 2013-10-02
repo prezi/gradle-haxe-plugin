@@ -7,6 +7,7 @@ import org.gradle.api.artifacts.Dependency
 import org.gradle.api.artifacts.PublishArtifact
 import org.gradle.api.file.FileCollection
 import org.gradle.api.internal.file.FileResolver
+import org.gradle.api.internal.file.collections.SimpleFileCollection
 import org.gradle.api.tasks.InputFiles
 import org.gradle.api.tasks.Optional
 import org.gradle.api.tasks.OutputDirectory
@@ -29,7 +30,9 @@ class CompileHaxe extends DefaultTask implements HaxeTask {
 		LinkedHashSet<File> resourcePath = []
 		sourcePath.addAll(getSourceFiles().files)
 		resourcePath.addAll(getResourceFiles().files)
-		extractor.extractDependenciesFrom(getConfiguration(), sourcePath, resourcePath)
+		Map<String, File> allEmbeddedResources = [:]
+		extractor.extractDependenciesFrom(getConfiguration(), sourcePath, resourcePath, allEmbeddedResources)
+		allEmbeddedResources.putAll(embeddedResources)
 
 		String[] cmd = new HaxeCommandBuilder(project, "haxe")
 				.withMain(main)
@@ -38,7 +41,8 @@ class CompileHaxe extends DefaultTask implements HaxeTask {
 				.withIncludePackages(includePackages)
 				.withExcludePackages(excludePackages)
 				.withSources(sourcePath)
-				.withResources(resourcePath)
+				.withSources(resourcePath)
+				.withEmbeddedResources(allEmbeddedResources)
 				.withFlags(flagList)
 				.withDebugFlags(debug)
 				.build()
@@ -51,7 +55,7 @@ class CompileHaxe extends DefaultTask implements HaxeTask {
 		}
 
 		def copyAction = new HarCopyAction(instantiator, fileResolver, temporaryDirFactory,
-				getSourceArchive(), getSourceFiles(), getResourceFiles())
+				getSourceArchive(), getSourceFiles(), getResourceFiles(), embeddedResources)
 		copyAction.execute()
 	}
 
@@ -166,6 +170,36 @@ class CompileHaxe extends DefaultTask implements HaxeTask {
 	public resource(Object path)
 	{
 		resourcePaths.add(path)
+	}
+
+	LinkedHashMap<String, File> embeddedResources = [:]
+
+	public embed(String name, Object file)
+	{
+		embeddedResources.put(name, project.file(file))
+	}
+
+	public embed(Object file)
+	{
+		def realFile = project.file(file)
+		embed(realFile.name, realFile)
+	}
+
+	public embedAll(Object directory)
+	{
+		def realDir = project.file(directory)
+		if (!realDir.directory)
+		{
+			throw new IllegalArgumentException("embedAll requires a directory: " + directory)
+		}
+		realDir.eachFileRecurse { embed(it) }
+	}
+
+	@InputFiles
+	@SkipWhenEmpty
+	public FileCollection getEmbeddedResourceFiles()
+	{
+		return new SimpleFileCollection(embeddedResources.values())
 	}
 
 	private File outputFile

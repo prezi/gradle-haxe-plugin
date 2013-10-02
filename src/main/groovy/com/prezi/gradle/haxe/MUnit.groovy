@@ -42,12 +42,20 @@ class MUnit extends DefaultTask implements HaxeTask {
 		def extractor = new HaxelibDependencyExtractor(project, compileTask.legacyPlatformPaths, instantiator, fileResolver)
 
 		sourcePath.add(testSourcesDirectory)
-		extractor.extractDependenciesFrom(getTestConfiguration(), sourcePath, resourcePath)
-		sourcePath.addAll(compileTask.getSourceFiles().files)
-		extractor.extractDependenciesFrom(compileTask.getConfiguration(), sourcePath, resourcePath)
+		LinkedHashMap<String, File> testEmbeddedResources = [:]
+		extractor.extractDependenciesFrom(getTestConfiguration(), sourcePath, resourcePath, testEmbeddedResources)
+		// TODO maybe allow adding test embed stuff?
 
-		resourcePath.addAll(getTestResourceFiles().files)
+		sourcePath.addAll(compileTask.getSourceFiles().files)
+		LinkedHashMap<String, File> compilerEmbeddedResources = [:]
+		extractor.extractDependenciesFrom(compileTask.getConfiguration(), sourcePath, resourcePath, compilerEmbeddedResources)
+		compilerEmbeddedResources.putAll(compileTask.embeddedResources)
+		LinkedHashMap<String, File> allEmbeddedResources = [:]
+		allEmbeddedResources.putAll(compilerEmbeddedResources)
+		allEmbeddedResources.putAll(testEmbeddedResources)
+
 		resourcePath.addAll(compileTask.getResourceFiles().files)
+		resourcePath.addAll(getTestResourceFiles().files)
 
 		def output = getOutput()
 		project.mkdir(output.parentFile)
@@ -58,7 +66,8 @@ class MUnit extends DefaultTask implements HaxeTask {
 				.withIncludePackages(includePackages)
 				.withExcludePackages(excludePackages)
 				.withSources(sourcePath)
-				.withResources(resourcePath)
+				.withSources(resourcePath)
+				.withEmbeddedResources(allEmbeddedResources)
 				.withMacros(compileTask.macros)
 				.withFlags(testFlags)
 				.withFlags(compileTask.flagList.findAll({ it != "--js-modern" }))
@@ -120,7 +129,7 @@ class MUnit extends DefaultTask implements HaxeTask {
 		}
 
 		def copyAction = new HarCopyAction(instantiator, fileResolver, temporaryDirFactory,
-				getTestSourceArchive(), getTestSourceFiles(), getTestResourceFiles())
+				getTestSourceArchive(), getTestSourceFiles(), getTestResourceFiles(), allEmbeddedResources)
 		copyAction.execute()
 	}
 
