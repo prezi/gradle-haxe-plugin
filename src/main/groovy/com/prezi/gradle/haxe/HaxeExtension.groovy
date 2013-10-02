@@ -1,75 +1,32 @@
 package com.prezi.gradle.haxe
 
-import org.gradle.api.artifacts.Configuration
-import org.gradle.api.file.FileCollection
-import org.gradle.api.internal.file.UnionFileCollection
+import org.gradle.api.Project
+import org.gradle.api.internal.ClosureBackedAction
 
 class HaxeExtension {
 
-	String main = ""
-	public main(String main)
-	{
-		this.main = main
-	}
+	@Delegate(deprecated = true)
+	private final HaxeCompileParameters compileParams
+	private final HaxeCompileParameters testParams
 
-	boolean debug = false
-	public debug(boolean value)
+	public HaxeExtension(Project project)
 	{
-		this.debug = value
-	}
-
-	List<String> macros = []
-	public macro(String m)
-	{
-		macros.add(m)
-	}
-
-	LinkedHashSet<String> includePackages = []
-	public includePackage(String pkg)
-	{
-		includePackages.add(pkg)
-	}
-
-	LinkedHashSet<String> excludePackages = []
-	public excludePackage(String pkg)
-	{
-		excludePackages.add(pkg)
-	}
-
-	LinkedHashSet<String> flagList = []
-	public flag(String flag)
-	{
-		flagList.add(flag)
-	}
-
-	List<Object> resourcePaths = []
-	public resource(path)
-	{
-		resourcePaths.add(path)
-	}
-
-	Configuration configuration
-	public configuration(Configuration configuration)
-	{
-		this.configuration = configuration
-	}
-
-	String targetPlatform
-	public targetPlatform(String targetPlatform)
-	{
-		this.targetPlatform = targetPlatform
+		this.compileParams = new HaxeCompileParameters(project)
+		this.testParams = new HaxeCompileParameters(project)
 	}
 
 	void mapTo(CompileHaxe compileTask)
 	{
-		compileTask.main = main
-		compileTask.macros = new ArrayList<>(macros)
-		compileTask.includePackages = new LinkedHashSet<>(includePackages)
-		compileTask.excludePackages = new LinkedHashSet<>(excludePackages)
-		compileTask.resourcePaths = new ArrayList<>(resourcePaths)
-		compileTask.flagList = new LinkedHashSet<>(flagList)
-		compileTask.debug = debug
-		compileTask.configuration = configuration
-		compileTask.targetPlatform = targetPlatform
+		compileParams.copyTo compileTask.params
+	}
+
+	void mapTo(MUnit testTask)
+	{
+		testParams.copyTo testTask.params
+	}
+
+	public void test(Closure c)
+	{
+		new ClosureBackedAction<>(c).execute(testParams)
 	}
 }

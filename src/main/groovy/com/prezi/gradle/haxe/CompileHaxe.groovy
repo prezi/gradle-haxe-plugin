@@ -1,9 +1,6 @@
 package com.prezi.gradle.haxe
 
-import com.prezi.gradle.DeprecationLogger
 import org.gradle.api.DefaultTask
-import org.gradle.api.artifacts.Configuration
-import org.gradle.api.artifacts.Dependency
 import org.gradle.api.artifacts.PublishArtifact
 import org.gradle.api.file.FileCollection
 import org.gradle.api.internal.file.FileResolver
@@ -18,6 +15,14 @@ import org.gradle.internal.reflect.Instantiator
 import org.gradle.process.internal.ExecException
 
 class CompileHaxe extends DefaultTask implements HaxeTask {
+
+	@Delegate(deprecated = true)
+	final HaxeCompileParameters params
+
+	public CompileHaxe()
+	{
+		this.params = new HaxeCompileParameters(project)
+	}
 
 	@TaskAction
 	void compile()
@@ -38,8 +43,8 @@ class CompileHaxe extends DefaultTask implements HaxeTask {
 				.withMain(main)
 				.withTarget(targetPlatform, getAndCreateOutput())
 				.withMacros(macros)
-				.withIncludePackages(includePackages)
-				.withExcludePackages(excludePackages)
+				.withIncludes(includes)
+				.withExcludes(excludes)
 				.withSources(sourcePath)
 				.withSources(resourcePath)
 				.withEmbeddedResources(allEmbeddedResources)
@@ -103,25 +108,6 @@ class CompileHaxe extends DefaultTask implements HaxeTask {
 		return output
 	}
 
-	Configuration configuration
-
-	public Configuration getConfiguration()
-	{
-		if (configuration == null)
-		{
-			return project.configurations[Dependency.DEFAULT_CONFIGURATION]
-		}
-		return configuration
-	}
-
-	public void configuration(Configuration configuration)
-	{
-		this.configuration = configuration
-	}
-
-	List<Object> sourcePaths = []
-	LinkedHashSet<String> legacyPlatformPaths = []
-
 	@InputFiles
 	@SkipWhenEmpty
 	public FileCollection getSourceFiles()
@@ -129,70 +115,11 @@ class CompileHaxe extends DefaultTask implements HaxeTask {
 		return project.files(sourcePaths)
 	}
 
-	public void source(Object path)
-	{
-		sourcePaths.add(path)
-		if (path instanceof String
-				&& path.startsWith("src/"))
-		{
-			legacyPlatformPaths << path.substring(4)
-		}
-	}
-
-	@Deprecated
-	public void legacySource(String path)
-	{
-		DeprecationLogger.nagUserOfReplacedProperty("legacySource", "includeLegacyPlatform")
-		if (path.startsWith("src/"))
-		{
-			legacyPlatformPaths << path.substring(4)
-		}
-		else
-		{
-			throw new IllegalArgumentException("Invalid legacy source path (should start with 'src/'): " + path)
-		}
-	}
-
-	public void includeLegacyPlatform(String platform)
-	{
-		legacyPlatformPaths << path
-	}
-
-	List<Object> resourcePaths = []
-
 	@InputFiles
 	@SkipWhenEmpty
 	public FileCollection getResourceFiles()
 	{
 		return project.files(resourcePaths)
-	}
-
-	public resource(Object path)
-	{
-		resourcePaths.add(path)
-	}
-
-	LinkedHashMap<String, File> embeddedResources = [:]
-
-	public embed(String name, Object file)
-	{
-		embeddedResources.put(name, project.file(file))
-	}
-
-	public embed(Object file)
-	{
-		def realFile = project.file(file)
-		embed(realFile.name, realFile)
-	}
-
-	public embedAll(Object directory)
-	{
-		def realDir = project.file(directory)
-		if (!realDir.directory)
-		{
-			throw new IllegalArgumentException("embedAll requires a directory: " + directory)
-		}
-		realDir.eachFileRecurse { embed(it) }
 	}
 
 	@InputFiles
@@ -283,50 +210,6 @@ class CompileHaxe extends DefaultTask implements HaxeTask {
 		return targetPlatform == "as3"
 	}
 
-	String targetPlatform
-
-	String main
-
-	List<String> macros = []
-
-	public macro(String m)
-	{
-		macros.add(m)
-	}
-
-	LinkedHashSet<String> includePackages = []
-
-	public includePackage(String pkg)
-	{
-		includePackages.add(pkg)
-	}
-
-	LinkedHashSet<String> excludePackages = []
-
-	public excludePackage(String pkg)
-	{
-		excludePackages.add(pkg)
-	}
-
-	LinkedHashSet<String> flagList = []
-
-	/**
-	 * Use {@link #flag(String)} instead.
-	 * @param flag
-	 */
-	@Deprecated
-	public void setFlags(String flagsToAdd)
-	{
-		DeprecationLogger.nagUserOfReplacedProperty("flags", "flag")
-		((" " + flagsToAdd.trim()).split(" -")).each { if (it) flag("-$it") }
-		this
-	}
-
-	public void flag(String... flag)
-	{
-		flagList.addAll(flag)
-	}
-
 	String baseName
 
 	public baseName(String baseName)
@@ -345,6 +228,4 @@ class CompileHaxe extends DefaultTask implements HaxeTask {
 	{
 		this.classifier = classifier
 	}
-
-	boolean debug
 }
