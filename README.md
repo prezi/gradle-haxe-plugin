@@ -37,7 +37,7 @@ Syntax:
 * `CompileHaxeToNeko` -- creates a `.n` file
 * `CompileHaxeToSwf` -- creates an `.swf` or `.swc` archive depending on the `outputFile` parameter
 
-Parameters:
+#### Parameters
 
 * `classifier` -- the classifier to use for the built artifacts.
 * `configuration` -- the Gradle configuration to bind the resulting artifacts to, and to search for dependencies from.
@@ -50,6 +50,12 @@ Parameters:
 * `resource` -- specify a resource directory. Repeat `resource` clause for multiple resource directories.
 * `output(File|Directory)` -- For JS and SWF use `outputFile`, for AS3 and Java use `outputDirectory`. If not specified, defaults to `${project.name}-${classifier}.{targetPlatform}`.
 * `source` -- specify a source directory. Repeat `source` clause for multiple source directories.
+
+#### Deprecated Parameters
+
+* `excludePackage` -- use `exclude` instead
+* `includePackage` -- use `include` instead
+* `flags` -- use `flag` instead with one flag at a time
 
 ### Testing
 
