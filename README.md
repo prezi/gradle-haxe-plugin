@@ -13,21 +13,19 @@ The Haxe plugin consists of three parts:
 
 Syntax:
 
-	task compile(type: com.prezi.gradle.haxe.CompileHaxe) {
+	task compile(type: com.prezi.gradle.haxe.CompileHaxeTo<target>) {
 		main "<main-class>"
 		source <directory>
-		targetPlatform "<js|swf|as3>"
-	
+
 		// Optional parameters
 		classifier "<classifier>"
 		configuration <configuration>
 		debug <true|false>
-		excludePackage "<package|class>"
+		exclude "<package|class>"
 		flag "<flag>"
-		includePackage "<package|class>"
+		include "<package|class>"
 		macro "<macro>"
-		outputDirectory <directory>
-		outputFile <file>
+		outputDirectory <directory> | outputFile <file>
 		resource <directory>
 	}
 
@@ -36,16 +34,20 @@ Parameters:
 * `classifier` -- the classifier to use for the built artifacts.
 * `configuration` -- the Gradle configuration to bind the resulting artifacts to, and to search for dependencies from.
 * `debug` -- enables `-debug` and `-D fdb`.
-* `excludePackage` -- adds `--macro exclude('…')` to the build command.
+* `exclude` -- adds `--macro exclude('…')` to the build command, essentially excluding the specified package/class.
 * `flag` -- add flag on Haxe command path, such as `"-D node"` or `"--js-modern"`.
-* `includePackage` -- adds `--macro include('…')` to the build command.
+* `include` -- adds `--macro include('…')` to the build command, essentially including the specified package/class.
 * `macro` -- adds `--macro "…"` on the build command.
 * `main` -- specifies main class.
 * `resource` -- specify a resource directory. Repeat `resource` clause for multiple resource directories.
-* `output(File|Directory)` -- For JS and SWF use `outputFile`, for AS3 use `outputDirectory`. If not specified, defaults to `${project.name}-${classifier}.{targetPlatform}`.
+* `output(File|Directory)` -- For JS and SWF use `outputFile`, for AS3 and Java use `outputDirectory`. If not specified, defaults to `${project.name}-${classifier}.{targetPlatform}`.
 * `source` -- specify a source directory. Repeat `source` clause for multiple source directories.
-* `targetPlatform` -- specify the target platform.
-
+* `target` -- the name of the target platform. Supported platforms:
+	* `CompileHaxeToAs3` -- creates a directory with `.as` source files
+	* `CompileHaxeToJava` -- creates a directory with `.java` files and a `.jar` file
+	* `CompileHaxeToJs` -- creates a `.js` file
+	* `CompileHaxeToNeko` -- creates a `.n` file
+	* `CompileHaxeToSwf` -- creates an `.swf` or `.swc` archive depending on the `outputFile` parameter
 
 ### Testing
 
