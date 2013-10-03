@@ -80,7 +80,7 @@ class HaxeCompileParameters {
 
 	public void includeLegacyPlatform(String platform)
 	{
-		legacyPlatformPaths << path
+		legacyPlatformPaths << platform
 	}
 
 	public resource(Object path)
