@@ -33,9 +33,18 @@ class EmbeddedResourceEncoding {
 		if (encoded != null && !encoded.empty)
 		{
 			encoded.split(' ').each { String res ->
-				def (fileNameEnc, nameEnc) = res.split('@', 2)
-				def fileName = URLDecoder.decode(fileNameEnc, "utf-8")
-				def name = nameEnc ? URLDecoder.decode(nameEnc, "utf-8") : fileName
+				def fileName, name
+				if (res.contains('@'))
+				{
+					def (fileNameEnc, nameEnc) = res.split('@', 2)
+					fileName = URLDecoder.decode(fileNameEnc, "utf-8")
+					name = URLDecoder.decode(nameEnc, "utf-8")
+				}
+				else
+				{
+					fileName = URLDecoder.decode(res, "utf-8")
+					name = fileName
+				}
 				resources.put name, new File(baseDir, fileName)
 			}
 		}
