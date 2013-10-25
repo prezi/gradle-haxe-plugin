@@ -3,7 +3,9 @@ package prezi.test;
 @:exportExtern
 class Util
 {
-	public static function yes():Bool
+	public function new() {}
+
+	public function yes():Bool
 	{
 		return true;
 	}
