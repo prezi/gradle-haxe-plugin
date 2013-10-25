@@ -2,7 +2,6 @@ package prezi.macros;
 
 import haxe.macro.Context;
 import haxe.macro.Type;
-import sys.FileSystem;
 
 using Lambda;
 
@@ -39,9 +38,9 @@ class GenerateExterns
 
 	static function mkdir(dir:String)
 	{
-		if (!FileSystem.exists(dir))
+		if (!sys.FileSystem.exists(dir))
 		{
-			FileSystem.createDirectory(dir);
+			sys.FileSystem.createDirectory(dir);
 		}
 	}
 
