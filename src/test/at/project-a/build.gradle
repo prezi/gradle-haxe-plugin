@@ -30,6 +30,7 @@ task lajos(type: CompileHaxe) {
 	source "src/main/haxe/js"
 	resource "src/main/resources"
 	resource "build.gradle"
+	include "prezi"
 	externs true
 	targetPlatform "js"
 }
