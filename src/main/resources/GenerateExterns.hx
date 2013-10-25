@@ -44,9 +44,9 @@ class GenerateExterns
 		}
 	}
 
-	static function mkdirP(dirs:Array<String>):String
+	static function mkdirP(baseDir:String, dirs:Array<String>):String
 	{
-		var base = "externs";
+		var base = baseDir;
 		mkdir(base);
 		for (piece in dirs)
 		{
@@ -278,20 +278,20 @@ class GenerateExterns
 		return meta.has(":exportExtern");
 	}
 
-	static function generateExterns(types:Array<Type>)
+	static function generateExterns(baseFolder:String, types:Array<Type>)
 	{
 		var exportedTypes = types.filter(typeHasExportAnnotation);
 		exportedTypes.map(function(type) {
-				var folder = mkdirP(getPackage(type));
+				var folder = mkdirP(baseFolder, getPackage(type));
 				var file = sys.io.File.write(folder + '/' + getTypeName(type) + '.hx');
 				file.writeString(makeExternFileContent(type));
 				file.close();
 			});
 	}
 
-	public static function generate():Void
+	public static function generate(baseFolder):Void
 	{
-		Context.onGenerate(generateExterns);
+		Context.onGenerate(generateExterns.bind(baseFolder));
 	}
 #end
 }

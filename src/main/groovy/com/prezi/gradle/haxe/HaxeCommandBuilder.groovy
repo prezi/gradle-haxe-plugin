@@ -97,7 +97,8 @@ class HaxeCommandBuilder {
 		{
 			def externGenerator = project.plugins.getPlugin(HaxePlugin).getExternGenerator(project)
 			append("-cp", externGenerator.getAbsolutePath())
-			append("--macro", "prezi.macros.GenerateExterns.generate()")
+			def outputDir = new File(project.buildDir, "haxe-generated-externs")
+			append("--macro", "prezi.macros.GenerateExterns.generate(\"$outputDir\")")
 		}
 		this
 	}
