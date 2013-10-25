@@ -13,7 +13,6 @@ configure(allprojects) {
 	version = "0.1-SNAPSHOT"
 
 	apply plugin: "haxe"
-	apply plugin: "ivy-publish"
 
 	repositories {
 		mavenLocal()
