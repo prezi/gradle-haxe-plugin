@@ -90,4 +90,15 @@ class HaxeCommandBuilder {
 		}
 		this
 	}
+
+	HaxeCommandBuilder withGenerateExterns(boolean generate)
+	{
+		if (generate)
+		{
+			def externGenerator = project.plugins.getPlugin(HaxePlugin).getExternGenerator(project)
+			append("-cp", externGenerator.getAbsolutePath())
+			append("--macro", "prezi.macros.GenerateExterns.generate()")
+		}
+		this
+	}
 }

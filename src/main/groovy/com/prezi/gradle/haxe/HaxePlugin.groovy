@@ -139,4 +139,15 @@ class HaxePlugin implements Plugin<Project> {
 //			}
 		}
 	}
+
+	public File getExternGenerator(Project project) {
+		def rootProject = project.rootProject;
+		def haxeGenerator = new File(rootProject.buildDir, "haxe-generator")
+		def externDir = rootProject.mkdir "${haxeGenerator}/prezi/macros"
+		println "Copying generator to ${externDir}"
+		def externGenerator = new File(externDir, "GenerateExterns.hx")
+		externGenerator.delete()
+		externGenerator << this.class.getResourceAsStream("/GenerateExterns.hx")
+		return haxeGenerator
+	}
 }

@@ -45,6 +45,7 @@ class CompileHaxe extends DefaultTask implements HaxeTask {
 				.withMacros(macros)
 				.withIncludes(includes)
 				.withExcludes(excludes)
+				.withGenerateExterns(externs)
 				.withSources(sourcePath)
 				.withSources(resourcePath)
 				.withEmbeddedResources(allEmbeddedResources)

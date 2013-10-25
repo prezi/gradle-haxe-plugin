@@ -116,6 +116,8 @@ class HaxeCompileParameters {
 		realDir.eachFileRecurse { embed(it) }
 	}
 
+	boolean externs
+
 	// Clone
 
 	protected void copyTo(HaxeCompileParameters params)
@@ -132,6 +134,7 @@ class HaxeCompileParameters {
 		params.legacyPlatformPaths.addAll(legacyPlatformPaths)
 		params.resourcePaths.addAll(resourcePaths)
 		params.embeddedResources.putAll(embeddedResources)
+		params.externs = externs
 	}
 
 	@Override
@@ -164,6 +167,8 @@ class HaxeCompileParameters {
 		s.append "Embedded resources: ${embeddedResources}"
 		s.append separator
 		s.append "Legacy platforms: ${legacyPlatformPaths}"
+		s.append separator
+		s.append "Generate externs: ${externs}"
 		return s.toString()
 	}
 
