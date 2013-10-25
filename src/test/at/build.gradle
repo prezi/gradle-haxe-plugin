@@ -20,10 +20,10 @@ configure(allprojects) {
 
 		maven {
 			credentials {
-				username "$nexusUser"
-				password "$nexusPassword"
+				username nexusUser
+				password nexusPassword
 			}
-			url "http://intra.prezi.com:8081/nexus/content/groups/public/"
+			url "https://artifactory.prezi.com/repo"
 		}
 	}
 }
