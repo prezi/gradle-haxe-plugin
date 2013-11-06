@@ -5,7 +5,7 @@ import org.gradle.api.Project
 class CommandExecutor {
 	public static void execute(Project project, String[] cmd, File dir, Closure c)
 	{
-		project.logger.info("Executing in {}: {}", dir, cmd)
+		project.logger.info("Executing in {}: {}", dir, cmd.join(" "))
 		def output = new StringWriter()
 		def proc = cmd.execute((String[]) null, dir)
 		proc.in.eachLine { line ->
