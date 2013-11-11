@@ -115,6 +115,7 @@ class MUnit extends DefaultTask implements HaxeTask {
 			def templatesDir = new File(workDir, "templates")
 			project.mkdir(templatesDir)
 			def jsRunnerTemplate = new File(templatesDir, "js_runner-html.mtt")
+			jsRunnerTemplate.delete()
 			jsRunnerTemplate << this.class.getResourceAsStream("/js_runner-html.mtt")
 		}
 
