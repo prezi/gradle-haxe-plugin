@@ -121,6 +121,7 @@ class HaxePlugin implements Plugin<Project> {
 				task.configuration.allDependencies.withType(ProjectDependency) { ProjectDependency dependency ->
 					dependency.projectConfiguration.allArtifacts.withType(HarPublishArtifact) { HarPublishArtifact artifact ->
 						task.dependsOn artifact
+						task.dependsOn task.configuration
 						task.inputs.file artifact.file
 					}
 				}
