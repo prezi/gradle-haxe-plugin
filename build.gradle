@@ -35,6 +35,7 @@ dependencies {
 	compile localGroovy()
 	compile "com.prezi.gradle:gradle-prezi-plugin:1.0-SNAPSHOT"
 	compile "com.prezi.spaghetti:gradle-spaghetti-plugin:1.0-SNAPSHOT"
+	compile "org.webjars:requirejs:2.1.8"
 }
 
 task run(type: Exec) {
