@@ -1,6 +1,8 @@
 package com.prezi.gradle.haxe
 
+import com.prezi.spaghetti.gradle.ModuleDefinitionLookup
 import org.gradle.api.Project
+import org.gradle.api.artifacts.Configuration
 
 class HaxeCommandBuilder {
 	private final Project project
@@ -87,6 +89,24 @@ class HaxeCommandBuilder {
 		if (debug)
 		{
 			withFlags(["-D fdb", "-debug"])
+		}
+		this
+	}
+
+	HaxeCommandBuilder withSpaghetti(String spaghettiType, File output, Configuration configuration)
+	{
+		if (spaghettiType != null)
+		{
+			// extract files
+			def workDir = project.file("${project.buildDir}/spaghetti-haxe")
+			workDir.mkdirs()
+			def bundleFile = new File(workDir, "SpaghettiBundler.hx")
+			bundleFile.delete()
+			bundleFile << this.class.getResourceAsStream("/SpaghettiBundler.hx").text
+			append("--next", "-cp", workDir, "--run", "SpaghettiBundler", spaghettiType, output)
+			append(ModuleDefinitionLookup.getAllBundles(configuration).collect { bundle ->
+				bundle.name.localName
+			}.toArray())
 		}
 		this
 	}

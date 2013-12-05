@@ -39,9 +39,10 @@ class CompileHaxe extends DefaultTask implements HaxeTask {
 		extractor.extractDependenciesFrom(getConfiguration(), sourcePath, resourcePath, allEmbeddedResources)
 		allEmbeddedResources.putAll(embeddedResources)
 
+		def output = getAndCreateOutput()
 		String[] cmd = new HaxeCommandBuilder(project, "haxe")
 				.withMain(main)
-				.withTarget(targetPlatform, getAndCreateOutput())
+				.withTarget(targetPlatform, output)
 				.withMacros(macros)
 				.withIncludes(includes)
 				.withExcludes(excludes)
@@ -50,6 +51,7 @@ class CompileHaxe extends DefaultTask implements HaxeTask {
 				.withEmbeddedResources(allEmbeddedResources)
 				.withFlags(flagList)
 				.withDebugFlags(debug)
+				.withSpaghetti(spaghetti, output, configuration)
 				.build()
 
 		CommandExecutor.execute(project, cmd, null) { ExecutionResult result ->

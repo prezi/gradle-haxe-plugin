@@ -116,6 +116,15 @@ class HaxeCompileParameters {
 		realDir.eachFileRecurse { embed(it) }
 	}
 
+	String spaghetti
+
+	public spaghetti(String output) {
+		if (!(output in ["module", "application"])) {
+			throw new IllegalArgumentException("spaghetti argument must be either 'module' or 'application'")
+		}
+		this.spaghetti = output
+	}
+
 	// Clone
 
 	protected void copyTo(HaxeCompileParameters params)

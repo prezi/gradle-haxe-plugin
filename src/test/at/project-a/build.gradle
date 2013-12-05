@@ -24,6 +24,7 @@ haxe {
 }
 
 task lajos(type: CompileHaxe) {
+	spaghetti "module"
 	dependsOn sayHello
 	configuration configurations.runtime
 	source "src/main/haxe/common"
