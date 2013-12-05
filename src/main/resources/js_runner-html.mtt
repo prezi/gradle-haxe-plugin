@@ -17,6 +17,6 @@
     <div id="haxe:trace" ></div>
     <div id="munit" class="munit" >
     </div>
-    <script language='JavaScript' type='text/JavaScript' src="::runnerName::"></script>
+    <script language='JavaScript' type='text/JavaScript' data-main="::runnerName::" src="../../require.js"></script>
   </body>
 </html>

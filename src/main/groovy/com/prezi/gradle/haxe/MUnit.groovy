@@ -1,6 +1,7 @@
 package com.prezi.gradle.haxe
 
 import com.prezi.gradle.DeprecationLogger
+import com.prezi.spaghetti.gradle.ModuleDefinitionLookup
 import org.gradle.api.DefaultTask
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.PublishArtifact
@@ -105,6 +106,17 @@ class MUnit extends DefaultTask implements HaxeTask {
 				haxeCmd += " "
 			}
 			haxeCmd += it
+		}
+
+		if (compileTask.targetPlatform == "js") {
+			def bundleFile = project.getPlugins().getPlugin(HaxePlugin).getSpaghettiBundleTool(project)
+			haxeCmd += "\n-cmd haxe -cp ${bundleFile.parentFile} --run SpaghettiBundler application ${output}"
+			ModuleDefinitionLookup.getAllBundles(compileTask.configuration).each { bundle ->
+				def moduleFile = new File(workDir, bundle.name.localName + ".js")
+				moduleFile.delete()
+				moduleFile << bundle.bundledJavaScript
+				haxeCmd += " ../../${bundle.name.localName}"
+			}
 		}
 
 		def testHxml = new File(workDir, "test.hxml")
