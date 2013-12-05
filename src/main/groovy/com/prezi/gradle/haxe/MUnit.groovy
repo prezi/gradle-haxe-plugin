@@ -46,6 +46,17 @@ class MUnit extends DefaultTask implements HaxeTask {
 		copyTestSources.into(testSourcesDirectory)
 		copyTestSources.execute()
 
+		// Extract Require JS
+		File requireJsFile = null
+		if (compileTask.targetPlatform == "js") {
+			def requireJsProps = new Properties()
+			requireJsProps.load(this.class.getResourceAsStream("/META-INF/maven/org.webjars/requirejs/pom.properties"))
+			def requireJsVersion = requireJsProps.getProperty("version")
+			requireJsFile = new File(workDir, "require.js")
+			requireJsFile.delete()
+			requireJsFile << this.class.getResourceAsStream("/META-INF/resources/webjars/requirejs/${requireJsVersion}/require.js")
+		}
+
 		LinkedHashSet<File> sourcePath = []
 		LinkedHashSet<File> resourcePath = []
 		def extractor = new HaxelibDependencyExtractor(project, [ compileTask.legacyPlatformPaths, legacyPlatformPaths ].flatten(), instantiator, fileResolver)
