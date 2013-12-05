@@ -97,13 +97,8 @@ class HaxeCommandBuilder {
 	{
 		if (spaghettiType != null)
 		{
-			// extract files
-			def workDir = project.file("${project.buildDir}/spaghetti-haxe")
-			workDir.mkdirs()
-			def bundleFile = new File(workDir, "SpaghettiBundler.hx")
-			bundleFile.delete()
-			bundleFile << this.class.getResourceAsStream("/SpaghettiBundler.hx").text
-			append("--next", "-cp", workDir, "--run", "SpaghettiBundler", spaghettiType, output)
+			def bundleFile = project.getPlugins().getPlugin(HaxePlugin).getSpaghettiBundleTool(project)
+			append("--next", "-cp", bundleFile.parentFile, "--run", "SpaghettiBundler", spaghettiType, output)
 			append(ModuleDefinitionLookup.getAllBundles(configuration).collect { bundle ->
 				bundle.name.localName
 			}.toArray())

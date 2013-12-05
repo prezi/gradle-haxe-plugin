@@ -140,4 +140,13 @@ class HaxePlugin implements Plugin<Project> {
 //			}
 		}
 	}
+
+	File getSpaghettiBundleTool(Project project) {
+		def workDir = project.file("${project.buildDir}/spaghetti-haxe")
+		workDir.mkdirs()
+		def bundleFile = new File(workDir, "SpaghettiBundler.hx")
+		bundleFile.delete()
+		bundleFile << this.class.getResourceAsStream("/SpaghettiBundler.hx").text
+		return bundleFile
+	}
 }
