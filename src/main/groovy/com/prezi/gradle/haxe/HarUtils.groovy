@@ -70,11 +70,6 @@ class HarUtils {
 				{
 					relative += "/"
 				}
-//				if (ignorePattern.matcher(relative).find())
-//				{
-//					return
-//				}
-				println relative
 
 				ZipEntry entry = new ZipEntry(relative)
 				entry.time = file.lastModified()
