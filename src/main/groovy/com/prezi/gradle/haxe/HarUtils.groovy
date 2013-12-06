@@ -51,35 +51,7 @@ class HarUtils {
 		}
 
 		def archiveFile = new File(outputDirectory, name + "." + DEFAULT_EXTENSION)
-		zip(tempDirectory, archiveFile)
-
+		project.ant.zip(destfile: archiveFile, basedir: tempDirectory)
 		return archiveFile
-	}
-
-	static void zip(File source, File zipFile)
-	{
-		zipFile.delete()
-		zipFile.parentFile.mkdirs()
-		zipFile.withOutputStream { fileOutput ->
-			ZipOutputStream zipOutput = new ZipOutputStream(fileOutput);
-
-			int topDirLength = source.absolutePath.length()
-
-			source.eachFileRecurse { file ->
-				def relative = file.absolutePath.substring(topDirLength).replace('\\', '/')
-				if (file.isDirectory() && !relative.endsWith('/'))
-				{
-					relative += "/"
-				}
-				ZipEntry entry = new ZipEntry(relative)
-				entry.time = file.lastModified()
-				zipOutput.putNextEntry(entry)
-				if (file.isFile())
-				{
-					file.withInputStream { input -> zipOutput << input }
-				}
-			}
-			zipOutput.close()
-		}
 	}
 }
