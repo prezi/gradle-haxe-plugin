@@ -11,7 +11,7 @@ buildscript {
 	}
 
 	dependencies {
-		classpath "com.prezi.gradle:gradle-haxe-plugin:1.0-SNAPSHOT"
+		classpath "com.prezi.gradle:gradle-haxe-plugin:1.2-SNAPSHOT"
 	}
 }
 
