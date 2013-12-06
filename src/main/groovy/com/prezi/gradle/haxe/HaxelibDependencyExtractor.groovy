@@ -71,21 +71,16 @@ class HaxelibDependencyExtractor {
 		Manifest manifest = null
 		HaxelibType type = HaxelibType.VERSION_0_X
 		zip.visit { FileVisitDetails details ->
-			if (details.name == "MANIFEST.MF"
-					&& details.relativePath.parent
-					&& details.relativePath.parent.getLastName() == "META-INF"
-					&& details.relativePath.parent.parent
-					&& !details.relativePath.parent.parent.parent)
+			if (details.path == "/META-INF/MANIFEST.MF")
 			{
-				manifest = new DefaultManifest(details.file, fileResolver)
+				manifest = new DefaultManifest(details.file, null)
 				if (manifest.getAttributes().get(HarUtils.MANIFEST_ATTR_LIBRARY_VERSION) == "1.0")
 				{
 					type = HaxelibType.VERSION_1_0
 					details.stopVisiting()
 				}
 			}
-			else if ((details.name == "haxelib.json" || details.name == "haxelib.xml")
-					&& details.relativePath.parent)
+			else if (details.path == "/haxelib.json" || details.path == "/haxelib.xml")
 			{
 				type = HaxelibType.HAXELIB
 				libraryRoot = details.relativePath.parent.getFile(targetPath)
