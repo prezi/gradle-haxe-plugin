@@ -108,7 +108,7 @@ class HaxelibDependencyExtractor {
 					project.logger.debug("Prezi Haxelib 1.0, adding embedded resources at {}", embedded)
 					resourcePath.add(embedded)
 					embeddedResources.putAll EmbeddedResourceEncoding.decode(
-							(String) manifest.getAttributes().get(HarUtils.MANIFEST_ATTR_EMBEDDED_RESOURCES),
+							(String) manifest.mainAttributes.get(HarUtils.MANIFEST_ATTR_EMBEDDED_RESOURCES),
 							embedded)
 				}
 				break
