@@ -66,7 +66,11 @@ class HaxelibDependencyExtractor {
 		Manifest manifest = null
 		HaxelibType type = HaxelibType.VERSION_0_X
 		zip.visit { FileVisitDetails details ->
-			if (details.path == "META-INF/MANIFEST.MF")
+			def path = details.path
+			if (path.startsWith("/")) {
+				path = path.substring(1)
+			}
+			if (path == "META-INF/MANIFEST.MF")
 			{
 				manifest = (Manifest) details.file.withInputStream { new Manifest(it) }
 				if (manifest.mainAttributes.getValue(HarUtils.MANIFEST_ATTR_LIBRARY_VERSION) == "1.0")
@@ -104,7 +108,7 @@ class HaxelibDependencyExtractor {
 					project.logger.debug("Prezi Haxelib 1.0, adding embedded resources at {}", embedded)
 					resourcePath.add(embedded)
 					embeddedResources.putAll EmbeddedResourceEncoding.decode(
-							(String) manifest.getAttributes().get(HarUtils.MANIFEST_ATTR_EMBEDDED_RESOURCES),
+							manifest.mainAttributes.getValue(HarUtils.MANIFEST_ATTR_EMBEDDED_RESOURCES),
 							embedded)
 				}
 				break

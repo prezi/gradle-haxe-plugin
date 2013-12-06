@@ -18,7 +18,7 @@ class HarUtils {
 	public static final String MANIFEST_ATTR_LIBRARY_VERSION = "Library-Version"
 	public static final String MANIFEST_ATTR_EMBEDDED_RESOURCES = "Embedded-Resources"
 
-	static Manifest createArchive(Project project, org.gradle.internal.Factory<File> temporaryDirFactory,
+	static File createArchive(Project project, org.gradle.internal.Factory<File> temporaryDirFactory,
 								  File outputDirectory, String name, FileCollection sources, FileCollection resources, Map<String, File> embeddedResources)
 	{
 		def manifest = new DefaultManifest(null)
@@ -50,9 +50,10 @@ class HarUtils {
 			into(new File(tempDirectory, "embedded"))
 		}
 
-		zip(tempDirectory, new File(outputDirectory, name + "." + DEFAULT_EXTENSION))
+		def archiveFile = new File(outputDirectory, name + "." + DEFAULT_EXTENSION)
+		zip(tempDirectory, archiveFile)
 
-		return manifest
+		return archiveFile
 	}
 
 	static void zip(File source, File zipFile)
@@ -70,7 +71,6 @@ class HarUtils {
 				{
 					relative += "/"
 				}
-
 				ZipEntry entry = new ZipEntry(relative)
 				entry.time = file.lastModified()
 				zipOutput.putNextEntry(entry)
