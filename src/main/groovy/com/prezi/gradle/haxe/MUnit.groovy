@@ -8,9 +8,6 @@ import org.gradle.api.artifacts.PublishArtifact
 import org.gradle.api.file.FileCollection
 import org.gradle.api.internal.file.FileResolver
 import org.gradle.api.internal.file.collections.SimpleFileCollection
-import org.gradle.api.internal.file.copy.FileCopyActionImpl
-import org.gradle.api.internal.file.copy.FileCopySpecVisitor
-import org.gradle.api.internal.file.copy.SyncCopySpecVisitor
 import org.gradle.api.tasks.InputFiles
 import org.gradle.api.tasks.SkipWhenEmpty
 import org.gradle.api.tasks.TaskAction
@@ -41,11 +38,10 @@ class MUnit extends DefaultTask implements HaxeTask {
 
 		// Copy all tests into one directory
 		def testSourcesDirectory = new File(workDir, "tests")
-		def copyTestSources = instantiator.newInstance(FileCopyActionImpl.class, instantiator, fileResolver,
-				new SyncCopySpecVisitor(new FileCopySpecVisitor()));
-		copyTestSources.from(getSourceFiles().files)
-		copyTestSources.into(testSourcesDirectory)
-		copyTestSources.execute()
+		project.sync {
+			from getSourceFiles().files
+			into testSourcesDirectory
+		}
 
 		// Extract Require JS
 		File requireJsFile = null
@@ -162,9 +158,7 @@ class MUnit extends DefaultTask implements HaxeTask {
 			}
 		}
 
-		def copyAction = new HarCopyAction(instantiator, fileResolver, temporaryDirFactory,
-				getTestSourceArchive(), getSourceFiles(), getResourceFiles(), embeddedResources)
-		copyAction.execute()
+		HarUtils.createArchive(project, temporaryDirFactory, project.buildDir, fullName, getSourceFiles(), getResourceFiles(), embeddedResources)
 	}
 
 	private PublishArtifact testSourceBundle

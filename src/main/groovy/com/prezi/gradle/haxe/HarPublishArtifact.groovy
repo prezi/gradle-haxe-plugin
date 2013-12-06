@@ -25,7 +25,7 @@ public class HarPublishArtifact extends AbstractPublishArtifact {
 	@Override
 	String getExtension()
 	{
-		return HarCopyAction.DEFAULT_EXTENSION
+		return HarUtils.DEFAULT_EXTENSION
 	}
 
 	@Override
