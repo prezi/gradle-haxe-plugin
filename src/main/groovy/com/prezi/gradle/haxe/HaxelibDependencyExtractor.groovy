@@ -5,8 +5,8 @@ import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.ModuleDependency
 import org.gradle.api.artifacts.ProjectDependency
 import org.gradle.api.file.FileVisitDetails
-import org.gradle.api.java.archives.Manifest
-import org.gradle.api.java.archives.internal.DefaultManifest
+
+import java.util.jar.Manifest
 
 class HaxelibDependencyExtractor {
 	static final String EXTRACTED_HAXELIBS_DIR = "haxelibs"
@@ -66,16 +66,17 @@ class HaxelibDependencyExtractor {
 		Manifest manifest = null
 		HaxelibType type = HaxelibType.VERSION_0_X
 		zip.visit { FileVisitDetails details ->
-			if (details.path == "/META-INF/MANIFEST.MF")
+			if (details.path == "META-INF/MANIFEST.MF")
 			{
-				manifest = new DefaultManifest(details.file, null)
-				if (manifest.getAttributes().get(HarUtils.MANIFEST_ATTR_LIBRARY_VERSION) == "1.0")
+				manifest = (Manifest) details.file.withInputStream { new Manifest(it) }
+				if (manifest.mainAttributes.getValue(HarUtils.MANIFEST_ATTR_LIBRARY_VERSION) == "1.0")
 				{
 					type = HaxelibType.VERSION_1_0
 					details.stopVisiting()
 				}
 			}
-			else if (details.path == "/haxelib.json" || details.path == "/haxelib.xml")
+			else if ((details.name == "haxelib.json" || details.name == "haxelib.xml")
+					&& details.relativePath.parent)
 			{
 				type = HaxelibType.HAXELIB
 				libraryRoot = details.relativePath.parent.getFile(targetPath)
