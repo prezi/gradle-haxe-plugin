@@ -59,9 +59,7 @@ class CompileHaxe extends DefaultTask implements HaxeTask {
 			}
 		}
 
-		def copyAction = new HarCopyAction(instantiator, fileResolver, temporaryDirFactory,
-				getSourceArchive(), getSourceFiles(), getResourceFiles(), embeddedResources)
-		copyAction.execute()
+		HarUtils.createArchive(project, temporaryDirFactory, project.buildDir, getFullName(), getSourceFiles(), getResourceFiles(), embeddedResources)
 	}
 
 	private PublishArtifact sourceBundle
