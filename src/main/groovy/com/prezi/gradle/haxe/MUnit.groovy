@@ -6,12 +6,9 @@ import org.gradle.api.DefaultTask
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.PublishArtifact
 import org.gradle.api.file.FileCollection
-import org.gradle.api.internal.file.FileResolver
-import org.gradle.api.internal.file.collections.SimpleFileCollection
 import org.gradle.api.tasks.InputFiles
 import org.gradle.api.tasks.SkipWhenEmpty
 import org.gradle.api.tasks.TaskAction
-import org.gradle.internal.reflect.Instantiator
 
 import java.util.regex.Pattern
 
@@ -30,9 +27,6 @@ class MUnit extends DefaultTask implements HaxeTask {
 	@TaskAction
 	void munit()
 	{
-		Instantiator instantiator = getServices().get(Instantiator.class)
-		FileResolver fileResolver = getServices().get(FileResolver.class)
-
 		def workDir = getWorkingDirectory()
 		project.mkdir(workDir)
 
@@ -56,7 +50,7 @@ class MUnit extends DefaultTask implements HaxeTask {
 
 		LinkedHashSet<File> sourcePath = []
 		LinkedHashSet<File> resourcePath = []
-		def extractor = new HaxelibDependencyExtractor(project, [ compileTask.legacyPlatformPaths, legacyPlatformPaths ].flatten(), instantiator, fileResolver)
+		def extractor = new HaxelibDependencyExtractor(project, [ compileTask.legacyPlatformPaths, legacyPlatformPaths ].flatten())
 
 		sourcePath.add(testSourcesDirectory)
 		LinkedHashMap<String, File> testEmbeddedResources = [:]
@@ -158,7 +152,8 @@ class MUnit extends DefaultTask implements HaxeTask {
 			}
 		}
 
-		HarUtils.createArchive(project, temporaryDirFactory, project.buildDir, fullName, getSourceFiles(), getResourceFiles(), embeddedResources)
+		HarUtils.createArchive(project, temporaryDirFactory, project.buildDir,
+				getFullName(), getSourceFiles(), getResourceFiles(), embeddedResources)
 	}
 
 	private PublishArtifact testSourceBundle
@@ -250,7 +245,7 @@ class MUnit extends DefaultTask implements HaxeTask {
 	@SkipWhenEmpty
 	public FileCollection getEmbeddedResourceFiles()
 	{
-		return new SimpleFileCollection(embeddedResources.values())
+		return project.files(embeddedResources.values())
 	}
 
 	private String classifier

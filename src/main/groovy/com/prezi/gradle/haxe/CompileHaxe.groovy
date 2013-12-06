@@ -3,16 +3,12 @@ package com.prezi.gradle.haxe
 import org.gradle.api.DefaultTask
 import org.gradle.api.artifacts.PublishArtifact
 import org.gradle.api.file.FileCollection
-import org.gradle.api.internal.file.FileResolver
-import org.gradle.api.internal.file.collections.SimpleFileCollection
 import org.gradle.api.tasks.InputFiles
 import org.gradle.api.tasks.Optional
 import org.gradle.api.tasks.OutputDirectory
 import org.gradle.api.tasks.OutputFile
 import org.gradle.api.tasks.SkipWhenEmpty
 import org.gradle.api.tasks.TaskAction
-import org.gradle.internal.reflect.Instantiator
-import org.gradle.process.internal.ExecException
 
 class CompileHaxe extends DefaultTask implements HaxeTask {
 
@@ -27,9 +23,7 @@ class CompileHaxe extends DefaultTask implements HaxeTask {
 	@TaskAction
 	void compile()
 	{
-		Instantiator instantiator = getServices().get(Instantiator.class)
-		FileResolver fileResolver = getServices().get(FileResolver.class)
-		def extractor = new HaxelibDependencyExtractor(project, legacyPlatformPaths, instantiator, fileResolver)
+		def extractor = new HaxelibDependencyExtractor(project, legacyPlatformPaths)
 
 		LinkedHashSet<File> sourcePath = []
 		LinkedHashSet<File> resourcePath = []
@@ -57,7 +51,7 @@ class CompileHaxe extends DefaultTask implements HaxeTask {
 		CommandExecutor.execute(project, cmd, null) { ExecutionResult result ->
 			if (result.exitValue != 0)
 			{
-				throw new ExecException("Command finished with non-zero exit value (${result.exitValue}):\n${cmd}")
+				throw new RuntimeException("Command finished with non-zero exit value (${result.exitValue}):\n${cmd}")
 			}
 		}
 
@@ -126,7 +120,7 @@ class CompileHaxe extends DefaultTask implements HaxeTask {
 	@SkipWhenEmpty
 	public FileCollection getEmbeddedResourceFiles()
 	{
-		return new SimpleFileCollection(embeddedResources.values())
+		return project.files(embeddedResources.values())
 	}
 
 	private File outputFile

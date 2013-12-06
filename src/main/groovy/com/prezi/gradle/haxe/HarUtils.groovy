@@ -3,8 +3,6 @@ package com.prezi.gradle.haxe
 import org.gradle.api.Project
 import org.gradle.api.file.DuplicatesStrategy
 import org.gradle.api.file.FileCollection
-import org.gradle.api.internal.file.collections.FileTreeAdapter
-import org.gradle.api.internal.file.collections.MapFileTree
 import org.gradle.api.java.archives.Manifest
 import org.gradle.api.java.archives.internal.DefaultManifest
 
@@ -24,25 +22,18 @@ class HarUtils {
 								  File outputDirectory, String name, FileCollection sources, FileCollection resources, Map<String, File> embeddedResources)
 	{
 		def manifest = new DefaultManifest(null)
+		manifest.attributes.put(MANIFEST_ATTR_LIBRARY_VERSION, "1.0")
+		if (!embeddedResources.isEmpty())
+		{
+			manifest.attributes.put(MANIFEST_ATTR_EMBEDDED_RESOURCES, EmbeddedResourceEncoding.encode(embeddedResources))
+		}
 
 		def tempDirectory = temporaryDirFactory.create()
+		def manifestFile = new File(tempDirectory, "META-INF/MANIFEST.MF")
+		manifestFile.parentFile.mkdirs()
+		manifestFile.delete()
+		manifestFile.withWriter { writer -> manifest.writeTo(writer) }
 
-		project.copy {
-			duplicatesStrategy = DuplicatesStrategy.EXCLUDE
-			from {
-				MapFileTree manifestSource = new MapFileTree(temporaryDirFactory)
-				manifestSource.add('MANIFEST.MF') { OutputStream outstr ->
-					manifest.attributes.put(MANIFEST_ATTR_LIBRARY_VERSION, "1.0")
-					if (!embeddedResources.isEmpty())
-					{
-						manifest.attributes.put(MANIFEST_ATTR_EMBEDDED_RESOURCES, EmbeddedResourceEncoding.encode(embeddedResources))
-					}
-					manifest.writeTo(new OutputStreamWriter(outstr))
-				}
-				return new FileTreeAdapter(manifestSource)
-			}
-			into(new File(tempDirectory, "META-INF"))
-		}
 		project.copy {
 			duplicatesStrategy = DuplicatesStrategy.EXCLUDE
 			into(new File(tempDirectory, "sources"))
