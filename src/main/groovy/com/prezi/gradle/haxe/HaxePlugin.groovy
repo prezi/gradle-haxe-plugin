@@ -7,7 +7,6 @@ import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.ProjectDependency
 import org.gradle.api.tasks.Upload
 import org.gradle.configuration.project.ProjectConfigurationActionContainer
-import org.gradle.internal.reflect.Instantiator
 
 import javax.inject.Inject
 
@@ -21,14 +20,12 @@ class HaxePlugin implements Plugin<Project> {
 	public static final String UPLOAD_TESTS_TASK_NAME = "uploadTestArchives"
 	public static final String TEST_ARCHIVES_CONFIG_NAME = "testArchives"
 
-	private final Instantiator instantiator
 	private final ProjectConfigurationActionContainer configurationActions
 
 	@Inject
-	public HaxePlugin(Instantiator instantiator, ProjectConfigurationActionContainer configurationActions)
+	public HaxePlugin(ProjectConfigurationActionContainer configurationActions)
 	{
 		this.configurationActions = configurationActions
-		this.instantiator = instantiator
 	}
 
 	@Override

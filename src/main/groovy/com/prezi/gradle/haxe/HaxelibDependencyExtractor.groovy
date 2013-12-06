@@ -5,25 +5,19 @@ import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.ModuleDependency
 import org.gradle.api.artifacts.ProjectDependency
 import org.gradle.api.file.FileVisitDetails
-import org.gradle.api.internal.file.FileResolver
 import org.gradle.api.java.archives.Manifest
 import org.gradle.api.java.archives.internal.DefaultManifest
-import org.gradle.internal.reflect.Instantiator
 
 class HaxelibDependencyExtractor {
 	static final String EXTRACTED_HAXELIBS_DIR = "haxelibs"
 
 	private final Project project
 	private final Iterable<String> legacyPlatformPaths
-	private final Instantiator instantiator
-	private final FileResolver fileResolver
 
-	HaxelibDependencyExtractor(Project project, Iterable<String> legacyPlatformPaths, Instantiator instantiator, FileResolver fileResolver)
+	HaxelibDependencyExtractor(Project project, Iterable<String> legacyPlatformPaths)
 	{
 		this.project = project
 		this.legacyPlatformPaths = legacyPlatformPaths
-		this.fileResolver = fileResolver
-		this.instantiator = instantiator
 	}
 
 	void extractDependenciesFrom(Configuration configuration, Set<File> sourcePath, Set<File> resourcePath, Map<String, File> embeds)
