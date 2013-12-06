@@ -38,7 +38,7 @@ class MUnit extends DefaultTask implements HaxeTask {
 
 		// Copy all tests into one directory
 		def testSourcesDirectory = new File(workDir, "tests")
-		project.sync {
+		project.copy {
 			from getSourceFiles().files
 			into testSourcesDirectory
 		}

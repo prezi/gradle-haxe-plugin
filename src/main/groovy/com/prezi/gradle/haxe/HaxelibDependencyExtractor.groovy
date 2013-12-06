@@ -61,8 +61,8 @@ class HaxelibDependencyExtractor {
 		def targetPath = project.file("${project.buildDir}/${EXTRACTED_HAXELIBS_DIR}/${libName}")
 		project.logger.info("Extracting Haxe library file: {} into {}", file, targetPath)
 
-		project.sync {
 			from project.zipTree(file)
+		project.copy {
 			into targetPath
 		}
 
