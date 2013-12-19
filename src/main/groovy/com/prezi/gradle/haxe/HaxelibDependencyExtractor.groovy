@@ -53,7 +53,7 @@ class HaxelibDependencyExtractor {
 	private void extractFile(String libName, File file, Set<File> sourcePath, Set<File> resourcePath, Map<String, File> embeddedResources)
 	{
 		def targetPath = project.file("${project.buildDir}/${EXTRACTED_HAXELIBS_DIR}/${libName}")
-		project.logger.info("Extracting Haxe library file: {} into {}", file, targetPath)
+		project.logger.debug("Extracting Haxe library file: {} into {}", file, targetPath)
 
 		def zip = project.zipTree(file)
 		project.copy {
