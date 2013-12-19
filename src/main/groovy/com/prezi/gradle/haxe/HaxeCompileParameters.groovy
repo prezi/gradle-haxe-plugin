@@ -16,6 +16,11 @@ class HaxeCompileParameters {
 
 	Configuration configuration
 
+	public boolean hasConfiguration()
+	{
+		return configuration != null
+	}
+
 	public Configuration getConfiguration()
 	{
 		if (configuration == null)

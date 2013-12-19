@@ -206,6 +206,11 @@ class MUnit extends DefaultTask implements HaxeTask {
 		dependsOn(compileTask)
 	}
 
+	public Configuration getConfiguration()
+	{
+		return params.hasConfiguration() ? params.configuration : compileTask.configuration
+	}
+
 	@Deprecated
 	public void testConfiguration(Configuration conf)
 	{
