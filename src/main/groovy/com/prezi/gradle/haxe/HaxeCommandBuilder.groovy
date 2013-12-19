@@ -100,7 +100,7 @@ class HaxeCommandBuilder {
 			def bundleFile = project.getPlugins().getPlugin(HaxePlugin).getSpaghettiBundleTool(project)
 			append("--next", "-cp", bundleFile.parentFile, "--run", "SpaghettiBundler", spaghettiType, output)
 			append(ModuleDefinitionLookup.getAllBundles(configuration).collect { bundle ->
-				bundle.name.localName
+				bundle.name.fullyQualifiedName
 			}.toArray())
 		}
 		this
