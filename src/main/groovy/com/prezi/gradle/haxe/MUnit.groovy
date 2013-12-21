@@ -101,9 +101,9 @@ class MUnit extends DefaultTask implements HaxeTask {
 
 		if (compileTask.targetPlatform == "js") {
 			def bundleFile = project.getPlugins().getPlugin(HaxePlugin).getSpaghettiBundleTool(project)
-			haxeCmd += "\n-cmd haxe -cp ${bundleFile.parentFile} --run SpaghettiBundler application ${output}"
+			haxeCmd += "\n-cmd haxe -cp ${bundleFile.parentFile} --run SpaghettiBundler module ${output}"
 			ModuleExtractor.extractModules(configuration, workDir).each { bundle ->
-				haxeCmd += " ../../${bundle.name.fullyQualifiedName}.js"
+				haxeCmd += " ${bundle.name.fullyQualifiedName}"
 			}
 		}
 
