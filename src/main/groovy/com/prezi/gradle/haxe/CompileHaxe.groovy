@@ -51,7 +51,7 @@ class CompileHaxe extends DefaultTask implements HaxeTask {
 		CommandExecutor.execute(project, cmd, null) { ExecutionResult result ->
 			if (result.exitValue != 0)
 			{
-				throw new RuntimeException("Command finished with non-zero exit value (${result.exitValue}):\n${cmd}")
+				throw new RuntimeException("Command finished with non-zero exit value (${result.exitValue}):\n${cmd.join(" ")}")
 			}
 		}
 
