@@ -111,6 +111,8 @@ class MUnit extends DefaultTask implements HaxeTask {
 		testHxml.delete()
 		testHxml << haxeCmd
 
+		new File("${workDir}/tests/ExampleTest.hx").delete()
+
 		def munitConfig = new File(workDir, ".munit")
 		munitConfig.delete()
 		munitConfig << "version=2.0.0\n"
