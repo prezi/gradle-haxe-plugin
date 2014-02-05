@@ -191,6 +191,7 @@ class MUnit extends DefaultTask implements HaxeTask {
 			case "neko":
 				return new File(getWorkingDirectory(), "neko_test.n")
 			case "as3":
+			case "java":
 			default:
 				throw new IllegalStateException("Cannot test platform " + targetPlatform)
 		}

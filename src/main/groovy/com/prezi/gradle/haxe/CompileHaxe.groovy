@@ -179,6 +179,8 @@ class CompileHaxe extends DefaultTask implements HaxeTask {
 			{
 				case "as3":
 					return project.file("${project.buildDir}/compiled-haxe/${name}-as3")
+				case "java":
+					return project.file("${project.buildDir}/compiled-haxe/${name}-java")
 				default:
 					return null
 			}
