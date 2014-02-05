@@ -147,6 +147,8 @@ class CompileHaxe extends DefaultTask implements HaxeTask {
 					return project.file("${project.buildDir}/compiled-haxe/${getFullName()}.swc")
 				case "neko":
 					return project.file("${project.buildDir}/compiled-haxe/${getFullName()}.n")
+				case "java":
+					return project.file("${project.buildDir}/compiled-haxe/${getFullName()}")
 				default:
 					throw new IllegalStateException("Unsupported platform: " + targetPlatform);
 			}
