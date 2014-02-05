@@ -203,7 +203,7 @@ class CompileHaxe extends DefaultTask implements HaxeTask {
 		{
 			return true;
 		}
-		return targetPlatform == "as3"
+		return targetPlatform in [ "as3", "java" ]
 	}
 
 	String baseName
