@@ -115,25 +115,6 @@ class HaxelibDependencyExtractor {
 				}
 				break
 
-			case HaxelibType.VERSION_0_X:
-				def platformAdded = false
-				legacyPlatformPaths.each { String legacyPlatformPath ->
-					def platformPath = new File(libraryRoot, legacyPlatformPath)
-					if (platformPath.directory)
-					{
-						project.logger.debug("Prezi Haxelib 0.x, adding platform {} at {}",
-								legacyPlatformPath, platformPath)
-						sourcePath.add(platformPath)
-						platformAdded = true
-					}
-				}
-				if (!platformAdded)
-				{
-					project.logger.debug("Prezi Haxelib 0.x, adding root at {}", libraryRoot)
-					sourcePath.add(libraryRoot)
-				}
-				break
-
 			case HaxelibType.HAXELIB:
 				project.logger.debug("Official Haxelib, adding root at {}", libraryRoot)
 				sourcePath.add(libraryRoot)
