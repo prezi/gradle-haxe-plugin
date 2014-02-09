@@ -58,12 +58,6 @@ class HaxePlugin implements Plugin<Project> {
 		);
 
 		def binaryContainer = project.getExtensions().getByType(BinaryContainer.class)
-		binaryContainer.registerFactory(HaxeBinary, new NamedDomainObjectFactory<HaxeBinary>() {
-			@Override
-			HaxeBinary create(String name) {
-				return new DefaultHaxeBinary(name)
-			}
-		})
 		projectSourceSet.all(new Action<FunctionalSourceSet>() {
 			@Override
 			void execute(FunctionalSourceSet functionalSourceSet) {
@@ -77,13 +71,13 @@ class HaxePlugin implements Plugin<Project> {
 				compileConfiguration.setVisible(false)
 				compileConfiguration.setDescription(String.format("Compile classpath for %s.", functionalSourceSet))
 
-				Configuration runtimeConfiguration = configurations.findByName(getRuntimeConfigurationName(functionalSourceSet))
-				if (runtimeConfiguration == null) {
-					runtimeConfiguration = configurations.create(getRuntimeConfigurationName(functionalSourceSet))
-				}
-				runtimeConfiguration.setVisible(false)
-				runtimeConfiguration.extendsFrom(compileConfiguration)
-				runtimeConfiguration.setDescription(String.format("Runtime classpath for %s.", functionalSourceSet))
+//				Configuration runtimeConfiguration = configurations.findByName(getRuntimeConfigurationName(functionalSourceSet))
+//				if (runtimeConfiguration == null) {
+//					runtimeConfiguration = configurations.create(getRuntimeConfigurationName(functionalSourceSet))
+//				}
+//				runtimeConfiguration.setVisible(false)
+//				runtimeConfiguration.extendsFrom(compileConfiguration)
+//				runtimeConfiguration.setDescription(String.format("Runtime classpath for %s.", functionalSourceSet))
 
 				// Register source set factory
 				functionalSourceSet.registerFactory(HaxeSourceSet) { name ->
@@ -93,18 +87,17 @@ class HaxePlugin implements Plugin<Project> {
 				// Add a single Haxe source set for "src/<name>/haxe"
 				def haxeSourceSet = functionalSourceSet.create("haxe", HaxeSourceSet)
 				haxeSourceSet.source.srcDir(String.format("src/%s/haxe", functionalSourceSet.name))
-
 				def resourceSet = functionalSourceSet.getByName("resources")
+
+				// Add a binary for each target platform
 				targetPlatforms.all(new Action<TargetPlatform>() {
 					@Override
 					void execute(TargetPlatform targetPlatform) {
-						println ">>>>>>>> Target: ${targetPlatform}"
 						def binaryName = String.format("%s%s", getTaskBaseName(functionalSourceSet), targetPlatform.name.capitalize())
-						def compiledHaxe = new DefaultHaxeBinary(binaryName)
-						compiledHaxe.source.add(haxeSourceSet)
-						compiledHaxe.source.add(resourceSet)
-						compiledHaxe.targetPlatform = targetPlatform
-						binaryContainer.add(compiledHaxe)
+						def binary = new DefaultHaxeBinary(binaryName, targetPlatform)
+						binary.source.add(haxeSourceSet)
+						binary.source.add(resourceSet)
+						binaryContainer.add(binary)
 					}
 				})
 			}
@@ -191,20 +184,20 @@ class HaxePlugin implements Plugin<Project> {
 //			}
 //		}
 
-		project.afterEvaluate {
-			project.tasks.withType(HaxeCompile) { HaxeCompile task ->
-				def sources = task.sources
-				task.configuration.artifacts.add(sources)
-				archivesConfig.artifacts.add(sources)
-
-				task.configuration.allDependencies.withType(ProjectDependency) { ProjectDependency dependency ->
-					task.dependsOn task.configuration
-					dependency.projectConfiguration.allArtifacts.withType(HarPublishArtifact) { HarPublishArtifact artifact ->
-						task.dependsOn artifact
-						task.inputs.file artifact.file
-					}
-				}
-			}
+//		project.afterEvaluate {
+//			project.tasks.withType(HaxeCompile) { HaxeCompile task ->
+//				def sources = task.sources
+//				task.configuration.artifacts.add(sources)
+//				archivesConfig.artifacts.add(sources)
+//
+//				task.configuration.allDependencies.withType(ProjectDependency) { ProjectDependency dependency ->
+//					task.dependsOn task.configuration
+//					dependency.projectConfiguration.allArtifacts.withType(HarPublishArtifact) { HarPublishArtifact artifact ->
+//						task.dependsOn artifact
+//						task.inputs.file artifact.file
+//					}
+//				}
+//			}
 //			project.tasks.withType(MUnit) { MUnit task ->
 //				def tests = task.tests
 //				task.testConfiguration.artifacts.add(tests)
@@ -217,7 +210,7 @@ class HaxePlugin implements Plugin<Project> {
 //					}
 //				}
 //			}
-		}
+//		}
 	}
 
 	private static HaxeCompile createCompileTask(Project project, HaxeBinary binary) {
@@ -231,11 +224,11 @@ class HaxePlugin implements Plugin<Project> {
 		println ">>>>>> Creating task ${compileTaskName} for ${binary.name}"
 		// compileTask.source binary.source.withType(HaxeSourceSet)*.compileClassPath
 		println ">>>> SRC DIRS: ${binary.source}"
-		compileTask.srcDir(binary.source)
-		compileTask.main = binary.source.withType(HaxeSourceSet).main
-		println ">>>>>> MAIN::: ${compileTask.main}"
-		compileTask.targetPlatform = binary.targetPlatform.name
-		compileTask.outputFile = project.file("${project.buildDir}/compiled-haxe/${namingScheme.outputDirectoryBase}/${binary.name}.${compileTask.targetPlatform}")
+		compileTask.source(binary.source)
+		compileTask.conventionMapping.main = { (binary.source.withType(HaxeSourceSet)*.main.flatten() - null).first() }
+		compileTask.conventionMapping.classPath = { (binary.source.withType(HaxeSourceSet)*.compileClassPath.flatten() - null).first() }
+		compileTask.conventionMapping.targetPlatform = { binary.targetPlatform.name }
+		compileTask.conventionMapping.outputFile = { project.file("${project.buildDir}/compiled-haxe/${namingScheme.outputDirectoryBase}/${binary.name}.${compileTask.targetPlatform}") }
 		println ">>>> SRC DIRS OUT: ${compileTask.inputDirectories.files}"
 		return compileTask
 	}

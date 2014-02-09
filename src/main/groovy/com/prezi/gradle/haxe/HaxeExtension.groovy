@@ -17,7 +17,7 @@ class HaxeExtension {
 
 	void mapTo(HaxeCompile compileTask)
 	{
-		compileParams.copyTo compileTask.params
+//		compileParams.copyTo compileTask.params
 	}
 
 	void mapTo(MUnit testTask)

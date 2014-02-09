@@ -71,7 +71,7 @@ class HaxeCompileParameters {
 	}
 
 	public FileCollection getSourceDirectories() {
-		return project.files(sources.toArray())
+		return project.files(sources.flatten().toArray())
 	}
 
 	LinkedHashMap<String, File> embeddedResources = [:]

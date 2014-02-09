@@ -1,26 +1,23 @@
 package com.prezi.gradle.haxe
 
-import org.gradle.api.DefaultTask
-import org.gradle.api.artifacts.PublishArtifact
 import org.gradle.api.file.FileCollection
+import org.gradle.api.internal.ConventionTask
 import org.gradle.api.tasks.InputFiles
 import org.gradle.api.tasks.Optional
 import org.gradle.api.tasks.OutputDirectory
 import org.gradle.api.tasks.OutputFile
 import org.gradle.api.tasks.TaskAction
+import org.gradle.language.base.LanguageSourceSet
+import org.gradle.nativebinaries.internal.SourceSetNotationParser
 
-class HaxeCompile extends DefaultTask implements HaxeTask {
+class HaxeCompile extends ConventionTask implements HaxeTask {
 
-	@Delegate(deprecated = true)
-	final HaxeCompileParameters params
+	private static final notationParser = SourceSetNotationParser.parser()
 
 	String targetPlatform
 	String main
-
-	public HaxeCompile()
-	{
-		this.params = new HaxeCompileParameters(project)
-	}
+	Set<LanguageSourceSet> sources = []
+	FileCollection classPath
 
 	@TaskAction
 	void compile()
@@ -30,24 +27,24 @@ class HaxeCompile extends DefaultTask implements HaxeTask {
 		LinkedHashSet<File> sourcePath = []
 		LinkedHashSet<File> resourcePath = []
 		LinkedHashMap<String, File> allEmbeddedResources = [:]
-		extractor.extractDependenciesFrom(configuration, sourcePath, resourcePath, allEmbeddedResources)
-		allEmbeddedResources.putAll(embeddedResources)
+//		extractor.extractDependenciesFrom(classPath, sourcePath, resourcePath, allEmbeddedResources)
+//		allEmbeddedResources.putAll(getEmbeddedResources())
 
 		def output = getAndCreateOutput()
-		String[] cmd = new HaxeCommandBuilder(project, "haxe")
-				.withMain(main)
-				.withTarget(targetPlatform, output)
-				.withMacros(macros)
-				.withIncludes(includes)
-				.withExcludes(excludes)
-				.withSources(sourceDirectories)
+		def builder = new HaxeCommandBuilder(project, "haxe")
+				.withMain(getMain())
+				.withTarget(getTargetPlatform(), output)
+//				.withMacros(getMacros())
+//				.withIncludes(getIncludes())
+//				.withExcludes(getExcludes())
+				.withSources(getInputDirectories())
 				.withSources(sourcePath)
 				.withSources(resourcePath)
 				.withEmbeddedResources(allEmbeddedResources)
-				.withFlags(flagList)
-				.withDebugFlags(debug)
-				.withSpaghetti(spaghetti, output, configuration)
-				.build()
+//				.withFlags(getFlagList())
+//				.withDebugFlags(getDebug())
+//				.withSpaghetti(getSpaghetti(), output, getConfiguration())
+		String[] cmd = builder.build()
 
 		CommandExecutor.execute(project, cmd, null) { ExecutionResult result ->
 			if (result.exitValue != 0)
@@ -56,29 +53,21 @@ class HaxeCompile extends DefaultTask implements HaxeTask {
 			}
 		}
 
-		HarUtils.createArchive(project, temporaryDirFactory, project.buildDir, getFullName(), getSourceDirectories(), [], embeddedResources)
+		// HarUtils.createArchive(project, temporaryDirFactory, project.buildDir, getFullName(), getSourceDirectories(), [], embeddedResources)
 	}
 
-	private PublishArtifact sourceBundle
-
-	public PublishArtifact getSources()
-	{
-		if (sourceBundle == null)
-		{
-			sourceBundle = new HarPublishArtifact(this, getSourceArchive())
+	public source(Object... sources) {
+		sources.each { source ->
+			this.sources.addAll(notationParser.parseNotation(source))
 		}
-		return sourceBundle
 	}
 
 	@InputFiles
 	public FileCollection getInputDirectories()
 	{
-		return project.files(params.sourceDirectories)
-	}
-
-	private File getSourceArchive()
-	{
-		return new File(project.buildDir, getFullName() + ".har")
+		def dirs = (sources*.source*.srcDirs).flatten()
+		println "-----> Input dirs: ${dirs}"
+		return project.files(dirs)
 	}
 
 	private String getFullName()
@@ -109,11 +98,11 @@ class HaxeCompile extends DefaultTask implements HaxeTask {
 		return output
 	}
 
-	@InputFiles
-	public FileCollection getEmbeddedResourceFiles()
-	{
-		return project.files(embeddedResources.values())
-	}
+//	@InputFiles
+//	public FileCollection getEmbeddedResourceFiles()
+//	{
+//		return project.files(embeddedResources.values())
+//	}
 
 	private File outputFile
 
@@ -131,7 +120,7 @@ class HaxeCompile extends DefaultTask implements HaxeTask {
 		}
 		else
 		{
-			switch (targetPlatform)
+			switch (getTargetPlatform())
 			{
 				case "js":
 					return project.file("${project.buildDir}/compiled-haxe/${getFullName()}.js")
@@ -140,15 +129,15 @@ class HaxeCompile extends DefaultTask implements HaxeTask {
 				case "neko":
 					return project.file("${project.buildDir}/compiled-haxe/${getFullName()}.n")
 				default:
-					throw new IllegalStateException("Unsupported platform: " + targetPlatform);
+					throw new IllegalStateException("Unsupported platform: " + getTargetPlatform());
 			}
 		}
 	}
 
 	public void setOutputFile(Object file)
 	{
-		outputFile = project.file(file)
-		outputDirectory = null
+		this.outputFile = project.file(file)
+		this.outputDirectory = null
 	}
 
 	private File outputDirectory
@@ -167,7 +156,7 @@ class HaxeCompile extends DefaultTask implements HaxeTask {
 		}
 		else
 		{
-			switch (targetPlatform)
+			switch (getTargetPlatform())
 			{
 				case "as3":
 					return project.file("${project.buildDir}/compiled-haxe/${name}-as3")
@@ -181,21 +170,21 @@ class HaxeCompile extends DefaultTask implements HaxeTask {
 
 	public void setOutputDirectory(Object dir)
 	{
-		outputDirectory = project.file(dir)
-		outputFile = null
+		this.outputDirectory = project.file(dir)
+		this.outputFile = null
 	}
 
 	private boolean isOutputInADirectory()
 	{
-		if (outputFile != null)
+		if (getOutputFile() != null)
 		{
 			return false;
 		}
-		if (outputDirectory != null)
+		if (getOutputDirectory() != null)
 		{
 			return true;
 		}
-		return targetPlatform in [ "as3", "java" ]
+		return getTargetPlatform() in [ "as3", "java" ]
 	}
 
 	String baseName

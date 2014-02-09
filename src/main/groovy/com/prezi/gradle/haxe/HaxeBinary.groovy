@@ -9,7 +9,5 @@ import org.gradle.language.base.LanguageSourceSet
  */
 public interface HaxeBinary extends Binary {
 	DomainObjectCollection<LanguageSourceSet> getSource()
-
 	TargetPlatform getTargetPlatform()
-	void setTargetPlatform(TargetPlatform platform)
 }

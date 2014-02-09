@@ -14,12 +14,11 @@ class DefaultHaxeBinary extends AbstractBuildableModelElement implements HaxeBin
 	private final source = new DefaultDomainObjectSet<>(LanguageSourceSet.class)
 	private final String name
 	private final BinaryNamingScheme namingScheme
+	private final TargetPlatform targetPlatform
 
-	// TODO This should be a constructor parameter
-	TargetPlatform targetPlatform
-
-	public DefaultHaxeBinary(String name) {
+	public DefaultHaxeBinary(String name, TargetPlatform targetPlatform) {
 		this.name = name
+		this.targetPlatform = targetPlatform
 		this.namingScheme = new HaxeBinaryNamingScheme(name)
 	}
 
@@ -31,6 +30,11 @@ class DefaultHaxeBinary extends AbstractBuildableModelElement implements HaxeBin
 	@Override
 	DomainObjectCollection<LanguageSourceSet> getSource() {
 		return source
+	}
+
+	@Override
+	TargetPlatform getTargetPlatform() {
+		return targetPlatform
 	}
 
 	@Override
