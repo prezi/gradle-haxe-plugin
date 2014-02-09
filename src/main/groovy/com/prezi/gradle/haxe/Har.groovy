@@ -5,7 +5,7 @@ import org.gradle.api.tasks.bundling.Jar
 /**
  * Created by lptr on 09/02/14.
  */
-class HaxeSource extends Jar {
+class Har extends Jar {
 	public static final String DEFAULT_EXTENSION = 'har'
 
 	public static final String MANIFEST_ATTR_LIBRARY_VERSION = "Library-Version"
@@ -13,7 +13,7 @@ class HaxeSource extends Jar {
 
 	Map<String, File> embeddedResources = [:]
 
-	public HaxeSource() {
+	public Har() {
 		extension = DEFAULT_EXTENSION
 	}
 

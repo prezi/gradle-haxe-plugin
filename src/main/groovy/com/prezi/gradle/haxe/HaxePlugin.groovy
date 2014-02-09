@@ -8,7 +8,6 @@ import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.ConfigurationContainer
-import org.gradle.api.artifacts.Dependency
 import org.gradle.api.file.DuplicatesStrategy
 import org.gradle.api.internal.file.FileResolver
 import org.gradle.configuration.project.ProjectConfigurationActionContainer
@@ -29,7 +28,6 @@ class HaxePlugin implements Plugin<Project> {
 	public static final String COMPILE_TASKS_GROUP = "compile"
 	public static final String TEST_TASK_NAME = "test"
 	public static final String TEST_TASKS_GROUP = "test"
-	public static final String TEST_ARCHIVES_CONFIG_NAME = "testArchives"
 
 	private final Instantiator instantiator
 	private final FileResolver fileResolver
@@ -218,16 +216,17 @@ class HaxePlugin implements Plugin<Project> {
 		return source.withType(HaxeResourceSet)*.embeddedResources.flatten().inject([:]) { acc, val -> acc + val }
 	}
 
-	private static HaxeSource createSourceTask(Project project, SourceHaxeBinary binary) {
+	private static Har createSourceTask(Project project, SourceHaxeBinary binary) {
 		def namingScheme = ((BinaryInternal) binary).namingScheme
 
 		def sourceTaskName = namingScheme.getTaskName(null, null)
-		HaxeSource sourceTask = project.task(sourceTaskName, type: HaxeSource) {
+		Har sourceTask = project.task(sourceTaskName, type: Har) {
 			description = "Bundles the sources of $binary"
-		} as HaxeSource
+		} as Har
 
 		sourceTask.conventionMapping.baseName = { project.name }
 		sourceTask.conventionMapping.destinationDir = { project.file("${project.buildDir}/haxe-source/${namingScheme.outputDirectoryBase}") }
+		sourceTask.conventionMapping.embeddedResources = { gatherEmbeddedResources(binary.source) }
 		sourceTask.into "sources", {
 			duplicatesStrategy = DuplicatesStrategy.EXCLUDE
 			from binary.source.withType(HaxeSourceSet)*.source
@@ -240,7 +239,6 @@ class HaxePlugin implements Plugin<Project> {
 			duplicatesStrategy = DuplicatesStrategy.EXCLUDE
 			from binary.source.withType(HaxeResourceSet)*.embeddedResources*.values()
 		}
-		sourceTask.conventionMapping.embeddedResources = { gatherEmbeddedResources(binary.source) }
 		return sourceTask
 	}
 
