@@ -1,7 +1,6 @@
 package com.prezi.gradle.haxe
 
 import com.prezi.gradle.DeprecationLogger
-import com.prezi.spaghetti.gradle.ModuleDefinitionLookup
 import com.prezi.spaghetti.gradle.ModuleExtractor
 import org.gradle.api.DefaultTask
 import org.gradle.api.artifacts.Configuration
@@ -197,9 +196,9 @@ class MUnit extends DefaultTask implements HaxeTask {
 		}
 	}
 
-	private CompileHaxe compileTask
+	private HaxeCompile compileTask
 
-	public void test(CompileHaxe compileTask)
+	public void test(HaxeCompile compileTask)
 	{
 		this.compileTask = compileTask
 		dependsOn(compileTask)

@@ -12,12 +12,10 @@ class HaxelibDependencyExtractor {
 	static final String EXTRACTED_HAXELIBS_DIR = "haxelibs"
 
 	private final Project project
-	private final Iterable<String> legacyPlatformPaths
 
-	HaxelibDependencyExtractor(Project project, Iterable<String> legacyPlatformPaths)
+	HaxelibDependencyExtractor(Project project)
 	{
 		this.project = project
-		this.legacyPlatformPaths = legacyPlatformPaths
 	}
 
 	void extractDependenciesFrom(Configuration configuration, Set<File> sourcePath, Set<File> resourcePath, Map<String, File> embeds)
@@ -64,7 +62,7 @@ class HaxelibDependencyExtractor {
 		File libraryRoot = targetPath
 
 		Manifest manifest = null
-		HaxelibType type = HaxelibType.VERSION_0_X
+		HaxelibType type = null
 		zip.visit { FileVisitDetails details ->
 			def path = details.path
 			if (path.startsWith("/")) {
@@ -86,6 +84,10 @@ class HaxelibDependencyExtractor {
 				libraryRoot = details.relativePath.parent.getFile(targetPath)
 				details.stopVisiting()
 			}
+		}
+
+		if (type == null) {
+			throw new RuntimeException("Unsupported library type")
 		}
 
 		switch (type) {
@@ -145,11 +147,6 @@ enum HaxelibType {
 	 * Normal library.
 	 */
 	VERSION_1_0,
-
-	/**
-	 * Legacy library built with Haxe plugin 0.x.
-	 */
-	VERSION_0_X,
 
 	/**
 	 * Haxelib downloaded from official Haxe repositories.

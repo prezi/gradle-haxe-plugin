@@ -1,9 +1,9 @@
 package com.prezi.gradle.haxe
 
-import com.prezi.gradle.DeprecationLogger
 import org.gradle.api.Project
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.Dependency
+import org.gradle.api.file.FileCollection
 
 class HaxeCompileParameters {
 
@@ -35,10 +35,6 @@ class HaxeCompileParameters {
 		this.configuration = configuration
 	}
 
-	String targetPlatform
-
-	String main
-
 	List<String> macros = []
 	public macro(String m)
 	{
@@ -68,30 +64,17 @@ class HaxeCompileParameters {
 
 	boolean debug
 
-	List<Object> sourcePaths = []
-	LinkedHashSet<String> legacyPlatformPaths = []
-	List<Object> resourcePaths = []
+	def sources = []
+
+	public srcDir(Object... srcDirs) {
+		sources.addAll(srcDirs)
+	}
+
+	public FileCollection getSourceDirectories() {
+		return project.files(sources.toArray())
+	}
+
 	LinkedHashMap<String, File> embeddedResources = [:]
-
-	public void source(Object path)
-	{
-		sourcePaths.add(path)
-		if (path instanceof String
-				&& path.startsWith("src/"))
-		{
-			legacyPlatformPaths << path.substring(4)
-		}
-	}
-
-	public void includeLegacyPlatform(String platform)
-	{
-		legacyPlatformPaths << platform
-	}
-
-	public resource(Object path)
-	{
-		resourcePaths.add(path)
-	}
 
 	public embed(String name, Object file)
 	{
@@ -135,16 +118,11 @@ class HaxeCompileParameters {
 	protected void copyTo(HaxeCompileParameters params)
 	{
 		params.configuration = configuration
-		params.targetPlatform = targetPlatform
-		params.main = main
 		params.macros.addAll(macros)
 		params.includes.addAll(includes)
 		params.excludes.addAll(excludes)
 		params.flagList.addAll(flagList)
 		params.debug = debug
-		params.sourcePaths.addAll(sourcePaths)
-		params.legacyPlatformPaths.addAll(legacyPlatformPaths)
-		params.resourcePaths.addAll(resourcePaths)
 		params.embeddedResources.putAll(embeddedResources)
 	}
 
@@ -157,10 +135,6 @@ class HaxeCompileParameters {
 		s.append separator
 		s.append "Configuration: ${configuration ? configuration.name : null}"
 		s.append separator
-		s.append "Target platform: ${targetPlatform}"
-		s.append separator
-		s.append "Main: ${main}"
-		s.append separator
 		s.append "Macros: ${macros}"
 		s.append separator
 		s.append "Includes: ${includes}"
@@ -171,65 +145,7 @@ class HaxeCompileParameters {
 		s.append separator
 		s.append "Debug: ${debug}"
 		s.append separator
-		s.append "Sources: ${sourcePaths}"
-		s.append separator
-		s.append "Resources: ${resourcePaths}"
-		s.append separator
 		s.append "Embedded resources: ${embeddedResources}"
-		s.append separator
-		s.append "Legacy platforms: ${legacyPlatformPaths}"
 		return s.toString()
 	}
-
-	// Deprecated properties
-
-	@Deprecated
-	public setIncludePackages(String[] pkgs)
-	{
-		DeprecationLogger.nagUserOfReplacedProperty("includePackages", "includes")
-		includes = pkgs
-	}
-	@Deprecated
-	public includePackage(String pkg)
-	{
-		DeprecationLogger.nagUserOfReplacedProperty("includePackage", "include")
-		include(pkg)
-	}
-
-	@Deprecated
-	public setExcludePackages(String[] pkgs)
-	{
-		DeprecationLogger.nagUserOfReplacedProperty("excludePackages", "excludes")
-		excludes = pkgs
-	}
-	@Deprecated
-	public excludePackage(String pkg)
-	{
-		DeprecationLogger.nagUserOfReplacedProperty("excludePackage", "exclude")
-		exclude(pkg)
-	}
-
-	@Deprecated
-	public void setFlags(String flagsToAdd)
-	{
-		DeprecationLogger.nagUserOfReplacedProperty("flags", "flag")
-		((" " + flagsToAdd.trim()).split(" -")).each { if (it) flag("-$it") }
-		this
-	}
-
-	@Deprecated
-	public void legacySource(String path)
-	{
-		DeprecationLogger.nagUserOfReplacedProperty("legacySource", "includeLegacyPlatform")
-		if (path.startsWith("src/"))
-		{
-			legacyPlatformPaths << path.substring(4)
-		}
-		else
-		{
-			throw new IllegalArgumentException("Invalid legacy source path (should start with 'src/'): " + path)
-		}
-	}
-
-
 }

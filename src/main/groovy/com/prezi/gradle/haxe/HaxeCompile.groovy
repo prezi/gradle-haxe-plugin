@@ -7,15 +7,17 @@ import org.gradle.api.tasks.InputFiles
 import org.gradle.api.tasks.Optional
 import org.gradle.api.tasks.OutputDirectory
 import org.gradle.api.tasks.OutputFile
-import org.gradle.api.tasks.SkipWhenEmpty
 import org.gradle.api.tasks.TaskAction
 
-class CompileHaxe extends DefaultTask implements HaxeTask {
+class HaxeCompile extends DefaultTask implements HaxeTask {
 
 	@Delegate(deprecated = true)
 	final HaxeCompileParameters params
 
-	public CompileHaxe()
+	String targetPlatform
+	String main
+
+	public HaxeCompile()
 	{
 		this.params = new HaxeCompileParameters(project)
 	}
@@ -23,14 +25,12 @@ class CompileHaxe extends DefaultTask implements HaxeTask {
 	@TaskAction
 	void compile()
 	{
-		def extractor = new HaxelibDependencyExtractor(project, legacyPlatformPaths)
+		def extractor = new HaxelibDependencyExtractor(project)
 
 		LinkedHashSet<File> sourcePath = []
 		LinkedHashSet<File> resourcePath = []
-		sourcePath.addAll(getSourceFiles().files)
-		resourcePath.addAll(getResourceFiles().files)
-		Map<String, File> allEmbeddedResources = [:]
-		extractor.extractDependenciesFrom(getConfiguration(), sourcePath, resourcePath, allEmbeddedResources)
+		LinkedHashMap<String, File> allEmbeddedResources = [:]
+		extractor.extractDependenciesFrom(configuration, sourcePath, resourcePath, allEmbeddedResources)
 		allEmbeddedResources.putAll(embeddedResources)
 
 		def output = getAndCreateOutput()
@@ -40,6 +40,7 @@ class CompileHaxe extends DefaultTask implements HaxeTask {
 				.withMacros(macros)
 				.withIncludes(includes)
 				.withExcludes(excludes)
+				.withSources(sourceDirectories)
 				.withSources(sourcePath)
 				.withSources(resourcePath)
 				.withEmbeddedResources(allEmbeddedResources)
@@ -55,7 +56,7 @@ class CompileHaxe extends DefaultTask implements HaxeTask {
 			}
 		}
 
-		HarUtils.createArchive(project, temporaryDirFactory, project.buildDir, getFullName(), getSourceFiles(), getResourceFiles(), embeddedResources)
+		HarUtils.createArchive(project, temporaryDirFactory, project.buildDir, getFullName(), getSourceDirectories(), [], embeddedResources)
 	}
 
 	private PublishArtifact sourceBundle
@@ -67,6 +68,12 @@ class CompileHaxe extends DefaultTask implements HaxeTask {
 			sourceBundle = new HarPublishArtifact(this, getSourceArchive())
 		}
 		return sourceBundle
+	}
+
+	@InputFiles
+	public FileCollection getInputDirectories()
+	{
+		return project.files(params.sourceDirectories)
 	}
 
 	private File getSourceArchive()
@@ -103,21 +110,6 @@ class CompileHaxe extends DefaultTask implements HaxeTask {
 	}
 
 	@InputFiles
-	@SkipWhenEmpty
-	public FileCollection getSourceFiles()
-	{
-		return project.files(sourcePaths)
-	}
-
-	@InputFiles
-	@SkipWhenEmpty
-	public FileCollection getResourceFiles()
-	{
-		return project.files(resourcePaths)
-	}
-
-	@InputFiles
-	@SkipWhenEmpty
 	public FileCollection getEmbeddedResourceFiles()
 	{
 		return project.files(embeddedResources.values())

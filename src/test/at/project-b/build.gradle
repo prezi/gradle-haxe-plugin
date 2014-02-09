@@ -1,4 +1,4 @@
-import com.prezi.gradle.haxe.CompileHaxe
+import com.prezi.gradle.haxe.HaxeCompile
 import org.gradle.api.publish.ivy.IvyPublication
 
 configurations {
@@ -12,7 +12,7 @@ dependencies {
 	node project(path: ":project-a", configuration: "node")
 }
 
-task frici(type: CompileHaxe) {
+task frici(type: HaxeCompile) {
 	configuration configurations.runtime
 	source "src/main/haxe/common"
 	source "src/main/haxe/js"
@@ -20,7 +20,7 @@ task frici(type: CompileHaxe) {
 	main "prezi.test.Main"
 }
 
-task friciNode(type: CompileHaxe) {
+task friciNode(type: HaxeCompile) {
 	configuration configurations.node
 	source "src/main/haxe/common"
 	targetPlatform "js"

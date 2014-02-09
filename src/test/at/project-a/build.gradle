@@ -1,4 +1,4 @@
-import com.prezi.gradle.haxe.CompileHaxe
+import com.prezi.gradle.haxe.HaxeCompile
 import com.prezi.gradle.haxe.MUnit
 import org.gradle.api.publish.ivy.IvyPublication
 
@@ -23,7 +23,7 @@ haxe {
 	includePackage "prezi.test"
 }
 
-task lajos(type: CompileHaxe) {
+task lajos(type: HaxeCompile) {
 	spaghetti "module"
 	dependsOn sayHello
 	configuration configurations.runtime
@@ -40,14 +40,14 @@ task testLajos(type: MUnit) {
 	testSource "src/test/haxe/common"
 }
 
-task "lajos-node"(type: CompileHaxe) {
+task "lajos-node"(type: HaxeCompile) {
 	configuration configurations.node
 	source "src/main/haxe/common"
 	targetPlatform "js"
 	classifier "node"
 }
 
-task tibor(type: CompileHaxe) {
+task tibor(type: HaxeCompile) {
 	configuration configurations.runtime
 	baseName "tibor"
 	source "src/main/haxe/common"

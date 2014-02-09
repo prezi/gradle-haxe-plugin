@@ -15,7 +15,7 @@ class HaxeExtension {
 		this.testParams = new HaxeCompileParameters(project)
 	}
 
-	void mapTo(CompileHaxe compileTask)
+	void mapTo(HaxeCompile compileTask)
 	{
 		compileParams.copyTo compileTask.params
 	}
