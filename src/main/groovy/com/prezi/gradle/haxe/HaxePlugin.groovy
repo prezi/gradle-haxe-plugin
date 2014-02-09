@@ -3,15 +3,12 @@ package com.prezi.gradle.haxe
 import com.prezi.gradle.PreziPlugin
 import org.apache.commons.lang.StringUtils
 import org.gradle.api.Action
-import org.gradle.api.NamedDomainObjectFactory
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.ConfigurationContainer
 import org.gradle.api.artifacts.Dependency
-import org.gradle.api.artifacts.ProjectDependency
 import org.gradle.api.internal.file.FileResolver
-import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.configuration.project.ProjectConfigurationActionContainer
 import org.gradle.internal.reflect.Instantiator
 import org.gradle.language.base.BinaryContainer
@@ -95,20 +92,19 @@ class HaxePlugin implements Plugin<Project> {
 				targetPlatforms.all(new Action<TargetPlatform>() {
 					@Override
 					void execute(TargetPlatform targetPlatform) {
-						def binaryName = String.format("%s%s", functionalSourceSet.name, targetPlatform.name.capitalize())
-						def binary = new DefaultHaxeBinary(functionalSourceSet.name, targetPlatform)
-						binary.source.add(resourceSet)
-						binary.source.add(haxeResourceSet)
-						binary.source.add(haxeSourceSet)
-						binaryContainer.add(binary)
+						def compiledHaxe = new DefaultCompiledHaxeBinary(functionalSourceSet.name, targetPlatform)
+						compiledHaxe.source.add(resourceSet)
+						compiledHaxe.source.add(haxeResourceSet)
+						compiledHaxe.source.add(haxeSourceSet)
+						binaryContainer.add(compiledHaxe)
 					}
 				})
 			}
 		})
 
 		// Add a a compile task for each binary
-		binaryContainer.withType(HaxeBinary.class).all(new Action<HaxeBinary>() {
-			public void execute(final HaxeBinary binary) {
+		binaryContainer.withType(CompiledHaxeBinary.class).all(new Action<CompiledHaxeBinary>() {
+			public void execute(final CompiledHaxeBinary binary) {
 				def compileTask = createCompileTask(project, binary)
 				binary.builtBy(compileTask)
 			}
@@ -216,7 +212,7 @@ class HaxePlugin implements Plugin<Project> {
 //		}
 	}
 
-	private static HaxeCompile createCompileTask(Project project, HaxeBinary binary) {
+	private static HaxeCompile createCompileTask(Project project, CompiledHaxeBinary binary) {
 		def namingScheme = ((BinaryInternal) binary).namingScheme
 
 		def compileTaskName = namingScheme.getTaskName("compile", null)

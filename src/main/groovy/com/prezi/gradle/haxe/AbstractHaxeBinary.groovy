@@ -10,13 +10,13 @@ import org.gradle.language.base.internal.BinaryNamingScheme
 /**
  * Created by lptr on 08/02/14.
  */
-class DefaultHaxeBinary extends AbstractBuildableModelElement implements HaxeBinary, BinaryInternal {
+abstract class AbstractHaxeBinary extends AbstractBuildableModelElement implements HaxeBinary, BinaryInternal {
 	private final source = new DefaultDomainObjectSet<>(LanguageSourceSet.class)
 	private final String name
 	private final BinaryNamingScheme namingScheme
 	private final TargetPlatform targetPlatform
 
-	public DefaultHaxeBinary(String parentName, TargetPlatform targetPlatform) {
+	protected AbstractHaxeBinary(String parentName, TargetPlatform targetPlatform) {
 		this.namingScheme = new HaxeBinaryNamingScheme(parentName, targetPlatform)
 		this.name = namingScheme.getLifecycleTaskName()
 		this.targetPlatform = targetPlatform
