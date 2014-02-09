@@ -26,7 +26,12 @@ class HaxeCompile extends ConventionTask {
 		LinkedHashSet<File> sourcePath = []
 		LinkedHashSet<File> resourcePath = []
 		LinkedHashMap<String, File> allEmbeddedResources = [:]
-//		extractor.extractDependenciesFrom(classPath, sourcePath, resourcePath, allEmbeddedResources)
+		sources.each { source ->
+			if (source instanceof HaxeSourceSet) {
+				extractor.extractDependenciesFrom(source.compileClassPath, sourcePath, resourcePath, allEmbeddedResources)
+			}
+		}
+
 //		allEmbeddedResources.putAll(getEmbeddedResources())
 
 		def output = getAndCreateOutput()

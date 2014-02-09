@@ -225,7 +225,7 @@ class HaxePlugin implements Plugin<Project> {
 		// compileTask.source binary.source.withType(HaxeSourceSet)*.compileClassPath
 		println ">>>> SRC DIRS: ${binary.source}"
 		compileTask.source(binary.source)
-		compileTask.conventionMapping.main = { (binary.source.withType(HaxeSourceSet)*.main.flatten() - null).first() }
+		compileTask.conventionMapping.main = { binary.source.withType(HaxeSourceSet)*.main.flatten().find() { it } }
 		compileTask.conventionMapping.targetPlatform = { binary.targetPlatform.name }
 		compileTask.conventionMapping.outputFile = { project.file("${project.buildDir}/compiled-haxe/${namingScheme.outputDirectoryBase}/${binary.name}.${compileTask.targetPlatform}") }
 		println ">>>> SRC DIRS OUT: ${compileTask.inputDirectories.files}"

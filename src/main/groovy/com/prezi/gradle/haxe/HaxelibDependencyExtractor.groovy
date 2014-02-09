@@ -4,6 +4,7 @@ import org.gradle.api.Project
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.ModuleDependency
 import org.gradle.api.artifacts.ProjectDependency
+import org.gradle.api.file.FileCollection
 import org.gradle.api.file.FileVisitDetails
 
 import java.util.jar.Manifest
@@ -18,10 +19,16 @@ class HaxelibDependencyExtractor {
 		this.project = project
 	}
 
-	void extractDependenciesFrom(Configuration configuration, Set<File> sourcePath, Set<File> resourcePath, Map<String, File> embeds)
+	void extractDependenciesFrom(FileCollection classPath, Set<File> sourcePath, Set<File> resourcePath, Map<String, File> embeds)
 	{
-		configuration.hierarchy.each { Configuration config ->
-			extractDependenciesFromInternal(config, sourcePath, resourcePath, embeds)
+		if (classPath instanceof Configuration) {
+			classPath.hierarchy.each { Configuration config ->
+				extractDependenciesFromInternal(config, sourcePath, resourcePath, embeds)
+			}
+		} else {
+			classPath.files.each { file ->
+				extractFile(file.name, file, sourcePath, resourcePath, embeds)
+			}
 		}
 	}
 
