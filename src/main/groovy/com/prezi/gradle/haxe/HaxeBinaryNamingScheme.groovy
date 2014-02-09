@@ -66,6 +66,6 @@ class HaxeBinaryNamingScheme implements BinaryNamingScheme {
 	}
 
 	public String getOutputDirectoryBase() {
-		return parentName;
+		return parentName + "/" + targetPlatform.name;
 	}
 }

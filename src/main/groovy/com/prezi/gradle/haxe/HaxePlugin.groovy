@@ -8,6 +8,7 @@ import org.gradle.api.Project
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.ConfigurationContainer
 import org.gradle.api.artifacts.Dependency
+import org.gradle.api.file.DuplicatesStrategy
 import org.gradle.api.internal.file.FileResolver
 import org.gradle.configuration.project.ProjectConfigurationActionContainer
 import org.gradle.internal.reflect.Instantiator
@@ -15,6 +16,7 @@ import org.gradle.language.base.BinaryContainer
 import org.gradle.language.base.FunctionalSourceSet
 import org.gradle.language.base.ProjectSourceSet
 import org.gradle.language.base.internal.BinaryInternal
+import org.gradle.language.jvm.ResourceSet
 import org.gradle.util.GUtil
 
 import javax.inject.Inject
@@ -88,7 +90,7 @@ class HaxePlugin implements Plugin<Project> {
 				def haxeResourceSet = new DefaultHaxeResourceSet("haxeResources", functionalSourceSet, fileResolver)
 				functionalSourceSet.add(haxeResourceSet)
 
-				// Add a binary for each target platform
+				// Add binaries for each target platform
 				targetPlatforms.all(new Action<TargetPlatform>() {
 					@Override
 					void execute(TargetPlatform targetPlatform) {
@@ -97,6 +99,12 @@ class HaxePlugin implements Plugin<Project> {
 						compiledHaxe.source.add(haxeResourceSet)
 						compiledHaxe.source.add(haxeSourceSet)
 						binaryContainer.add(compiledHaxe)
+
+						def sourceHaxe = new DefaultSourceHaxeBinary("source" + functionalSourceSet.name.capitalize(), targetPlatform)
+						sourceHaxe.source.add(resourceSet)
+						sourceHaxe.source.add(haxeResourceSet)
+						sourceHaxe.source.add(haxeSourceSet)
+						binaryContainer.add(sourceHaxe)
 					}
 				})
 			}
@@ -110,6 +118,14 @@ class HaxePlugin implements Plugin<Project> {
 			}
 		});
 
+		// Add a a compile task for each binary
+		binaryContainer.withType(SourceHaxeBinary.class).all(new Action<SourceHaxeBinary>() {
+			public void execute(final SourceHaxeBinary binary) {
+				def sourceTask = createSourceTask(project, binary)
+				binary.builtBy(sourceTask)
+			}
+		});
+
 		// Map default values
 		def haxeExtension = project.extensions.create "haxe", HaxeExtension, project
 		project.tasks.withType(HaxeCompile) { HaxeCompile task ->
@@ -119,69 +135,36 @@ class HaxePlugin implements Plugin<Project> {
 			haxeExtension.mapTo(task)
 		}
 
-		// Add compile task
+		// Add compile all task
 		def compileTask = project.tasks.findByName(COMPILE_TASK_NAME)
 		if (compileTask == null) {
 			compileTask = project.tasks.create(COMPILE_TASK_NAME)
 			compileTask.group = COMPILE_TASKS_GROUP
 			compileTask.description = "Compile all Haxe artifacts"
 		}
-		project.afterEvaluate {
-			project.tasks.withType(HaxeCompile) { HaxeCompile task ->
+		project.tasks.withType(HaxeCompile).all(new Action<HaxeCompile>() {
+			@Override
+			void execute(HaxeCompile task) {
 				task.group = COMPILE_TASKS_GROUP
 				compileTask.dependsOn task
 			}
-		}
+		})
 
-		// Add test task
+		// Add test all task
 		def testTask = project.tasks.findByName(TEST_TASK_NAME)
 		if (testTask == null) {
 			testTask = project.tasks.create(TEST_TASK_NAME)
 			testTask.group = TEST_TASKS_GROUP
 			testTask.description = "Test built Haxe artifacts"
 		}
-		project.afterEvaluate {
-			project.tasks.withType(MUnit) { MUnit task ->
+		project.tasks.withType(MUnit).all(new Action<MUnit>() {
+			@Override
+			void execute(MUnit task) {
 				task.group = TEST_TASKS_GROUP
 				testTask.dependsOn task
 			}
-		}
+		})
 
-		def archivesConfig = project.configurations.getByName(Dependency.ARCHIVES_CONFIGURATION)
-
-		// Add "testArchives" configuration
-		Configuration testArchivesConfig = project.configurations.findByName(TEST_ARCHIVES_CONFIG_NAME)
-		if (testArchivesConfig == null) {
-			testArchivesConfig = project.configurations.create(TEST_ARCHIVES_CONFIG_NAME)
-		}
-//
-//		// Add installTests tasks
-//		Upload installTask = project.tasks.getByName(PreziPlugin.INSTALL_TASK_NAME) as Upload
-//		if (project.tasks.findByName(INSTALL_TESTS_TASK_NAME) == null)
-//		{
-//			project.tasks.create(name: INSTALL_TESTS_TASK_NAME, type: Upload) {
-//				description = "Installs the '${TEST_ARCHIVES_CONFIG_NAME}' artifacts into the local Maven repository."
-//				group = PreziPlugin.INSTALL_TASKS_GROUP
-//				configuration = testArchivesConfig
-//				repositories.addAll(installTask.repositories)
-//				uploadDescriptor = installTask.uploadDescriptor
-//				descriptorDestination = new File(project.getBuildDir(), 'ivy-installTest.xml')
-//			}
-//		}
-//
-//		// Add uploadTestArchives tasks
-//		Upload uploadArchivesTask = project.tasks.getByName(PreziPlugin.UPLOAD_TASK_NAME) as Upload
-//		if (project.tasks.findByName(UPLOAD_TESTS_TASK_NAME) == null)
-//		{
-//			project.tasks.create(name: UPLOAD_TESTS_TASK_NAME, type: Upload) {
-//				description = "Uploads all artifacts belonging to configuration ':${TEST_ARCHIVES_CONFIG_NAME}'"
-//				group = PreziPlugin.UPLOAD_TASKS_GROUP
-//				configuration = testArchivesConfig
-//				repositories.addAll(uploadArchivesTask.repositories)
-//				uploadDescriptor = uploadArchivesTask.uploadDescriptor
-//				descriptorDestination = new File(project.getBuildDir(), 'ivy-uploadTest.xml')
-//			}
-//		}
 
 //		project.afterEvaluate {
 //			project.tasks.withType(HaxeCompile) { HaxeCompile task ->
@@ -220,9 +203,6 @@ class HaxePlugin implements Plugin<Project> {
 			description = "Compiles the $binary"
 		} as HaxeCompile
 
-		println ">>>>>> Creating task ${compileTaskName} for ${binary.name}"
-		// compileTask.source binary.source.withType(HaxeSourceSet)*.compileClassPath
-		println ">>>> SRC DIRS: ${binary.source}"
 		compileTask.source(binary.source)
 		compileTask.conventionMapping.main = { binary.source.withType(HaxeSourceSet)*.main.flatten().find() { it } }
 		compileTask.conventionMapping.targetPlatform = { binary.targetPlatform.name }
@@ -234,6 +214,38 @@ class HaxePlugin implements Plugin<Project> {
 		compileTask.conventionMapping.outputFile = { project.file("${project.buildDir}/compiled-haxe/${namingScheme.outputDirectoryBase}/${binary.name}.${compileTask.targetPlatform}") }
 		println ">>>> SRC DIRS OUT: ${compileTask.inputDirectories.files}"
 		return compileTask
+	}
+
+	private static HaxeSource createSourceTask(Project project, SourceHaxeBinary binary) {
+		def namingScheme = ((BinaryInternal) binary).namingScheme
+
+		def sourceTaskName = namingScheme.getTaskName(null, null)
+		HaxeSource sourceTask = project.task(sourceTaskName, type: HaxeSource) {
+			description = "Bundles the sources of $binary"
+		} as HaxeSource
+
+		def manifest = sourceTask.manifest
+
+//		if (!embeddedResources.isEmpty())
+//		{
+//			manifest.attributes.put(HarUtils.MANIFEST_ATTR_EMBEDDED_RESOURCES, EmbeddedResourceEncoding.encode(embeddedResources))
+//		}
+
+		sourceTask.into "sources", {
+			duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+			from { binary.source.withType(HaxeSourceSet)*.source }
+		}
+		sourceTask.into "resources", {
+			duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+			from { binary.source.withType(ResourceSet)*.source }
+		}
+		sourceTask.into "embedded", {
+			duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+			from { binary.source.withType(HaxeResourceSet)*.embeddedResources*.values() }
+		}
+		sourceTask.conventionMapping.baseName = { project.name }
+		sourceTask.conventionMapping.destinationDir = { project.file("${project.buildDir}/haxe-source/${namingScheme.outputDirectoryBase}") }
+		return sourceTask
 	}
 
 	private static String getTaskBaseName(FunctionalSourceSet set) {
