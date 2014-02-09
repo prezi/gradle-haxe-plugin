@@ -10,14 +10,13 @@ import org.gradle.api.tasks.TaskAction
 import org.gradle.language.base.LanguageSourceSet
 import org.gradle.nativebinaries.internal.SourceSetNotationParser
 
-class HaxeCompile extends ConventionTask implements HaxeTask {
+class HaxeCompile extends ConventionTask {
 
 	private static final notationParser = SourceSetNotationParser.parser()
 
 	String targetPlatform
 	String main
 	Set<LanguageSourceSet> sources = []
-	FileCollection classPath
 
 	@TaskAction
 	void compile()
@@ -66,21 +65,26 @@ class HaxeCompile extends ConventionTask implements HaxeTask {
 	public FileCollection getInputDirectories()
 	{
 		def dirs = (sources*.source*.srcDirs).flatten()
-		println "-----> Input dirs: ${dirs}"
 		return project.files(dirs)
 	}
 
-	private String getFullName()
-	{
-		def fullName = getBaseName()
-		if (classifier)
-		{
-			fullName += "-" + classifier
-		}
-		return fullName
+	@OutputFile
+	@Optional
+	File outputFile
+
+	void outputFile(Object file) {
+		this.outputFile = project.file(file)
 	}
 
-	File getAndCreateOutput()
+	@OutputDirectory
+	@Optional
+	File outputDirectory
+
+	void outputDirectory(Object file) {
+		this.outputDirectory = project.file(file)
+	}
+
+	private File getAndCreateOutput()
 	{
 		File output
 		File dirToMake
@@ -98,82 +102,6 @@ class HaxeCompile extends ConventionTask implements HaxeTask {
 		return output
 	}
 
-//	@InputFiles
-//	public FileCollection getEmbeddedResourceFiles()
-//	{
-//		return project.files(embeddedResources.values())
-//	}
-
-	private File outputFile
-
-	@OutputFile
-	@Optional
-	public File getOutputFile()
-	{
-		if (outputFile != null)
-		{
-			return outputFile
-		}
-		else if (outputDirectory != null)
-		{
-			return null
-		}
-		else
-		{
-			switch (getTargetPlatform())
-			{
-				case "js":
-					return project.file("${project.buildDir}/compiled-haxe/${getFullName()}.js")
-				case "swf":
-					return project.file("${project.buildDir}/compiled-haxe/${getFullName()}.swc")
-				case "neko":
-					return project.file("${project.buildDir}/compiled-haxe/${getFullName()}.n")
-				default:
-					throw new IllegalStateException("Unsupported platform: " + getTargetPlatform());
-			}
-		}
-	}
-
-	public void setOutputFile(Object file)
-	{
-		this.outputFile = project.file(file)
-		this.outputDirectory = null
-	}
-
-	private File outputDirectory
-
-	@OutputDirectory
-	@Optional
-	public File getOutputDirectory()
-	{
-		if (outputFile != null)
-		{
-			return null
-		}
-		else if (outputDirectory != null)
-		{
-			return outputDirectory
-		}
-		else
-		{
-			switch (getTargetPlatform())
-			{
-				case "as3":
-					return project.file("${project.buildDir}/compiled-haxe/${name}-as3")
-				case "java":
-					return project.file("${project.buildDir}/compiled-haxe/${name}-java")
-				default:
-					return null
-			}
-		}
-	}
-
-	public void setOutputDirectory(Object dir)
-	{
-		this.outputDirectory = project.file(dir)
-		this.outputFile = null
-	}
-
 	private boolean isOutputInADirectory()
 	{
 		if (getOutputFile() != null)
@@ -184,25 +112,13 @@ class HaxeCompile extends ConventionTask implements HaxeTask {
 		{
 			return true;
 		}
-		return getTargetPlatform() in [ "as3", "java" ]
+		throw new RuntimeException("Neither output file or directory is set")
 	}
 
-	String baseName
+//	@InputFiles
+//	public FileCollection getEmbeddedResourceFiles()
+//	{
+//		return project.files(embeddedResources.values())
+//	}
 
-	public baseName(String baseName)
-	{
-		this.baseName = baseName
-	}
-
-	public String getBaseName()
-	{
-		return baseName ? baseName : project.name
-	}
-
-	String classifier
-
-	public classifier(String classifier)
-	{
-		this.classifier = classifier
-	}
 }
