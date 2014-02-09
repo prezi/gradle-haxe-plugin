@@ -17,6 +17,7 @@ class HaxeCompile extends ConventionTask {
 	String targetPlatform
 	String main
 	Set<LanguageSourceSet> sources = []
+	LinkedHashMap<String, File> embeddedResources = [:]
 
 	@TaskAction
 	void compile()
@@ -32,7 +33,7 @@ class HaxeCompile extends ConventionTask {
 			}
 		}
 
-//		allEmbeddedResources.putAll(getEmbeddedResources())
+		allEmbeddedResources.putAll(getEmbeddedResources())
 
 		def output = getAndCreateOutput()
 		def builder = new HaxeCommandBuilder(project, "haxe")
@@ -120,10 +121,10 @@ class HaxeCompile extends ConventionTask {
 		throw new RuntimeException("Neither output file or directory is set")
 	}
 
-//	@InputFiles
-//	public FileCollection getEmbeddedResourceFiles()
-//	{
-//		return project.files(embeddedResources.values())
-//	}
+	@InputFiles
+	public FileCollection getEmbeddedResourceFiles()
+	{
+		return project.files(getEmbeddedResources())
+	}
 
 }

@@ -88,6 +88,8 @@ class HaxePlugin implements Plugin<Project> {
 				def haxeSourceSet = functionalSourceSet.create("haxe", HaxeSourceSet)
 				haxeSourceSet.source.srcDir(String.format("src/%s/haxe", functionalSourceSet.name))
 				def resourceSet = functionalSourceSet.getByName("resources")
+				def haxeResourceSet = new DefaultHaxeResourceSet("haxeResources", functionalSourceSet, fileResolver)
+				functionalSourceSet.add(haxeResourceSet)
 
 				// Add a binary for each target platform
 				targetPlatforms.all(new Action<TargetPlatform>() {
@@ -95,8 +97,9 @@ class HaxePlugin implements Plugin<Project> {
 					void execute(TargetPlatform targetPlatform) {
 						def binaryName = String.format("%s%s", functionalSourceSet.name, targetPlatform.name.capitalize())
 						def binary = new DefaultHaxeBinary(functionalSourceSet.name, targetPlatform)
-						binary.source.add(haxeSourceSet)
 						binary.source.add(resourceSet)
+						binary.source.add(haxeResourceSet)
+						binary.source.add(haxeSourceSet)
 						binaryContainer.add(binary)
 					}
 				})
@@ -227,6 +230,11 @@ class HaxePlugin implements Plugin<Project> {
 		compileTask.source(binary.source)
 		compileTask.conventionMapping.main = { binary.source.withType(HaxeSourceSet)*.main.flatten().find() { it } }
 		compileTask.conventionMapping.targetPlatform = { binary.targetPlatform.name }
+		compileTask.conventionMapping.embeddedResources = {
+			def embeddedResources = binary.source.withType(HaxeResourceSet)*.embeddedResources.flatten().inject([:]) { acc, val -> acc + val}
+			println ">>>>>> EMBEDDED: ${embeddedResources}"
+			return embeddedResources
+		}
 		compileTask.conventionMapping.outputFile = { project.file("${project.buildDir}/compiled-haxe/${namingScheme.outputDirectoryBase}/${binary.name}.${compileTask.targetPlatform}") }
 		println ">>>> SRC DIRS OUT: ${compileTask.inputDirectories.files}"
 		return compileTask
