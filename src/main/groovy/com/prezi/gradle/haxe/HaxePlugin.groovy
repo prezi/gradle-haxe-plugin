@@ -93,8 +93,8 @@ class HaxePlugin implements Plugin<Project> {
 				targetPlatforms.all(new Action<TargetPlatform>() {
 					@Override
 					void execute(TargetPlatform targetPlatform) {
-						def binaryName = String.format("%s%s", getTaskBaseName(functionalSourceSet), targetPlatform.name.capitalize())
-						def binary = new DefaultHaxeBinary(binaryName, targetPlatform)
+						def binaryName = String.format("%s%s", functionalSourceSet.name, targetPlatform.name.capitalize())
+						def binary = new DefaultHaxeBinary(functionalSourceSet.name, targetPlatform)
 						binary.source.add(haxeSourceSet)
 						binary.source.add(resourceSet)
 						binaryContainer.add(binary)

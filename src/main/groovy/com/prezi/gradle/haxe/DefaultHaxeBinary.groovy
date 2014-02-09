@@ -16,10 +16,10 @@ class DefaultHaxeBinary extends AbstractBuildableModelElement implements HaxeBin
 	private final BinaryNamingScheme namingScheme
 	private final TargetPlatform targetPlatform
 
-	public DefaultHaxeBinary(String name, TargetPlatform targetPlatform) {
-		this.name = name
+	public DefaultHaxeBinary(String parentName, TargetPlatform targetPlatform) {
+		this.namingScheme = new HaxeBinaryNamingScheme(parentName, targetPlatform)
+		this.name = namingScheme.getLifecycleTaskName()
 		this.targetPlatform = targetPlatform
-		this.namingScheme = new HaxeBinaryNamingScheme(name)
 	}
 
 	@Override

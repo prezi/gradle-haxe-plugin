@@ -2,49 +2,70 @@ package com.prezi.gradle.haxe
 
 import org.gradle.api.Nullable
 import org.gradle.language.base.internal.BinaryNamingScheme
-import org.gradle.util.GUtil
 
 /**
  * Copied from {@link org.gradle.language.jvm.internal.ClassDirectoryBinaryNamingScheme}.
  */
 class HaxeBinaryNamingScheme implements BinaryNamingScheme {
-    private final String baseName;
-    private final String collapsedName;
+	private final String parentName;
+	private final String collapsedName;
+	private final TargetPlatform targetPlatform
 
-    public HaxeBinaryNamingScheme(String baseName) {
-        this.baseName = baseName;
-        this.collapsedName = collapseMain(this.baseName);
-    }
+	public HaxeBinaryNamingScheme(String parentName, TargetPlatform targetPlatform) {
+		this.parentName = parentName;
+		this.collapsedName = collapseMain(this.parentName);
+		this.targetPlatform = targetPlatform
+	}
 
-    private static String collapseMain(String name) {
-        return name.equals("main") ? "" : name;
-    }
+	private static String collapseMain(String name) {
+		return name.equals("main") ? "" : name;
+	}
 
-    public String getDescription() {
-        return String.format("classes '%s'", baseName);
-    }
+	public String getDescription() {
+		return String.format("classes '%s'", parentName);
+	}
 
-    public String getLifecycleTaskName() {
-        return getTaskName(null, "classes");
-    }
+	public String getLifecycleTaskName() {
+		return getTaskName(null, "classes");
+	}
 
-    public String getTaskName(@Nullable String verb) {
-        return getTaskName(verb, null);
-    }
+	public String getTaskName(@Nullable String verb) {
+		return getTaskName(verb, null);
+	}
 
-    public String getTaskName(@Nullable String verb, @Nullable String target) {
-        String name = baseName;
-        if (target != null) {
-            name = collapsedName;
-        }
-        return GUtil.toLowerCamelCase(String.format("%s %s %s", nullToEmpty(verb), name, nullToEmpty(target)));
-    }
+	public String getTaskName(@Nullable String verb, @Nullable String target) {
+		return makeName(verb, collapsedName, targetPlatform.name, target);
+	}
 
-    private static String nullToEmpty(String input) {
-        return input == null ? "" : input;
-    }
+	private static String makeName(String... words) {
+		StringBuilder builder = new StringBuilder();
+		for (String word : words) {
+			if (word == null || word.length() == 0) {
+				continue;
+			}
+			if (builder.length() == 0) {
+				appendUncapitalized(builder, word);
+			} else {
+				appendCapitalized(builder, word);
+			}
+		}
+		return builder.toString();
+	}
 
-    public String getOutputDirectoryBase() {
-        return baseName;
-    }
+	private static void appendCapitalized(StringBuilder builder, String word) {
+		builder.append(Character.toTitleCase(word.charAt(0))).append(word.substring(1));
+	}
+
+	private static void appendUncapitalized(StringBuilder builder, String word) {
+		builder.append(Character.toLowerCase(word.charAt(0))).append(word.substring(1));
+	}
+
+
+	private static String nullToEmpty(String input) {
+		return input == null ? "" : input;
+	}
+
+	public String getOutputDirectoryBase() {
+		return parentName;
+	}
 }
