@@ -3,6 +3,7 @@ package com.prezi.gradle.haxe
 import com.prezi.gradle.PreziPlugin
 import org.apache.commons.lang.StringUtils
 import org.gradle.api.Action
+import org.gradle.api.DomainObjectCollection
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.artifacts.Configuration
@@ -14,6 +15,7 @@ import org.gradle.configuration.project.ProjectConfigurationActionContainer
 import org.gradle.internal.reflect.Instantiator
 import org.gradle.language.base.BinaryContainer
 import org.gradle.language.base.FunctionalSourceSet
+import org.gradle.language.base.LanguageSourceSet
 import org.gradle.language.base.ProjectSourceSet
 import org.gradle.language.base.internal.BinaryInternal
 import org.gradle.language.jvm.ResourceSet
@@ -206,14 +208,14 @@ class HaxePlugin implements Plugin<Project> {
 		compileTask.source(binary.source)
 		compileTask.conventionMapping.main = { binary.source.withType(HaxeSourceSet)*.main.flatten().find() { it } }
 		compileTask.conventionMapping.targetPlatform = { binary.targetPlatform.name }
-		compileTask.conventionMapping.embeddedResources = {
-			def embeddedResources = binary.source.withType(HaxeResourceSet)*.embeddedResources.flatten().inject([:]) { acc, val -> acc + val}
-			println ">>>>>> EMBEDDED: ${embeddedResources}"
-			return embeddedResources
-		}
+		compileTask.conventionMapping.embeddedResources = { gatherEmbeddedResources(binary.source) }
 		compileTask.conventionMapping.outputFile = { project.file("${project.buildDir}/compiled-haxe/${namingScheme.outputDirectoryBase}/${binary.name}.${compileTask.targetPlatform}") }
 		println ">>>> SRC DIRS OUT: ${compileTask.inputDirectories.files}"
 		return compileTask
+	}
+
+	public static LinkedHashMap<String, File> gatherEmbeddedResources(DomainObjectCollection<LanguageSourceSet> source) {
+		return source.withType(HaxeResourceSet)*.embeddedResources.flatten().inject([:]) { acc, val -> acc + val }
 	}
 
 	private static HaxeSource createSourceTask(Project project, SourceHaxeBinary binary) {
@@ -224,27 +226,21 @@ class HaxePlugin implements Plugin<Project> {
 			description = "Bundles the sources of $binary"
 		} as HaxeSource
 
-		def manifest = sourceTask.manifest
-
-//		if (!embeddedResources.isEmpty())
-//		{
-//			manifest.attributes.put(HarUtils.MANIFEST_ATTR_EMBEDDED_RESOURCES, EmbeddedResourceEncoding.encode(embeddedResources))
-//		}
-
+		sourceTask.conventionMapping.baseName = { project.name }
+		sourceTask.conventionMapping.destinationDir = { project.file("${project.buildDir}/haxe-source/${namingScheme.outputDirectoryBase}") }
 		sourceTask.into "sources", {
 			duplicatesStrategy = DuplicatesStrategy.EXCLUDE
-			from { binary.source.withType(HaxeSourceSet)*.source }
+			from binary.source.withType(HaxeSourceSet)*.source
 		}
 		sourceTask.into "resources", {
 			duplicatesStrategy = DuplicatesStrategy.EXCLUDE
-			from { binary.source.withType(ResourceSet)*.source }
+			from binary.source.withType(ResourceSet)*.source
 		}
 		sourceTask.into "embedded", {
 			duplicatesStrategy = DuplicatesStrategy.EXCLUDE
-			from { binary.source.withType(HaxeResourceSet)*.embeddedResources*.values() }
+			from binary.source.withType(HaxeResourceSet)*.embeddedResources*.values()
 		}
-		sourceTask.conventionMapping.baseName = { project.name }
-		sourceTask.conventionMapping.destinationDir = { project.file("${project.buildDir}/haxe-source/${namingScheme.outputDirectoryBase}") }
+		sourceTask.conventionMapping.embeddedResources = { gatherEmbeddedResources(binary.source) }
 		return sourceTask
 	}
 
@@ -254,10 +250,6 @@ class HaxePlugin implements Plugin<Project> {
 
 	public static String getCompileConfigurationName(FunctionalSourceSet set) {
 		return StringUtils.uncapitalize(String.format("%sCompile", getTaskBaseName(set)))
-	}
-
-	public static String getRuntimeConfigurationName(FunctionalSourceSet set) {
-		return StringUtils.uncapitalize(String.format("%sRuntime", getTaskBaseName(set)))
 	}
 
 	File getSpaghettiBundleTool(Project project) {
