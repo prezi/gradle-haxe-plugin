@@ -115,6 +115,12 @@ class HaxePlugin implements Plugin<Project> {
 			public void execute(final SourceHaxeBinary binary) {
 				def sourceTask = createSourceTask(project, binary)
 				binary.builtBy(sourceTask)
+
+				binary.source.withType(HaxeSourceSet)*.compileClassPath.each { Configuration configuration ->
+					project.artifacts.add(configuration.name, sourceTask) {
+						type = "har"
+					}
+				}
 			}
 		});
 
@@ -156,35 +162,6 @@ class HaxePlugin implements Plugin<Project> {
 				testTask.dependsOn task
 			}
 		})
-
-
-//		project.afterEvaluate {
-//			project.tasks.withType(HaxeCompile) { HaxeCompile task ->
-//				def sources = task.sources
-//				task.configuration.artifacts.add(sources)
-//				archivesConfig.artifacts.add(sources)
-//
-//				task.configuration.allDependencies.withType(ProjectDependency) { ProjectDependency dependency ->
-//					task.dependsOn task.configuration
-//					dependency.projectConfiguration.allArtifacts.withType(HarPublishArtifact) { HarPublishArtifact artifact ->
-//						task.dependsOn artifact
-//						task.inputs.file artifact.file
-//					}
-//				}
-//			}
-//			project.tasks.withType(MUnit) { MUnit task ->
-//				def tests = task.tests
-//				task.testConfiguration.artifacts.add(tests)
-//				testArchivesConfig.artifacts.add(tests)
-//
-//				task.testConfiguration.allDependencies.withType(ProjectDependency) { ProjectDependency dependency ->
-//					dependency.projectConfiguration.allArtifacts.withType(HarPublishArtifact) { HarPublishArtifact artifact ->
-//						task.dependsOn artifact
-//						task.inputs.file artifact.file
-//					}
-//				}
-//			}
-//		}
 	}
 
 	private static HaxeCompile createCompileTask(Project project, CompiledHaxeBinary binary) {

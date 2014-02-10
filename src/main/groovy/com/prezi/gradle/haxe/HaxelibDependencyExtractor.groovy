@@ -41,7 +41,7 @@ class HaxelibDependencyExtractor {
 				def dependentConfiguration = projectDependency.projectConfiguration
 				extractDependenciesFromInternal(dependentConfiguration, sourcePath, resourcePath, embeds)
 
-				dependentConfiguration.allArtifacts.withType(HarPublishArtifact) { HarPublishArtifact artifact ->
+				dependentConfiguration.allArtifacts.findAll { it.type == Har.DEFAULT_EXTENSION }.each { artifact ->
 					def libName = artifact.name + (artifact.classifier ? "-" + artifact.classifier : "")
 					extractFile(libName, artifact.file, sourcePath, resourcePath, embeds)
 				}
@@ -78,7 +78,7 @@ class HaxelibDependencyExtractor {
 			if (path == "META-INF/MANIFEST.MF")
 			{
 				manifest = (Manifest) details.file.withInputStream { new Manifest(it) }
-				if (manifest.mainAttributes.getValue(HarUtils.MANIFEST_ATTR_LIBRARY_VERSION) == "1.0")
+				if (manifest.mainAttributes.getValue(Har.MANIFEST_ATTR_LIBRARY_VERSION) == "1.0")
 				{
 					type = HaxelibType.VERSION_1_0
 					details.stopVisiting()
@@ -117,7 +117,7 @@ class HaxelibDependencyExtractor {
 					project.logger.debug("Prezi Haxelib 1.0, adding embedded resources at {}", embedded)
 					resourcePath.add(embedded)
 					embeddedResources.putAll EmbeddedResourceEncoding.decode(
-							manifest.mainAttributes.getValue(HarUtils.MANIFEST_ATTR_EMBEDDED_RESOURCES),
+							manifest.mainAttributes.getValue(Har.MANIFEST_ATTR_EMBEDDED_RESOURCES),
 							embedded)
 				}
 				break
