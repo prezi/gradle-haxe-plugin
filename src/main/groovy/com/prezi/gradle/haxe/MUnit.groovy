@@ -12,7 +12,7 @@ import org.gradle.api.tasks.TaskAction
 
 import java.util.regex.Pattern
 
-class MUnit extends DefaultTask implements HaxeTask {
+class MUnit extends DefaultTask {
 	@Delegate(deprecated = true)
 	final HaxeCompileParameters params
 

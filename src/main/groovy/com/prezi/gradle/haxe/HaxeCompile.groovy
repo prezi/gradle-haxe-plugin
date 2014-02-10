@@ -1,7 +1,7 @@
 package com.prezi.gradle.haxe
 
+import org.gradle.api.DefaultTask
 import org.gradle.api.file.FileCollection
-import org.gradle.api.internal.ConventionTask
 import org.gradle.api.tasks.InputFiles
 import org.gradle.api.tasks.Optional
 import org.gradle.api.tasks.OutputDirectory
@@ -10,7 +10,7 @@ import org.gradle.api.tasks.TaskAction
 import org.gradle.language.base.LanguageSourceSet
 import org.gradle.nativebinaries.internal.SourceSetNotationParser
 
-class HaxeCompile extends ConventionTask {
+class HaxeCompile extends DefaultTask {
 
 	private static final notationParser = SourceSetNotationParser.parser()
 
