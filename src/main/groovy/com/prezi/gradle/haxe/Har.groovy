@@ -21,7 +21,6 @@ class Har extends Jar {
 	protected void copy() {
 		manifest.attributes.put(MANIFEST_ATTR_LIBRARY_VERSION, "1.0")
 		def embeddedResources = getEmbeddedResources()
-		println "--------> Embedded resources: ${embeddedResources}"
 
 		if (!embeddedResources.empty) {
 			manifest.attributes.put(MANIFEST_ATTR_EMBEDDED_RESOURCES, EmbeddedResourceEncoding.encode(embeddedResources))

@@ -177,7 +177,6 @@ class HaxePlugin implements Plugin<Project> {
 		compileTask.conventionMapping.targetPlatform = { binary.targetPlatform.name }
 		compileTask.conventionMapping.embeddedResources = { gatherEmbeddedResources(binary.source) }
 		compileTask.conventionMapping.outputFile = { project.file("${project.buildDir}/compiled-haxe/${namingScheme.outputDirectoryBase}/${binary.name}.${compileTask.targetPlatform}") }
-		println ">>>> SRC DIRS OUT: ${compileTask.inputDirectories.files}"
 		return compileTask
 	}
 
