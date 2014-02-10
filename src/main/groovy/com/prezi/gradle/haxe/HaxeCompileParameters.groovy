@@ -4,6 +4,7 @@ import org.gradle.api.Project
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.Dependency
 import org.gradle.api.file.FileCollection
+import org.gradle.api.internal.IConventionAware
 
 class HaxeCompileParameters {
 
@@ -12,27 +13,6 @@ class HaxeCompileParameters {
 	public HaxeCompileParameters(Project project)
 	{
 		this.project = project
-	}
-
-	Configuration configuration
-
-	public boolean hasConfiguration()
-	{
-		return configuration != null
-	}
-
-	public Configuration getConfiguration()
-	{
-		if (configuration == null)
-		{
-			return project.configurations[Dependency.DEFAULT_CONFIGURATION]
-		}
-		return configuration
-	}
-
-	public void configuration(Configuration configuration)
-	{
-		this.configuration = configuration
 	}
 
 	List<String> macros = []
@@ -55,7 +35,7 @@ class HaxeCompileParameters {
 		excludes.add(thing)
 	}
 
-	LinkedHashSet<String> flagList = []
+	List<String> flagList = []
 
 	public void flag(String... flag)
 	{
@@ -63,46 +43,6 @@ class HaxeCompileParameters {
 	}
 
 	boolean debug
-
-	def sources = []
-
-	public srcDir(Object... srcDirs) {
-		sources.addAll(srcDirs)
-	}
-
-	public FileCollection getSourceDirectories() {
-		return project.files(sources.flatten().toArray())
-	}
-
-	LinkedHashMap<String, File> embeddedResources = [:]
-
-	public embed(String name, Object file)
-	{
-		embeddedResources.put(name, project.file(file))
-	}
-
-	public embed(Object file)
-	{
-		def realFile = project.file(file)
-		embed(realFile.name, realFile)
-	}
-
-	public embed(Map<String, ?> resources)
-	{
-		resources.each { String name, Object file ->
-			embed(name, file)
-		}
-	}
-
-	public embedAll(Object directory)
-	{
-		def realDir = project.file(directory)
-		if (!realDir.directory)
-		{
-			throw new IllegalArgumentException("embedAll requires a directory: " + directory)
-		}
-		realDir.eachFileRecurse { embed(it) }
-	}
 
 	String spaghetti
 
@@ -113,17 +53,25 @@ class HaxeCompileParameters {
 		this.spaghetti = output
 	}
 
-	// Clone
+	protected HaxeCompileParameters merge(HaxeCompileParameters other) {
+		def result = new HaxeCompileParameters(project)
+		result.macros    = macros    +  other.macros
+		result.includes  = includes  +  other.includes
+		result.excludes  = excludes  +  other.excludes
+		result.flagList  = flagList  +  other.flagList
+		result.spaghetti = spaghetti ?: other.spaghetti
+		result.debug     = debug     || other.debug
+		return result
+	}
 
-	protected void copyTo(HaxeCompileParameters params)
+	protected static void setConvention(IConventionAware task, HaxeCompileParameters... params)
 	{
-		params.configuration = configuration
-		params.macros.addAll(macros)
-		params.includes.addAll(includes)
-		params.excludes.addAll(excludes)
-		params.flagList.addAll(flagList)
-		params.debug = debug
-		params.embeddedResources.putAll(embeddedResources)
+		task.conventionMapping.macros = { new ArrayList<>(params*.macros.flatten()) }
+		task.conventionMapping.includes = { new LinkedHashSet<>(params*.includes.flatten()) }
+		task.conventionMapping.excludes = { new LinkedHashSet<>(params*.excludes.flatten()) }
+		task.conventionMapping.flagList = { new ArrayList<>(params*.flagList.flatten()) }
+		task.conventionMapping.spaghetti = { params*.spaghetti.find { it } }
+		task.conventionMapping.debug = { params*.debug*.find { it } == true }
 	}
 
 	@Override
@@ -132,8 +80,6 @@ class HaxeCompileParameters {
 		def s = new StringBuilder()
 		def separator = "\n\t"
 		s.append "Haxe compiler config"
-		s.append separator
-		s.append "Configuration: ${configuration ? configuration.name : null}"
 		s.append separator
 		s.append "Macros: ${macros}"
 		s.append separator
@@ -144,8 +90,6 @@ class HaxeCompileParameters {
 		s.append "Flags: ${flagList}"
 		s.append separator
 		s.append "Debug: ${debug}"
-		s.append separator
-		s.append "Embedded resources: ${embeddedResources}"
 		return s.toString()
 	}
 }

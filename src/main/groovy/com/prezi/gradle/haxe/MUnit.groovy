@@ -21,6 +21,8 @@ class MUnit extends AbstractHaxeCompileTask {
 		def workDir = getWorkingDirectory()
 		workDir.mkdirs()
 
+		println ">>>>>>>>>>> Params: ${params}"
+
 		// Copy all tests into one directory
 		def testSourcesDirectory = new File(workDir, "tests")
 		testSourcesDirectory.mkdirs()
@@ -50,10 +52,11 @@ class MUnit extends AbstractHaxeCompileTask {
 				.withEmbeddedResources(getEmbeddedResources())
 				.withSourceSets(testSources)
 				.withEmbeddedResources(getEmbeddedTestResources())
-//				.withMacros(compileTask.macros)
-//				.withFlags(flagList)
-//				.withFlags(compileTask.flagList.findAll({ it != "--js-modern" && it != "--no-traces" }))
-//				.withDebugFlags(compileTask.debug)
+				.withIncludes(getIncludes())
+				.withExcludes(getExcludes())
+				.withMacros(getMacros())
+				.withFlags(getFlagList())
+				.withDebugFlags(getDebug())
 				.withTarget(getTargetPlatform().name, output)
 				.withMain("TestMain")
 		def haxeCmdParts = builder.build()

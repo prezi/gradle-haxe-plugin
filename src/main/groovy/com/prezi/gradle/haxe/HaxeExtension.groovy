@@ -17,12 +17,13 @@ class HaxeExtension {
 
 	void mapTo(HaxeCompile compileTask)
 	{
-//		compileParams.copyTo compileTask.params
+		HaxeCompileParameters.setConvention compileTask, compileParams
 	}
 
-	void mapTo(MUnit testTask)
+	// TODO Filter out --no-traces so tests can trace
+	void mapTo(MUnit munitTask)
 	{
-//		testParams.copyTo testTask.params
+		HaxeCompileParameters.setConvention munitTask, compileParams, testParams
 	}
 
 	public void test(Closure c)

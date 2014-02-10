@@ -19,12 +19,12 @@ class HaxeCompile extends AbstractHaxeCompileTask {
 				.withSources(getAllSourceDirectories(sources))
 				.withSourceSets(sources)
 				.withEmbeddedResources(getEmbeddedResources())
-//				.withMacros(getMacros())
-//				.withIncludes(getIncludes())
-//				.withExcludes(getExcludes())
-//				.withFlags(getFlagList())
-//				.withDebugFlags(getDebug())
-//				.withSpaghetti(getSpaghetti(), output, getConfiguration())
+				.withMacros(getMacros())
+				.withIncludes(getIncludes())
+				.withExcludes(getExcludes())
+				.withFlags(getFlagList())
+				.withDebugFlags(getDebug())
+				.withSpaghetti(getSpaghetti(), output, sources.withType(HaxeSourceSet)*.compileClassPath)
 		String[] cmd = builder.build()
 
 		CommandExecutor.execute(project, cmd, null) { ExecutionResult result ->
