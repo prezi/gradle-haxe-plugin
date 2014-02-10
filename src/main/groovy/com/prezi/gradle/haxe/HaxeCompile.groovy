@@ -17,6 +17,7 @@ class HaxeCompile extends AbstractHaxeCompileTask {
 				.withMain(getMain())
 				.withTarget(getTargetPlatform().name, output)
 				.withSources(getAllSourceDirectories(sources))
+				.withSourceSets(sources)
 				.withEmbeddedResources(getEmbeddedResources())
 //				.withMacros(getMacros())
 //				.withIncludes(getIncludes())
@@ -24,7 +25,6 @@ class HaxeCompile extends AbstractHaxeCompileTask {
 //				.withFlags(getFlagList())
 //				.withDebugFlags(getDebug())
 //				.withSpaghetti(getSpaghetti(), output, getConfiguration())
-		withSourceSets(builder, sources)
 		String[] cmd = builder.build()
 
 		CommandExecutor.execute(project, cmd, null) { ExecutionResult result ->

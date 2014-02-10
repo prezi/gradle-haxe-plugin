@@ -24,7 +24,6 @@ class MUnit extends AbstractHaxeCompileTask {
 		// Copy all tests into one directory
 		def testSourcesDirectory = new File(workDir, "tests")
 		project.copy {
-			from sources*.source*.srcDirs
 			from testSources*.source*.srcDirs
 			into testSourcesDirectory
 		}
@@ -45,7 +44,10 @@ class MUnit extends AbstractHaxeCompileTask {
 
 		def builder = new HaxeCommandBuilder(project)
 				.withSources(testSourcesDirectory)
+				.withSources(getAllSourceDirectories(sources))
+				.withSourceSets(sources)
 				.withEmbeddedResources(getEmbeddedResources())
+				.withSourceSets(testSources)
 				.withEmbeddedResources(getEmbeddedTestResources())
 //				.withMacros(compileTask.macros)
 //				.withFlags(flagList)
@@ -53,8 +55,6 @@ class MUnit extends AbstractHaxeCompileTask {
 //				.withDebugFlags(compileTask.debug)
 				.withTarget(getTargetPlatform().name, output)
 				.withMain("TestMain")
-		withSourceSets(builder, sources)
-		withSourceSets(builder, testSources)
 		def haxeCmdParts = builder.build()
 
 		def haxeCmd = "";
