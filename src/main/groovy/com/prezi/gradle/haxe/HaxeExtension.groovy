@@ -22,7 +22,7 @@ class HaxeExtension {
 
 	void mapTo(MUnit testTask)
 	{
-		testParams.copyTo testTask.params
+//		testParams.copyTo testTask.params
 	}
 
 	public void test(Closure c)

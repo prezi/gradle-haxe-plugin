@@ -46,8 +46,8 @@ class HaxePlugin implements Plugin<Project> {
 
 		// Add "haxe" source set
 		def projectSourceSet = project.getExtensions().getByType(ProjectSourceSet.class)
-		projectSourceSet.create("main")
-		projectSourceSet.create("test")
+		def main = projectSourceSet.create("main")
+		def test = projectSourceSet.create("test")
 
 		// Add "targetPlatforms"
 		def targetPlatforms = project.getExtensions().create(
@@ -86,12 +86,14 @@ class HaxePlugin implements Plugin<Project> {
 				targetPlatforms.all(new Action<TargetPlatform>() {
 					@Override
 					void execute(TargetPlatform targetPlatform) {
+						// Add compiled binary
 						def compiledHaxe = new DefaultCompiledHaxeBinary(functionalSourceSet.name, targetPlatform)
 						compiledHaxe.source.add(resourceSet)
 						compiledHaxe.source.add(haxeResourceSet)
 						compiledHaxe.source.add(haxeSourceSet)
 						binaryContainer.add(compiledHaxe)
 
+						// Add source bundle binary
 						def sourceHaxe = new DefaultSourceHaxeBinary("source" + functionalSourceSet.name.capitalize(), targetPlatform)
 						sourceHaxe.source.add(resourceSet)
 						sourceHaxe.source.add(haxeResourceSet)
@@ -109,6 +111,14 @@ class HaxePlugin implements Plugin<Project> {
 				binary.builtBy(compileTask)
 			}
 		});
+
+		// Add unit tests
+		targetPlatforms.all(new Action<TargetPlatform>() {
+			@Override
+			void execute(TargetPlatform targetPlatform) {
+				createMUnitTask(project, main, test, targetPlatform)
+			}
+		})
 
 		// Add a a compile task for each binary
 		binaryContainer.withType(SourceHaxeBinary.class).all(new Action<SourceHaxeBinary>() {
@@ -174,10 +184,23 @@ class HaxePlugin implements Plugin<Project> {
 
 		compileTask.source(binary.source)
 		compileTask.conventionMapping.main = { binary.source.withType(HaxeSourceSet)*.main.flatten().find() { it } }
-		compileTask.conventionMapping.targetPlatform = { binary.targetPlatform.name }
+		compileTask.conventionMapping.targetPlatform = { binary.targetPlatform }
 		compileTask.conventionMapping.embeddedResources = { gatherEmbeddedResources(binary.source) }
-		compileTask.conventionMapping.outputFile = { project.file("${project.buildDir}/compiled-haxe/${namingScheme.outputDirectoryBase}/${binary.name}.${compileTask.targetPlatform}") }
+		compileTask.conventionMapping.outputFile = { project.file("${project.buildDir}/compiled-haxe/${namingScheme.outputDirectoryBase}/${binary.name}.${binary.targetPlatform.name}") }
 		return compileTask
+	}
+
+	private static MUnit createMUnitTask(Project project, FunctionalSourceSet main, FunctionalSourceSet test, TargetPlatform targetPlatform) {
+		def munitTask = project.task("test" + targetPlatform.name.capitalize(), type: MUnit) {
+			description = "Runs ${targetPlatform.name} tests"
+		}
+		munitTask.source(main.withType(HaxeSourceSet) + main.withType(ResourceSet))
+		munitTask.testSource(test.withType(HaxeSourceSet) + test.withType(ResourceSet))
+		munitTask.conventionMapping.targetPlatform = { targetPlatform }
+		munitTask.conventionMapping.embeddedResources = { gatherEmbeddedResources(main.withType(HaxeResourceSet)) }
+		munitTask.conventionMapping.embeddedTestResources = { gatherEmbeddedResources(test.withType(HaxeResourceSet)) }
+		munitTask.conventionMapping.workingDirectory = { project.file("${project.buildDir}/munit-work/" + targetPlatform.name) }
+		return munitTask
 	}
 
 	public static LinkedHashMap<String, File> gatherEmbeddedResources(DomainObjectCollection<LanguageSourceSet> source) {
