@@ -61,7 +61,7 @@ class HaxePlugin implements Plugin<Project> {
 			@Override
 			void execute(FunctionalSourceSet functionalSourceSet) {
 				// Inspired by JavaBasePlugin
-				// Get/create configurations for source sets
+				// Get/create configuration for source set
 				ConfigurationContainer configurations = project.getConfigurations()
 				Configuration compileConfiguration = configurations.findByName(getCompileConfigurationName(functionalSourceSet))
 				if (compileConfiguration == null) {
@@ -69,14 +69,6 @@ class HaxePlugin implements Plugin<Project> {
 				}
 				compileConfiguration.setVisible(false)
 				compileConfiguration.setDescription(String.format("Compile classpath for %s.", functionalSourceSet))
-
-//				Configuration runtimeConfiguration = configurations.findByName(getRuntimeConfigurationName(functionalSourceSet))
-//				if (runtimeConfiguration == null) {
-//					runtimeConfiguration = configurations.create(getRuntimeConfigurationName(functionalSourceSet))
-//				}
-//				runtimeConfiguration.setVisible(false)
-//				runtimeConfiguration.extendsFrom(compileConfiguration)
-//				runtimeConfiguration.setDescription(String.format("Runtime classpath for %s.", functionalSourceSet))
 
 				// Register source set factory
 				functionalSourceSet.registerFactory(HaxeSourceSet) { name ->
