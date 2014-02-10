@@ -23,7 +23,7 @@ With the 0.x version of the plugin, it is hard to follow which source folders fr
 The 1.0 version of the `CompileHaxe` task builds two output artifacts:
 
 * the output of the Haxe compiler (i.e. your output JS or SWF file)
-* a HAR (Haxe ARchive) containing the sources and the resources required to build the project
+* a HAR (Haxe Archive) containing the sources and the resources required to build the project
 
 You can safely depend on the `.har` artifact in another project without having to worry about
 
@@ -127,13 +127,13 @@ Sometimes you need to combine your JS-built Haxe code with other JS files. Inste
 
 ## Bundling Haxe "headers" with built output
 
-It is already possible to use the HAR artifact as a self-contained dependency that can be used to build your sources togther with the dependency sources (and resources). This is like static linking in C.
+It is already possible to use the HAR artifact as a self-contained dependency that can be used to build your sources together with the dependency sources (and resources). This is like static linking in C.
 
 It would be nice to have something resembling dynamic linking a well: you take the built JS/SWC output of a module, and use that in another Haxe module. To do this, the dependent module must know about the structure of the JS/SWC file.
 
 The Haxe plugin could generate another artifact that includes the built JS/SWC output of the build, plus "header" Haxe files, i.e. Haxe classes that are only `extern`s of the original classes.
 
-This should be fairly simple to implement wiht the plugin.
+This should be fairly simple to implement with the plugin.
 
 ## Rename 'build' task to 'compile'
 

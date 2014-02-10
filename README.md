@@ -77,7 +77,7 @@ Parameters:
 A `CompileHaxe` task will create two output artifacts:
 
 * `artifact`: the compiled code, i.e. the `.js` or `.swf` file. You can use this output as is.
-* `soruces`: the `.har` archive that you can use to link your module together with other projects on the source level.
+* `sources`: the `.har` archive that you can use to link your module together with other projects on the source level.
 
 The artifacts pick up configuration parameters (like `classifier` and `configuration`) from the compile task.
 
