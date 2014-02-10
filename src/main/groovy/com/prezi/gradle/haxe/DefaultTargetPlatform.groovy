@@ -14,4 +14,9 @@ class DefaultTargetPlatform implements TargetPlatform {
 	String getName() {
 		return name
 	}
+
+	@Override
+	String toString() {
+		return "platform: ${name}"
+	}
 }
