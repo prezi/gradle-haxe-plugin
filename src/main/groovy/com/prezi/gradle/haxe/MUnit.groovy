@@ -148,21 +148,9 @@ class MUnit extends DefaultTask implements HaxeTask {
 				throw new RuntimeException("There are failing tests");
 			}
 		}
-
-		HarUtils.createArchive(project, temporaryDirFactory, project.buildDir,
-				getFullName(), getSourceFiles(), getResourceFiles(), embeddedResources)
 	}
 
 	private PublishArtifact testSourceBundle
-
-	public PublishArtifact getTests()
-	{
-		if (testSourceBundle == null)
-		{
-			testSourceBundle = new HarPublishArtifact(this, getTestSourceArchive())
-		}
-		return testSourceBundle
-	}
 
 	public File getTestSourceArchive()
 	{
