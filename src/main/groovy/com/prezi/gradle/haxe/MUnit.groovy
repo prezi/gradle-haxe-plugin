@@ -19,10 +19,11 @@ class MUnit extends AbstractHaxeCompileTask {
 	void munit()
 	{
 		def workDir = getWorkingDirectory()
-		project.mkdir(workDir)
+		workDir.mkdirs()
 
 		// Copy all tests into one directory
 		def testSourcesDirectory = new File(workDir, "tests")
+		testSourcesDirectory.mkdirs()
 		project.copy {
 			from testSources*.source*.srcDirs
 			into testSourcesDirectory
@@ -43,7 +44,7 @@ class MUnit extends AbstractHaxeCompileTask {
 		project.mkdir(output.parentFile)
 
 		def builder = new HaxeCommandBuilder(project)
-				.withSources(testSourcesDirectory)
+				.withSources([testSourcesDirectory])
 				.withSources(getAllSourceDirectories(sources))
 				.withSourceSets(sources)
 				.withEmbeddedResources(getEmbeddedResources())
