@@ -50,7 +50,7 @@ class MUnit extends DefaultTask {
 
 		LinkedHashSet<File> sourcePath = []
 		LinkedHashSet<File> resourcePath = []
-		def extractor = new HaxelibDependencyExtractor(project, [ compileTask.legacyPlatformPaths, legacyPlatformPaths ].flatten())
+		def extractor = new HaxelibDependencyExtractor(project)
 
 		sourcePath.add(testSourcesDirectory)
 		LinkedHashMap<String, File> testEmbeddedResources = [:]
@@ -150,26 +150,9 @@ class MUnit extends DefaultTask {
 		}
 	}
 
-	private PublishArtifact testSourceBundle
-
-	public File getTestSourceArchive()
-	{
-		return new File(project.buildDir, getFullName() + ".har")
-	}
-
-	public String getBaseName()
-	{
-		return compileTask.baseName
-	}
-
-	private String getFullName()
-	{
-		return compileTask.getBaseName() + "-" + getClassifier()
-	}
-
 	private File getOutput()
 	{
-		switch (compileTask.targetPlatform)
+		switch (compileTask.getTargetPlatform())
 		{
 			case "js":
 				return new File(getWorkingDirectory(), "js_test.js")
@@ -180,7 +163,7 @@ class MUnit extends DefaultTask {
 			case "as3":
 			case "java":
 			default:
-				throw new IllegalStateException("Cannot test platform " + targetPlatform)
+				throw new IllegalStateException("Cannot test platform " + compileTask.getTargetPlatform())
 		}
 	}
 
@@ -197,27 +180,6 @@ class MUnit extends DefaultTask {
 		return params.hasConfiguration() ? params.configuration : compileTask.configuration
 	}
 
-	@Deprecated
-	public void testConfiguration(Configuration conf)
-	{
-		DeprecationLogger.nagUserOfReplacedProperty("testConfiguration", "configuration")
-		configuration(conf)
-	}
-
-	@InputFiles
-	@SkipWhenEmpty
-	public FileCollection getSourceFiles()
-	{
-		return project.files(sourcePaths)
-	}
-
-	@Deprecated
-	public void testSource(path)
-	{
-		DeprecationLogger.nagUserOfReplacedProperty("testSource", "source")
-		source(path)
-	}
-
 	@InputFiles
 	@SkipWhenEmpty
 	public FileCollection getResourceFiles()
@@ -225,36 +187,11 @@ class MUnit extends DefaultTask {
 		return project.files(resourcePaths)
 	}
 
-	@Deprecated
-	public testResource(path)
-	{
-		DeprecationLogger.nagUserOfReplacedProperty("testReource", "resource")
-		resource(path)
-	}
-
 	@InputFiles
 	@SkipWhenEmpty
 	public FileCollection getEmbeddedResourceFiles()
 	{
 		return project.files(embeddedResources.values())
-	}
-
-	private String classifier
-
-	public String getClassifier()
-	{
-		if (classifier)
-		{
-			return classifier
-		}
-
-		def result = compileTask.classifier
-		return result ? result + "-tests" : "tests"
-	}
-
-	public classifier(String classifier)
-	{
-		this.classifier = classifier
 	}
 
 	private File workingDirectory
@@ -271,12 +208,5 @@ class MUnit extends DefaultTask {
 	public workingDirectory(Object workingDirectory)
 	{
 		this.workingDirectory = project.file(workingDirectory)
-	}
-
-	@Deprecated
-	public void testFlag(String... flags)
-	{
-		DeprecationLogger.nagUserOfReplacedProperty("testFlag", "flag")
-		flag(flags)
 	}
 }
