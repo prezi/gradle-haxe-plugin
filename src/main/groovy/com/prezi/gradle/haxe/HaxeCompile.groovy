@@ -57,8 +57,6 @@ class HaxeCompile extends ConventionTask {
 				throw new RuntimeException("Command finished with non-zero exit value (${result.exitValue}):\n${cmd.join(" ")}")
 			}
 		}
-
-		// HarUtils.createArchive(project, temporaryDirFactory, project.buildDir, getFullName(), getSourceDirectories(), [], embeddedResources)
 	}
 
 	public source(Object... sources) {
