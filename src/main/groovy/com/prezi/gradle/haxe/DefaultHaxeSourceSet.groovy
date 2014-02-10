@@ -1,5 +1,6 @@
 package com.prezi.gradle.haxe
 
+import org.gradle.api.artifacts.Configuration
 import org.gradle.api.file.FileCollection
 import org.gradle.api.internal.file.DefaultSourceDirectorySet
 import org.gradle.api.internal.file.FileResolver
@@ -40,7 +41,7 @@ class DefaultHaxeSourceSet extends AbstractLanguageSourceSet implements HaxeSour
 	}
 
 	@Override
-	FileCollection getCompileClassPath() {
+	Configuration getCompileClassPath() {
 		return compileClassPath
 	}
 }
