@@ -31,13 +31,11 @@ class HaxePlugin implements Plugin<Project> {
 
 	private final Instantiator instantiator
 	private final FileResolver fileResolver
-	private final ProjectConfigurationActionContainer configurationActions
 
 	@Inject
-	public HaxePlugin(Instantiator instantiator, FileResolver fileResolver, ProjectConfigurationActionContainer configurationActions) {
+	public HaxePlugin(Instantiator instantiator, FileResolver fileResolver) {
 		this.instantiator = instantiator
 		this.fileResolver = fileResolver
-		this.configurationActions = configurationActions
 	}
 
 	@Override
@@ -46,8 +44,8 @@ class HaxePlugin implements Plugin<Project> {
 
 		// Add "haxe" source set
 		def projectSourceSet = project.getExtensions().getByType(ProjectSourceSet.class)
-		def main = projectSourceSet.create("main")
-		def test = projectSourceSet.create("test")
+		def main = projectSourceSet.maybeCreate("main")
+		def test = projectSourceSet.maybeCreate("test")
 
 		// Add "targetPlatforms"
 		def targetPlatforms = project.getExtensions().create(
@@ -63,9 +61,10 @@ class HaxePlugin implements Plugin<Project> {
 				// Inspired by JavaBasePlugin
 				// Get/create configuration for source set
 				ConfigurationContainer configurations = project.getConfigurations()
-				Configuration compileConfiguration = configurations.findByName(getCompileConfigurationName(functionalSourceSet))
+				def compileConfigurationName = StringUtils.uncapitalize(String.format("%sCompile", getTaskBaseName(functionalSourceSet)))
+				Configuration compileConfiguration = configurations.findByName(compileConfigurationName)
 				if (compileConfiguration == null) {
-					compileConfiguration = configurations.create(getCompileConfigurationName(functionalSourceSet))
+					compileConfiguration = configurations.create(compileConfigurationName)
 				}
 				compileConfiguration.setVisible(false)
 				compileConfiguration.setDescription(String.format("Compile classpath for %s.", functionalSourceSet))
@@ -193,7 +192,7 @@ class HaxePlugin implements Plugin<Project> {
 	private static MUnit createMUnitTask(Project project, FunctionalSourceSet main, FunctionalSourceSet test, TargetPlatform targetPlatform) {
 		def munitTask = project.task("test" + targetPlatform.name.capitalize(), type: MUnit) {
 			description = "Runs ${targetPlatform.name} tests"
-		}
+		} as MUnit
 		munitTask.source(main.withType(HaxeSourceSet) + main.withType(ResourceSet))
 		munitTask.testSource(test.withType(HaxeSourceSet) + test.withType(ResourceSet))
 		munitTask.conventionMapping.targetPlatform = { targetPlatform }
@@ -201,10 +200,6 @@ class HaxePlugin implements Plugin<Project> {
 		munitTask.conventionMapping.embeddedTestResources = { gatherEmbeddedResources(test.withType(HaxeResourceSet)) }
 		munitTask.conventionMapping.workingDirectory = { project.file("${project.buildDir}/munit-work/" + targetPlatform.name) }
 		return munitTask
-	}
-
-	public static LinkedHashMap<String, File> gatherEmbeddedResources(DomainObjectCollection<LanguageSourceSet> source) {
-		return source.withType(HaxeResourceSet)*.embeddedResources.flatten().inject([:]) { acc, val -> acc + val }
 	}
 
 	private static Har createSourceTask(Project project, SourceHaxeBinary binary) {
@@ -233,12 +228,12 @@ class HaxePlugin implements Plugin<Project> {
 		return sourceTask
 	}
 
-	private static String getTaskBaseName(FunctionalSourceSet set) {
-		return set.name.equals("main") ? "" : GUtil.toCamelCase(set.name)
+	public static LinkedHashMap<String, File> gatherEmbeddedResources(DomainObjectCollection<LanguageSourceSet> source) {
+		return source.withType(HaxeResourceSet)*.embeddedResources.flatten().inject([:]) { acc, val -> acc + val }
 	}
 
-	public static String getCompileConfigurationName(FunctionalSourceSet set) {
-		return StringUtils.uncapitalize(String.format("%sCompile", getTaskBaseName(set)))
+	private static String getTaskBaseName(FunctionalSourceSet set) {
+		return set.name.equals("main") ? "" : GUtil.toCamelCase(set.name)
 	}
 
 	File getSpaghettiBundleTool(Project project) {

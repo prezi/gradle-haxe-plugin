@@ -21,8 +21,6 @@ class MUnit extends AbstractHaxeCompileTask {
 		def workDir = getWorkingDirectory()
 		workDir.mkdirs()
 
-		println ">>>>>>>>>>> Params: ${params}"
-
 		// Copy all tests into one directory
 		def testSourcesDirectory = new File(workDir, "tests")
 		testSourcesDirectory.mkdirs()
