@@ -85,14 +85,14 @@ class HaxePlugin implements Plugin<Project> {
 					@Override
 					void execute(TargetPlatform targetPlatform) {
 						// Add compiled binary
-						def compiledHaxe = new DefaultCompiledHaxeBinary(functionalSourceSet.name, targetPlatform)
+						def compiledHaxe = new DefaultHaxeCompiledBinary(functionalSourceSet.name, targetPlatform)
 						compiledHaxe.source.add(resourceSet)
 						compiledHaxe.source.add(haxeResourceSet)
 						compiledHaxe.source.add(haxeSourceSet)
 						binaryContainer.add(compiledHaxe)
 
 						// Add source bundle binary
-						def sourceHaxe = new DefaultSourceHaxeBinary("source" + functionalSourceSet.name.capitalize(), targetPlatform)
+						def sourceHaxe = new DefaultHaxeSourceBinary("source" + functionalSourceSet.name.capitalize(), targetPlatform)
 						sourceHaxe.source.add(resourceSet)
 						sourceHaxe.source.add(haxeResourceSet)
 						sourceHaxe.source.add(haxeSourceSet)
@@ -103,8 +103,8 @@ class HaxePlugin implements Plugin<Project> {
 		})
 
 		// Add a a compile task for each binary
-		binaryContainer.withType(CompiledHaxeBinary.class).all(new Action<CompiledHaxeBinary>() {
-			public void execute(final CompiledHaxeBinary binary) {
+		binaryContainer.withType(HaxeCompiledBinary.class).all(new Action<HaxeCompiledBinary>() {
+			public void execute(final HaxeCompiledBinary binary) {
 				def compileTask = createCompileTask(project, binary)
 				binary.builtBy(compileTask)
 			}
@@ -119,8 +119,8 @@ class HaxePlugin implements Plugin<Project> {
 		})
 
 		// Add a a compile task for each binary
-		binaryContainer.withType(SourceHaxeBinary.class).all(new Action<SourceHaxeBinary>() {
-			public void execute(final SourceHaxeBinary binary) {
+		binaryContainer.withType(HaxeSourceBinary.class).all(new Action<HaxeSourceBinary>() {
+			public void execute(final HaxeSourceBinary binary) {
 				def sourceTask = createSourceTask(project, binary)
 				binary.builtBy(sourceTask)
 
@@ -172,7 +172,7 @@ class HaxePlugin implements Plugin<Project> {
 		})
 	}
 
-	private static HaxeCompile createCompileTask(Project project, CompiledHaxeBinary binary) {
+	private static HaxeCompile createCompileTask(Project project, HaxeCompiledBinary binary) {
 		def namingScheme = ((BinaryInternal) binary).namingScheme
 
 		def compileTaskName = namingScheme.getTaskName("compile", null)
@@ -201,7 +201,7 @@ class HaxePlugin implements Plugin<Project> {
 		return munitTask
 	}
 
-	private static Har createSourceTask(Project project, SourceHaxeBinary binary) {
+	private static Har createSourceTask(Project project, HaxeSourceBinary binary) {
 		def namingScheme = ((BinaryInternal) binary).namingScheme
 
 		def sourceTaskName = namingScheme.getTaskName(null, null)
