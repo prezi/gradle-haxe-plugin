@@ -71,7 +71,7 @@ class HaxeCompileParameters {
 		task.conventionMapping.excludes = { new LinkedHashSet<>(params*.excludes.flatten()) }
 		task.conventionMapping.flagList = { new ArrayList<>(params*.flagList.flatten()) }
 		task.conventionMapping.spaghetti = { params*.spaghetti.find { it } }
-		task.conventionMapping.debug = { params*.debug*.find { it } == true }
+		task.conventionMapping.debug = { params*.debug.find { it } != null }
 	}
 
 	@Override
