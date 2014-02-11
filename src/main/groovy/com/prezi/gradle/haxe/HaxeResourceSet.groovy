@@ -1,7 +1,5 @@
 package com.prezi.gradle.haxe
 
-import org.gradle.api.file.FileCollection
-import org.gradle.language.base.LanguageSourceSet
 import org.gradle.language.jvm.ResourceSet
 
 /**

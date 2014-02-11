@@ -1,9 +1,6 @@
 package com.prezi.gradle.haxe
 
 import org.gradle.api.Project
-import org.gradle.api.artifacts.Configuration
-import org.gradle.api.artifacts.Dependency
-import org.gradle.api.file.FileCollection
 import org.gradle.api.internal.IConventionAware
 
 class HaxeCompileParameters {
@@ -51,17 +48,6 @@ class HaxeCompileParameters {
 			throw new IllegalArgumentException("spaghetti argument must be either 'module' or 'application'")
 		}
 		this.spaghetti = output
-	}
-
-	protected HaxeCompileParameters merge(HaxeCompileParameters other) {
-		def result = new HaxeCompileParameters(project)
-		result.macros    = macros    +  other.macros
-		result.includes  = includes  +  other.includes
-		result.excludes  = excludes  +  other.excludes
-		result.flagList  = flagList  +  other.flagList
-		result.spaghetti = spaghetti ?: other.spaghetti
-		result.debug     = debug     || other.debug
-		return result
 	}
 
 	protected static void setConvention(IConventionAware task, HaxeCompileParameters... params)

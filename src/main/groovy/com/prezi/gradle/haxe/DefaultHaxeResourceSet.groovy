@@ -1,12 +1,8 @@
 package com.prezi.gradle.haxe
 
-import org.gradle.api.file.FileCollection
 import org.gradle.api.internal.file.DefaultSourceDirectorySet
 import org.gradle.api.internal.file.FileResolver
-import org.gradle.api.internal.file.collections.DefaultConfigurableFileCollection
-import org.gradle.api.internal.tasks.TaskResolver
 import org.gradle.language.base.FunctionalSourceSet
-import org.gradle.language.base.internal.AbstractLanguageSourceSet
 import org.gradle.language.jvm.internal.DefaultResourceSet
 
 /**

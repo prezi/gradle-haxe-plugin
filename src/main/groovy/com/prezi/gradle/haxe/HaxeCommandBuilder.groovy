@@ -1,7 +1,6 @@
 package com.prezi.gradle.haxe
 
 import com.prezi.spaghetti.ModuleBundle
-import com.prezi.spaghetti.ModuleDefinition
 import com.prezi.spaghetti.gradle.ModuleDefinitionLookup
 import org.gradle.api.DomainObjectSet
 import org.gradle.api.Project
