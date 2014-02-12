@@ -1,17 +1,11 @@
-import com.prezi.gradle.haxe.HaxeCompile
-import com.prezi.gradle.haxe.MUnit
-import org.gradle.api.publish.ivy.IvyPublication
-
-configurations {
-	runtime
-	test { extendsFrom runtime }
-	node { extendsFrom runtime }
+targetPlatforms {
+	js
 }
 
 dependencies {
-	test group: "haxelib3", name: "hamcrest", version: "1.2.1"
-	test group: "haxelib3", name: "mlib", version: "2.0.2"
-	test group: "haxelib3", name: "munit", version: "2.0.2"
+	testCompile group: "haxelib3", name: "hamcrest", version: "1.2.1"
+	testCompile group: "haxelib3", name: "mlib", version: "2.0.2"
+	testCompile group: "haxelib3", name: "munit", version: "2.0.2"
 }
 
 task sayHello << {
@@ -19,42 +13,25 @@ task sayHello << {
 }
 
 haxe {
-	main "prezi.test.Main"
-	includePackage "prezi.test"
+	include "prezi.test"
 }
 
-task lajos(type: HaxeCompile) {
+compileJs {
 	spaghetti "module"
-	dependsOn sayHello
-	configuration configurations.runtime
-	source "src/main/haxe/common"
-	source "src/main/haxe/js"
-	resource "src/main/resources"
-	resource "build.gradle"
-	targetPlatform "js"
+	main "prezi.test.Main"
 }
 
-task testLajos(type: MUnit) {
-	test lajos
-	testConfiguration configurations.test
-	testSource "src/test/haxe/common"
-}
+// task "lajos-node"(type: HaxeCompile) {
+// 	configuration configurations.node
+// 	source "src/main/haxe/common"
+// 	targetPlatform "js"
+// 	classifier "node"
+// }
 
-task "lajos-node"(type: HaxeCompile) {
-	configuration configurations.node
-	source "src/main/haxe/common"
-	targetPlatform "js"
-	classifier "node"
-}
-
-task tibor(type: HaxeCompile) {
-	configuration configurations.runtime
-	baseName "tibor"
-	source "src/main/haxe/common"
-	targetPlatform "swf"
-	outputFile "${buildDir}/compiled-haxe/tibor.swf"
-}
-
-task lajosDep {
-	dependsOn lajos
-}
+// task tibor(type: HaxeCompile) {
+// 	configuration configurations.runtime
+// 	baseName "tibor"
+// 	source "src/main/haxe/common"
+// 	targetPlatform "swf"
+// 	outputFile "${buildDir}/compiled-haxe/tibor.swf"
+// }

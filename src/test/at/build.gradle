@@ -15,12 +15,9 @@ buildscript {
 	}
 }
 
-configure(allprojects) {
+allprojects {
 	group = "prezi.test"
 	version = "0.1-SNAPSHOT"
-
-	apply plugin: "haxe"
-	apply plugin: "ivy-publish"
 
 	repositories {
 		mavenLocal()
@@ -35,8 +32,10 @@ configure(allprojects) {
 	}
 }
 
-configure(subprojects) {
-	install {
+subprojects {
+	apply plugin: "haxe"
+
+	tasks.withType(Upload) {
 		repositories {
 			ivy {
 				url "file://$rootProject.buildDir/repo"
