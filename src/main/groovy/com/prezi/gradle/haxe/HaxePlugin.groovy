@@ -1,7 +1,6 @@
 package com.prezi.gradle.haxe
 
 import com.prezi.gradle.PreziPlugin
-import org.apache.commons.lang.StringUtils
 import org.gradle.api.Action
 import org.gradle.api.DomainObjectCollection
 import org.gradle.api.DomainObjectSet
@@ -204,7 +203,8 @@ class HaxePlugin implements Plugin<Project> {
 	}
 
 	private static String getCompileConfigurationNameFor(FunctionalSourceSet functionalSourceSet) {
-		return StringUtils.uncapitalize(String.format("%sCompile", getTaskBaseName(functionalSourceSet)))
+		def baseName = getTaskBaseName(functionalSourceSet)
+		return GUtil.toLowerCamelCase("${baseName}Compile")
 	}
 
 	private static findCompileConfigurationFor(Project project, FunctionalSourceSet functionalSourceSet) {
