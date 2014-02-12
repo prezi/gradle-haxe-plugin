@@ -146,12 +146,18 @@ class HaxePlugin implements Plugin<Project> {
 
 		// Map default values
 		def haxeExtension = project.extensions.create "haxe", HaxeExtension, project
-		project.tasks.withType(HaxeCompile) { HaxeCompile task ->
-			haxeExtension.mapTo(task)
-		}
-		project.tasks.withType(MUnit) { MUnit task ->
-			haxeExtension.mapTo(task)
-		}
+		project.tasks.withType(HaxeCompile).all(new Action<HaxeCompile>() {
+			@Override
+			void execute(HaxeCompile haxeCompile) {
+				haxeExtension.mapTo(haxeCompile)
+			}
+		})
+		project.tasks.withType(MUnit).all(new Action<MUnit>() {
+			@Override
+			void execute(MUnit munit) {
+				haxeExtension.mapTo(munit)
+			}
+		})
 
 		// Add compile all task
 		def compileTask = project.tasks.findByName(COMPILE_TASK_NAME)
