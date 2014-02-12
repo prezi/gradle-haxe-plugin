@@ -223,8 +223,8 @@ class HaxePlugin implements Plugin<Project> {
 		compileTask.conventionMapping.embeddedResources = { gatherEmbeddedResources(binary.source) }
 		compileTask.conventionMapping.outputFile = { project.file("${project.buildDir}/compiled-haxe/${namingScheme.outputDirectoryBase}/${binary.name}.${binary.targetPlatform.name}") }
 		project.tasks.getByName(namingScheme.getLifecycleTaskName()).dependsOn compileTask
-		// Not sure why we don't need this
-		// compileTask.dependsOn binary.source.withType(HaxeSourceSet)*.compileClassPath
+		// Let' depend on the input configurations
+		compileTask.dependsOn binary.source.withType(HaxeSourceSet)*.compileClassPath
 		return compileTask
 	}
 
@@ -238,9 +238,9 @@ class HaxePlugin implements Plugin<Project> {
 		munitTask.conventionMapping.embeddedResources = { gatherEmbeddedResources(main.withType(HaxeResourceSet)) }
 		munitTask.conventionMapping.embeddedTestResources = { gatherEmbeddedResources(test.withType(HaxeResourceSet)) }
 		munitTask.conventionMapping.workingDirectory = { project.file("${project.buildDir}/munit-work/" + targetPlatform.name) }
-		// Not sure why we don't need these
-		// munitTask.dependsOn main.withType(HaxeSourceSet)*.compileClassPath
-		// munitTask.dependsOn test.withType(HaxeSourceSet)*.compileClassPath
+		// Let' depend on the input configurations (both from main and test)
+		munitTask.dependsOn main.withType(HaxeSourceSet)*.compileClassPath
+		munitTask.dependsOn test.withType(HaxeSourceSet)*.compileClassPath
 		return munitTask
 	}
 
