@@ -20,7 +20,6 @@ import org.gradle.language.base.ProjectSourceSet
 import org.gradle.language.base.internal.BinaryInternal
 import org.gradle.language.jvm.ResourceSet
 import org.gradle.language.jvm.internal.DefaultResourceSet
-import org.gradle.util.GUtil
 
 import javax.inject.Inject
 
@@ -273,10 +272,6 @@ class HaxePlugin implements Plugin<Project> {
 
 	public static LinkedHashMap<String, File> gatherEmbeddedResources(DomainObjectCollection<LanguageSourceSet> source) {
 		return source.withType(HaxeResourceSet)*.embeddedResources.flatten().inject([:]) { acc, val -> acc + val }
-	}
-
-	private static String getTaskBaseName(FunctionalSourceSet set) {
-		return set.name.equals("main") ? "" : GUtil.toCamelCase(set.name)
 	}
 
 	File getSpaghettiBundleTool(Project project) {
