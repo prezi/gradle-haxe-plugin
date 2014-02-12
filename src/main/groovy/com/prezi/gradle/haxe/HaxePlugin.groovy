@@ -59,21 +59,20 @@ class HaxePlugin implements Plugin<Project> {
 
 		def projectSourceSet = project.getExtensions().getByType(ProjectSourceSet.class)
 
+		// Add functional source sets for main code
+		def main = projectSourceSet.maybeCreate("main")
+		def test = projectSourceSet.maybeCreate("test")
+		Configuration mainCompile = maybeCreateCompileConfigurationFor(project, "main")
+		Configuration testCompile = maybeCreateCompileConfigurationFor(project, "test")
+		testCompile.extendsFrom mainCompile
+
 		// For each source set create a configuration and language source sets
 		projectSourceSet.all(new Action<FunctionalSourceSet>() {
 			@Override
 			void execute(FunctionalSourceSet functionalSourceSet) {
 				// Inspired by JavaBasePlugin
-				// Get/create configuration for source set
-				def compileConfigurationName = getCompileConfigurationNameFor(functionalSourceSet)
-				Configuration compileConfiguration = project.configurations.findByName(compileConfigurationName)
-				if (compileConfiguration == null) {
-					compileConfiguration = project.configurations.create(compileConfigurationName)
-				}
-				compileConfiguration.setVisible(false)
-				compileConfiguration.setDescription(String.format("Compile classpath for %s.", functionalSourceSet))
-
 				// Add Haxe source set for "src/<name>/haxe"
+				def compileConfiguration = project.configurations.getByName(functionalSourceSet.name)
 				def haxeSourceSet = instantiator.newInstance(DefaultHaxeSourceSet, HAXE_SOURCE_SET_NAME, functionalSourceSet, compileConfiguration, fileResolver, (TaskResolver) project.tasks)
 				haxeSourceSet.source.srcDir(String.format("src/%s/haxe", functionalSourceSet.name))
 				functionalSourceSet.add(haxeSourceSet)
@@ -92,26 +91,19 @@ class HaxePlugin implements Plugin<Project> {
 			}
 		})
 
-		// Add functional source sets for main code
-		def main = projectSourceSet.maybeCreate("main")
-		def test = projectSourceSet.maybeCreate("test")
-		Configuration mainCompile = findCompileConfigurationFor(project, main)
-		Configuration testCompile = findCompileConfigurationFor(project, test)
-		testCompile.extendsFrom mainCompile
-
 		// For each target platform add functional source sets
 		targetPlatforms.all(new Action<TargetPlatform>() {
 			@Override
 			void execute(TargetPlatform targetPlatform) {
-				def platformMain = projectSourceSet.maybeCreate(targetPlatform.name)
-				def platformTest = projectSourceSet.maybeCreate(targetPlatform.name + "Test")
-
-				// Extend main configurations with platform configurations
-				Configuration platformMainCompile = findCompileConfigurationFor(project, platformMain)
-				Configuration platformTestCompile = findCompileConfigurationFor(project, platformTest)
+				// Create platform configurations
+				Configuration platformMainCompile = maybeCreateCompileConfigurationFor(project, targetPlatform.name)
+				Configuration platformTestCompile = maybeCreateCompileConfigurationFor(project, targetPlatform.name + "Test")
 				platformMainCompile.extendsFrom mainCompile
 				platformTestCompile.extendsFrom testCompile
 				platformTestCompile.extendsFrom platformMainCompile
+
+				def platformMain = projectSourceSet.maybeCreate(targetPlatform.name)
+				def platformTest = projectSourceSet.maybeCreate(targetPlatform.name + "Test")
 
 				def mainLanguageSets = getLanguageSets(main, platformMain)
 				def testLanguageSets = getLanguageSets(test, platformTest)
@@ -202,13 +194,14 @@ class HaxePlugin implements Plugin<Project> {
 		return result
 	}
 
-	private static String getCompileConfigurationNameFor(FunctionalSourceSet functionalSourceSet) {
-		def baseName = getTaskBaseName(functionalSourceSet)
-		return GUtil.toLowerCamelCase("${baseName}Compile")
-	}
-
-	private static findCompileConfigurationFor(Project project, FunctionalSourceSet functionalSourceSet) {
-		return project.configurations.findByName(getCompileConfigurationNameFor(functionalSourceSet))
+	private static Configuration maybeCreateCompileConfigurationFor(Project project, String name) {
+		def config = project.configurations.findByName(name)
+		if (!config) {
+			config = project.configurations.create(name)
+			config.visible = false
+			config.description = "Compile classpath for ${name}."
+		}
+		return config
 	}
 
 	private static HaxeCompile createCompileTask(Project project, HaxeCompiledBinary binary) {

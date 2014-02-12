@@ -3,8 +3,8 @@ targetPlatforms {
 }
 
 dependencies {
-	jsCompile project(path: ":project-a", configuration: "jsCompile")
-	jsTestCompile project(path: ":project-a", configuration: "jsTestCompile")
+	js project(path: ":project-a", configuration: "js")
+	jsTest project(path: ":project-a", configuration: "jsTest")
 //	node project(path: ":project-a", configuration: "node")
 }
 
