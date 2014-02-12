@@ -17,7 +17,7 @@ abstract class AbstractHaxeBinary extends AbstractBuildableModelElement implemen
 	private final TargetPlatform targetPlatform
 
 	protected AbstractHaxeBinary(String parentName, TargetPlatform targetPlatform) {
-		this.namingScheme = new HaxeBinaryNamingScheme(parentName, targetPlatform)
+		this.namingScheme = new HaxeBinaryNamingScheme(parentName)
 		this.name = namingScheme.getLifecycleTaskName()
 		this.targetPlatform = targetPlatform
 	}

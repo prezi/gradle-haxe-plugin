@@ -9,12 +9,10 @@ import org.gradle.language.base.internal.BinaryNamingScheme
 class HaxeBinaryNamingScheme implements BinaryNamingScheme {
 	private final String parentName;
 	private final String collapsedName;
-	private final TargetPlatform targetPlatform
 
-	public HaxeBinaryNamingScheme(String parentName, TargetPlatform targetPlatform) {
+	public HaxeBinaryNamingScheme(String parentName) {
 		this.parentName = parentName;
 		this.collapsedName = collapseMain(this.parentName);
-		this.targetPlatform = targetPlatform
 	}
 
 	private static String collapseMain(String name) {
@@ -22,11 +20,11 @@ class HaxeBinaryNamingScheme implements BinaryNamingScheme {
 	}
 
 	public String getDescription() {
-		return String.format("classes '%s'", parentName);
+		return String.format("%s binary", parentName);
 	}
 
 	public String getLifecycleTaskName() {
-		return getTaskName(null, "classes");
+		return getTaskName(null, null);
 	}
 
 	public String getTaskName(@Nullable String verb) {
@@ -34,7 +32,7 @@ class HaxeBinaryNamingScheme implements BinaryNamingScheme {
 	}
 
 	public String getTaskName(@Nullable String verb, @Nullable String target) {
-		return makeName(verb, collapsedName, targetPlatform.name, target);
+		return makeName(verb, collapsedName, target);
 	}
 
 	private static String makeName(String... words) {
@@ -66,6 +64,6 @@ class HaxeBinaryNamingScheme implements BinaryNamingScheme {
 	}
 
 	public String getOutputDirectoryBase() {
-		return parentName + "/" + targetPlatform.name;
+		return parentName
 	}
 }
