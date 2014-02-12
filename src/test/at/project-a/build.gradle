@@ -14,11 +14,11 @@ task sayHello << {
 
 haxe {
 	include "prezi.test"
+	main "prezi.test.Main"
 }
 
 compileJs {
 	spaghetti "module"
-	main "prezi.test.Main"
 }
 
 // task "lajos-node"(type: HaxeCompile) {

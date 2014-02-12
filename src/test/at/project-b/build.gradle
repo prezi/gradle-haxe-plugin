@@ -9,7 +9,7 @@ dependencies {
 }
 
 compileJs {
-	main "prezi.test.Main"
+	main "prezi.test.DependentMain"
 }
 
 // task friciNode(type: HaxeCompile) {

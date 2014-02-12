@@ -12,6 +12,11 @@ class HaxeCompileParameters {
 		this.project = project
 	}
 
+	String main
+	public main(String main) {
+		this.main = main
+	}
+
 	List<String> macros = []
 	public macro(String m)
 	{
@@ -52,6 +57,7 @@ class HaxeCompileParameters {
 
 	protected static void setConvention(IConventionAware task, HaxeCompileParameters... params)
 	{
+		task.conventionMapping.main = { params*.main.find { it } }
 		task.conventionMapping.macros = { new ArrayList<>(params*.macros.flatten()) }
 		task.conventionMapping.includes = { new LinkedHashSet<>(params*.includes.flatten()) }
 		task.conventionMapping.excludes = { new LinkedHashSet<>(params*.excludes.flatten()) }
@@ -66,6 +72,8 @@ class HaxeCompileParameters {
 		def s = new StringBuilder()
 		def separator = "\n\t"
 		s.append "Haxe compiler config"
+		s.append separator
+		s.append "Main: ${main}"
 		s.append separator
 		s.append "Macros: ${macros}"
 		s.append separator

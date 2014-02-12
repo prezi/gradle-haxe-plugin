@@ -7,8 +7,6 @@ import org.gradle.api.tasks.TaskAction
 
 class HaxeCompile extends AbstractHaxeCompileTask {
 
-	String main
-
 	@TaskAction
 	void compile()
 	{
