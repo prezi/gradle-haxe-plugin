@@ -11,7 +11,4 @@ interface HaxeSourceSet extends LanguageSourceSet {
 	Configuration getCompileClassPath()
 
 	FileCollection getOutput()
-
-	String getMain()
-	void setMain(String main)
 }

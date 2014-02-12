@@ -213,7 +213,6 @@ class HaxePlugin implements Plugin<Project> {
 		} as HaxeCompile
 
 		compileTask.source(binary.source)
-		compileTask.conventionMapping.main = { binary.source.withType(HaxeSourceSet)*.main.flatten().find() { it } }
 		compileTask.conventionMapping.targetPlatform = { binary.targetPlatform }
 		compileTask.conventionMapping.embeddedResources = { gatherEmbeddedResources(binary.source) }
 		compileTask.conventionMapping.outputFile = { project.file("${project.buildDir}/compiled-haxe/${namingScheme.outputDirectoryBase}/${binary.name}.${binary.targetPlatform.name}") }
