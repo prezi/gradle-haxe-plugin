@@ -45,6 +45,9 @@ class HaxeCompileParameters {
 	}
 
 	boolean debug
+	public debug(boolean debug) {
+		this.debug = debug
+	}
 
 	String spaghetti
 
