@@ -4,12 +4,15 @@ import com.prezi.gradle.PreziPlugin
 import org.apache.commons.lang.StringUtils
 import org.gradle.api.Action
 import org.gradle.api.DomainObjectCollection
+import org.gradle.api.DomainObjectSet
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.artifacts.Configuration
-import org.gradle.api.artifacts.ConfigurationContainer
 import org.gradle.api.file.DuplicatesStrategy
+import org.gradle.api.internal.DefaultDomainObjectSet
+import org.gradle.api.internal.file.DefaultSourceDirectorySet
 import org.gradle.api.internal.file.FileResolver
+import org.gradle.api.internal.tasks.TaskResolver
 import org.gradle.internal.reflect.Instantiator
 import org.gradle.language.base.BinaryContainer
 import org.gradle.language.base.FunctionalSourceSet
@@ -17,6 +20,7 @@ import org.gradle.language.base.LanguageSourceSet
 import org.gradle.language.base.ProjectSourceSet
 import org.gradle.language.base.internal.BinaryInternal
 import org.gradle.language.jvm.ResourceSet
+import org.gradle.language.jvm.internal.DefaultResourceSet
 import org.gradle.util.GUtil
 
 import javax.inject.Inject
@@ -27,6 +31,10 @@ class HaxePlugin implements Plugin<Project> {
 	public static final String COMPILE_TASKS_GROUP = "compile"
 	public static final String TEST_TASK_NAME = "test"
 	public static final String TEST_TASKS_GROUP = "test"
+
+	public static final String HAXE_SOURCE_SET_NAME = "haxe"
+	public static final String RESOURCE_SET_NAME = "resources"
+	public static final String HAXE_RESOURCE_SET_NAME = "haxeResources"
 
 	private final Instantiator instantiator
 	private final FileResolver fileResolver
@@ -41,10 +49,7 @@ class HaxePlugin implements Plugin<Project> {
 	void apply(Project project) {
 		project.getPlugins().apply(PreziPlugin.class)
 
-		// Add "haxe" source set
-		def projectSourceSet = project.getExtensions().getByType(ProjectSourceSet.class)
-		def main = projectSourceSet.maybeCreate("main")
-		def test = projectSourceSet.maybeCreate("test")
+		def binaryContainer = project.getExtensions().getByType(BinaryContainer.class)
 
 		// Add "targetPlatforms"
 		def targetPlatforms = project.getExtensions().create(
@@ -53,56 +58,80 @@ class HaxePlugin implements Plugin<Project> {
 				instantiator
 		);
 
-		def binaryContainer = project.getExtensions().getByType(BinaryContainer.class)
+		def projectSourceSet = project.getExtensions().getByType(ProjectSourceSet.class)
+
+		// For each source set create a configuration and language source sets
 		projectSourceSet.all(new Action<FunctionalSourceSet>() {
 			@Override
 			void execute(FunctionalSourceSet functionalSourceSet) {
 				// Inspired by JavaBasePlugin
 				// Get/create configuration for source set
-				ConfigurationContainer configurations = project.getConfigurations()
-				def compileConfigurationName = StringUtils.uncapitalize(String.format("%sCompile", getTaskBaseName(functionalSourceSet)))
-				Configuration compileConfiguration = configurations.findByName(compileConfigurationName)
+				def compileConfigurationName = getCompileConfigurationNameFor(functionalSourceSet)
+				Configuration compileConfiguration = project.configurations.findByName(compileConfigurationName)
 				if (compileConfiguration == null) {
-					compileConfiguration = configurations.create(compileConfigurationName)
+					compileConfiguration = project.configurations.create(compileConfigurationName)
 				}
 				compileConfiguration.setVisible(false)
 				compileConfiguration.setDescription(String.format("Compile classpath for %s.", functionalSourceSet))
 
-				// Register source set factory
-				functionalSourceSet.registerFactory(HaxeSourceSet) { name ->
-					instantiator.newInstance(DefaultHaxeSourceSet, name, functionalSourceSet, compileConfiguration, fileResolver, project.tasks)
+				// Add Haxe source set for "src/<name>/haxe"
+				def haxeSourceSet = instantiator.newInstance(DefaultHaxeSourceSet, HAXE_SOURCE_SET_NAME, functionalSourceSet, compileConfiguration, fileResolver, (TaskResolver) project.tasks)
+				haxeSourceSet.source.srcDir(String.format("src/%s/haxe", functionalSourceSet.name))
+				functionalSourceSet.add(haxeSourceSet)
+
+				// Add resources if not exists yet
+				if (!functionalSourceSet.findByName(RESOURCE_SET_NAME)) {
+					def resourcesDirectorySet = instantiator.newInstance(DefaultSourceDirectorySet, String.format("%s resources", functionalSourceSet.name), fileResolver)
+					resourcesDirectorySet.srcDir(String.format("src/%s/haxe", functionalSourceSet.name))
+					def resourceSet = instantiator.newInstance(DefaultResourceSet, RESOURCE_SET_NAME, resourcesDirectorySet, functionalSourceSet)
+					functionalSourceSet.add(resourceSet)
 				}
 
-				// Add a single Haxe source set for "src/<name>/haxe"
-				def haxeSourceSet = functionalSourceSet.create("haxe", HaxeSourceSet)
-				haxeSourceSet.source.srcDir(String.format("src/%s/haxe", functionalSourceSet.name))
-				def resourceSet = functionalSourceSet.getByName("resources")
-				def haxeResourceSet = new DefaultHaxeResourceSet("haxeResources", functionalSourceSet, fileResolver)
+				// Add Haxe resource set to be used for embedded resources
+				def haxeResourceSet = instantiator.newInstance(DefaultHaxeResourceSet, HAXE_RESOURCE_SET_NAME, functionalSourceSet, fileResolver)
 				functionalSourceSet.add(haxeResourceSet)
-
-				// Add binaries for each target platform
-				targetPlatforms.all(new Action<TargetPlatform>() {
-					@Override
-					void execute(TargetPlatform targetPlatform) {
-						// Add compiled binary
-						def compiledHaxe = new DefaultHaxeCompiledBinary(functionalSourceSet.name, targetPlatform)
-						compiledHaxe.source.add(resourceSet)
-						compiledHaxe.source.add(haxeResourceSet)
-						compiledHaxe.source.add(haxeSourceSet)
-						binaryContainer.add(compiledHaxe)
-
-						// Add source bundle binary
-						def sourceHaxe = new DefaultHaxeSourceBinary("source" + functionalSourceSet.name.capitalize(), targetPlatform)
-						sourceHaxe.source.add(resourceSet)
-						sourceHaxe.source.add(haxeResourceSet)
-						sourceHaxe.source.add(haxeSourceSet)
-						binaryContainer.add(sourceHaxe)
-					}
-				})
 			}
 		})
 
-		// Add a a compile task for each binary
+		// Add functional source sets for main code
+		def main = projectSourceSet.maybeCreate("main")
+		def test = projectSourceSet.maybeCreate("test")
+		Configuration mainCompile = findCompileConfigurationFor(project, main)
+		Configuration testCompile = findCompileConfigurationFor(project, test)
+		testCompile.extendsFrom mainCompile
+
+		// For each target platform add functional source sets
+		targetPlatforms.all(new Action<TargetPlatform>() {
+			@Override
+			void execute(TargetPlatform targetPlatform) {
+				def platformMain = projectSourceSet.maybeCreate(targetPlatform.name)
+				def platformTest = projectSourceSet.maybeCreate(targetPlatform.name + "Test")
+
+				// Extend main configurations with platform configurations
+				Configuration platformMainCompile = findCompileConfigurationFor(project, platformMain)
+				Configuration platformTestCompile = findCompileConfigurationFor(project, platformTest)
+				platformMainCompile.extendsFrom mainCompile
+				platformTestCompile.extendsFrom testCompile
+				platformTestCompile.extendsFrom platformMainCompile
+
+				def mainLanguageSets = getLanguageSets(main, platformMain)
+				def testLanguageSets = getLanguageSets(test, platformTest)
+
+				// Add compiled binary
+				def compiledHaxe = new DefaultHaxeCompiledBinary(targetPlatform.name, targetPlatform)
+				compiledHaxe.source.addAll(mainLanguageSets)
+				binaryContainer.add(compiledHaxe)
+
+				// Add source bundle binary
+				def sourceHaxe = new DefaultHaxeSourceBinary("source" + targetPlatform.name.capitalize(), targetPlatform)
+				sourceHaxe.source.addAll(mainLanguageSets)
+				binaryContainer.add(sourceHaxe)
+
+				createMUnitTask(project, mainLanguageSets, testLanguageSets, targetPlatform)
+			}
+		})
+
+		// Add a compile task for each compiled binary
 		binaryContainer.withType(HaxeCompiledBinary.class).all(new Action<HaxeCompiledBinary>() {
 			public void execute(final HaxeCompiledBinary binary) {
 				def compileTask = createCompileTask(project, binary)
@@ -110,15 +139,7 @@ class HaxePlugin implements Plugin<Project> {
 			}
 		});
 
-		// Add unit tests
-		targetPlatforms.all(new Action<TargetPlatform>() {
-			@Override
-			void execute(TargetPlatform targetPlatform) {
-				createMUnitTask(project, main, test, targetPlatform)
-			}
-		})
-
-		// Add a a compile task for each binary
+		// Add a source task for each source binary
 		binaryContainer.withType(HaxeSourceBinary.class).all(new Action<HaxeSourceBinary>() {
 			public void execute(final HaxeSourceBinary binary) {
 				def sourceTask = createSourceTask(project, binary)
@@ -172,12 +193,30 @@ class HaxePlugin implements Plugin<Project> {
 		})
 	}
 
+	private static DomainObjectSet<LanguageSourceSet> getLanguageSets(FunctionalSourceSet... sets) {
+		def result = new DefaultDomainObjectSet<>(LanguageSourceSet);
+		sets.each { set ->
+			result.add set.getByName(HAXE_SOURCE_SET_NAME)
+			result.add set.getByName(RESOURCE_SET_NAME)
+			result.add set.getByName(HAXE_RESOURCE_SET_NAME)
+		}
+		return result
+	}
+
+	private static String getCompileConfigurationNameFor(FunctionalSourceSet functionalSourceSet) {
+		return StringUtils.uncapitalize(String.format("%sCompile", getTaskBaseName(functionalSourceSet)))
+	}
+
+	private static findCompileConfigurationFor(Project project, FunctionalSourceSet functionalSourceSet) {
+		return project.configurations.findByName(getCompileConfigurationNameFor(functionalSourceSet))
+	}
+
 	private static HaxeCompile createCompileTask(Project project, HaxeCompiledBinary binary) {
 		def namingScheme = ((BinaryInternal) binary).namingScheme
 
 		def compileTaskName = namingScheme.getTaskName("compile", null)
 		HaxeCompile compileTask = project.task(compileTaskName, type: HaxeCompile) {
-			description = "Compiles the $binary"
+			description = "Compiles $binary"
 		} as HaxeCompile
 
 		compileTask.source(binary.source)
@@ -185,10 +224,11 @@ class HaxePlugin implements Plugin<Project> {
 		compileTask.conventionMapping.targetPlatform = { binary.targetPlatform }
 		compileTask.conventionMapping.embeddedResources = { gatherEmbeddedResources(binary.source) }
 		compileTask.conventionMapping.outputFile = { project.file("${project.buildDir}/compiled-haxe/${namingScheme.outputDirectoryBase}/${binary.name}.${binary.targetPlatform.name}") }
+		project.tasks.getByName(namingScheme.getLifecycleTaskName()).dependsOn compileTask
 		return compileTask
 	}
 
-	private static MUnit createMUnitTask(Project project, FunctionalSourceSet main, FunctionalSourceSet test, TargetPlatform targetPlatform) {
+	private static MUnit createMUnitTask(Project project, DomainObjectSet<LanguageSourceSet> main, DomainObjectSet<LanguageSourceSet> test, TargetPlatform targetPlatform) {
 		def munitTask = project.task("test" + targetPlatform.name.capitalize(), type: MUnit) {
 			description = "Runs ${targetPlatform.name} tests"
 		} as MUnit
@@ -204,7 +244,7 @@ class HaxePlugin implements Plugin<Project> {
 	private static Har createSourceTask(Project project, HaxeSourceBinary binary) {
 		def namingScheme = ((BinaryInternal) binary).namingScheme
 
-		def sourceTaskName = namingScheme.getTaskName(null, null)
+		def sourceTaskName = namingScheme.getTaskName("bundle")
 		Har sourceTask = project.task(sourceTaskName, type: Har) {
 			description = "Bundles the sources of $binary"
 		} as Har
@@ -216,7 +256,7 @@ class HaxePlugin implements Plugin<Project> {
 			duplicatesStrategy = DuplicatesStrategy.EXCLUDE
 			from binary.source.withType(HaxeSourceSet)*.source
 		}
-		sourceTask.into "resources", {
+		sourceTask.into RESOURCE_SET_NAME, {
 			duplicatesStrategy = DuplicatesStrategy.EXCLUDE
 			from binary.source.withType(ResourceSet)*.source
 		}
@@ -224,6 +264,7 @@ class HaxePlugin implements Plugin<Project> {
 			duplicatesStrategy = DuplicatesStrategy.EXCLUDE
 			from binary.source.withType(HaxeResourceSet)*.embeddedResources*.values()
 		}
+		project.tasks.getByName(namingScheme.getLifecycleTaskName()).dependsOn sourceTask
 		return sourceTask
 	}
 
