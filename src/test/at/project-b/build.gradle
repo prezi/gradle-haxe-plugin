@@ -5,17 +5,8 @@ targetPlatforms {
 dependencies {
 	js project(path: ":project-a", configuration: "js")
 	jsTest project(path: ":project-a", configuration: "jsTest")
-//	node project(path: ":project-a", configuration: "node")
 }
 
 compileJs {
 	main "prezi.test.DependentMain"
 }
-
-// task friciNode(type: HaxeCompile) {
-// 	configuration configurations.node
-// 	source "src/main/haxe/common"
-// 	targetPlatform "js"
-// 	classifier "node"
-// 	main "prezi.test.Main"
-// }

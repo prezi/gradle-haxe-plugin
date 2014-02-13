@@ -7,4 +7,5 @@ import org.gradle.api.Named
  */
 interface Flavor extends Named {
 	String getCollapsedName()
+	HaxeCompileParameters getParams()
 }

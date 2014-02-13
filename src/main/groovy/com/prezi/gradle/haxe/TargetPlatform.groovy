@@ -9,4 +9,5 @@ import org.gradle.api.Named
 interface TargetPlatform extends Named {
 	void flavors(Action<? super FlavorContainer> action)
 	FlavorContainer getFlavors()
+	HaxeCompileParameters getParams()
 }

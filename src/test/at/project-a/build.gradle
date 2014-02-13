@@ -1,25 +1,22 @@
 targetPlatforms {
+	main "prezi.test.Main"
+	include "prezi.test"
+
 	js {
 		flavors {
-			node {}
+			node {
+				main "prezi.test.NodeMain"
+			}
 		}
 	}
 	// swf
 }
 
 dependencies {
+	jsNode group: "haxelib3", name: "nodejs", version: "2.0.1"
 	test group: "haxelib3", name: "hamcrest", version: "1.2.1"
 	test group: "haxelib3", name: "mlib", version: "2.0.2"
 	test group: "haxelib3", name: "munit", version: "2.0.2"
-}
-
-task sayHello << {
-	println "!!!!!!!--------Hello-------!!!!!!!"
-}
-
-haxe {
-	include "prezi.test"
-	main "prezi.test.Main"
 }
 
 compileJs {

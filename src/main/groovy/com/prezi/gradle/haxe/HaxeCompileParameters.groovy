@@ -1,16 +1,8 @@
 package com.prezi.gradle.haxe
 
-import org.gradle.api.Project
 import org.gradle.api.internal.IConventionAware
 
 class HaxeCompileParameters {
-
-	private final Project project
-
-	public HaxeCompileParameters(Project project)
-	{
-		this.project = project
-	}
 
 	String main
 	public main(String main) {
@@ -24,21 +16,18 @@ class HaxeCompileParameters {
 	}
 
 	LinkedHashSet<String> includes = []
-
 	public include(String thing)
 	{
 		includes.add(thing)
 	}
 
 	LinkedHashSet<String> excludes = []
-
 	public exclude(String thing)
 	{
 		excludes.add(thing)
 	}
 
 	List<String> flagList = []
-
 	public void flag(String... flag)
 	{
 		flagList.addAll(flag)
@@ -50,7 +39,6 @@ class HaxeCompileParameters {
 	}
 
 	String spaghetti
-
 	public spaghetti(String output) {
 		if (!(output in ["module", "application"])) {
 			throw new IllegalArgumentException("spaghetti argument must be either 'module' or 'application'")
@@ -58,7 +46,7 @@ class HaxeCompileParameters {
 		this.spaghetti = output
 	}
 
-	protected static void setConvention(IConventionAware task, HaxeCompileParameters... params)
+	static void setConvention(IConventionAware task, Iterable<HaxeCompileParameters> params)
 	{
 		task.conventionMapping.main = { params*.main.find { it } }
 		task.conventionMapping.macros = { new ArrayList<>(params*.macros.flatten()) }

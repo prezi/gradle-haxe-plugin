@@ -156,21 +156,6 @@ class HaxePlugin implements Plugin<Project> {
 			}
 		});
 
-		// Map default values
-		def haxeExtension = project.extensions.create "haxe", HaxeExtension, project
-		project.tasks.withType(HaxeCompile).all(new Action<HaxeCompile>() {
-			@Override
-			void execute(HaxeCompile haxeCompile) {
-				haxeExtension.mapTo(haxeCompile)
-			}
-		})
-		project.tasks.withType(MUnit).all(new Action<MUnit>() {
-			@Override
-			void execute(MUnit munit) {
-				haxeExtension.mapTo(munit)
-			}
-		})
-
 		// Add compile all task
 		def compileTask = project.tasks.findByName(COMPILE_TASK_NAME)
 		if (compileTask == null) {
@@ -200,10 +185,6 @@ class HaxePlugin implements Plugin<Project> {
 				testTask.dependsOn task
 			}
 		})
-
-		project.afterEvaluate {
-			println "Platforms: ${targetPlatforms}"
-		}
 	}
 
 	private static void createBinariesAndTasks(
@@ -221,7 +202,7 @@ class HaxePlugin implements Plugin<Project> {
 		sourceHaxe.source.addAll(mainLanguageSets)
 		binaryContainer.add(sourceHaxe)
 
-		createMUnitTask(project, name, targetPlatform, mainLanguageSets, testLanguageSets)
+		createMUnitTask(project, name, targetPlatform, flavor, mainLanguageSets, testLanguageSets)
 	}
 
 	private static DomainObjectSet<LanguageSourceSet> getLanguageSets(FunctionalSourceSet... sets) {
@@ -256,13 +237,16 @@ class HaxePlugin implements Plugin<Project> {
 		compileTask.conventionMapping.targetPlatform = { binary.targetPlatform }
 		compileTask.conventionMapping.embeddedResources = { gatherEmbeddedResources(binary.source) }
 		compileTask.conventionMapping.outputFile = { project.file("${project.buildDir}/compiled-haxe/${namingScheme.outputDirectoryBase}/${binary.name}.${binary.targetPlatform.name}") }
+
+		HaxeCompileParameters.setConvention(compileTask, getParams(project, binary.targetPlatform, binary.flavor))
+
 		project.tasks.getByName(namingScheme.getLifecycleTaskName()).dependsOn compileTask
 		// Let' depend on the input configurations
 		compileTask.dependsOn binary.source.withType(HaxeSourceSet)*.compileClassPath
 		return compileTask
 	}
 
-	private static MUnit createMUnitTask(Project project, String name, TargetPlatform targetPlatform, DomainObjectSet<LanguageSourceSet> main, DomainObjectSet<LanguageSourceSet> test) {
+	private static MUnit createMUnitTask(Project project, String name, TargetPlatform targetPlatform, Flavor flavor, DomainObjectSet<LanguageSourceSet> main, DomainObjectSet<LanguageSourceSet> test) {
 		def munitTask = project.task("test" + name.capitalize(), type: MUnit) {
 			description = "Runs ${targetPlatform.name} tests"
 		} as MUnit
@@ -272,6 +256,9 @@ class HaxePlugin implements Plugin<Project> {
 		munitTask.conventionMapping.embeddedResources = { gatherEmbeddedResources(main.withType(HaxeResourceSet)) }
 		munitTask.conventionMapping.embeddedTestResources = { gatherEmbeddedResources(test.withType(HaxeResourceSet)) }
 		munitTask.conventionMapping.workingDirectory = { project.file("${project.buildDir}/munit-work/" + targetPlatform.name) }
+
+		HaxeCompileParameters.setConvention(munitTask, getParams(project, targetPlatform, flavor))
+
 		// Let' depend on the input configurations (both from main and test)
 		munitTask.dependsOn main.withType(HaxeSourceSet)*.compileClassPath
 		munitTask.dependsOn test.withType(HaxeSourceSet)*.compileClassPath
@@ -303,6 +290,13 @@ class HaxePlugin implements Plugin<Project> {
 		}
 		project.tasks.getByName(namingScheme.getLifecycleTaskName()).dependsOn sourceTask
 		return sourceTask
+	}
+
+	private static Set<HaxeCompileParameters> getParams(Project project, TargetPlatform targetPlatform, Flavor flavor) {
+		def rootParams = project.getExtensions().getByType(TargetPlatformContainer).params
+		def platformParams = targetPlatform.params
+		def flavorParams = flavor?.params
+		return [ rootParams, platformParams, flavorParams ] - null
 	}
 
 	public static LinkedHashMap<String, File> gatherEmbeddedResources(DomainObjectCollection<LanguageSourceSet> source) {

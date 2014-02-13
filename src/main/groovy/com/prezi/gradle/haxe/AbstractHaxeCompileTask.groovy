@@ -15,7 +15,7 @@ abstract class AbstractHaxeCompileTask extends ConventionTask {
 	protected static final notationParser = SourceSetNotationParser.parser()
 
 	@Delegate(deprecated = true)
-	protected final HaxeCompileParameters params = new HaxeCompileParameters(project)
+	protected final HaxeCompileParameters params = new HaxeCompileParameters()
 
 	final DomainObjectSet<LanguageSourceSet> sources = new DefaultDomainObjectSet<>(LanguageSourceSet)
 	LinkedHashMap<String, File> embeddedResources = [:]

@@ -5,8 +5,12 @@ import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.internal.AbstractNamedDomainObjectContainer;
 import org.gradle.internal.reflect.Instantiator;
 
-public class DefaultTargetPlatformContainer extends AbstractNamedDomainObjectContainer<TargetPlatform> implements TargetPlatformContainer {
-	public DefaultTargetPlatformContainer(Instantiator instantiator)
+/*
+ * Required because if this was Groovy, it would fail to compile with an error
+ * about incompatible return types for {@link #withType(Class)}.
+ */
+abstract public class BaseTargetPlatformContainer extends AbstractNamedDomainObjectContainer<TargetPlatform> implements TargetPlatformContainer {
+	public BaseTargetPlatformContainer(Instantiator instantiator)
 	{
 		super(TargetPlatform.class, instantiator);
 	}

@@ -6,6 +6,8 @@ package com.prezi.gradle.haxe
 class DefaultFlavor implements Flavor {
 	private final String name
 	private final String collapsedName
+	@Delegate(deprecated = true)
+	private final HaxeCompileParameters params
 
 	public DefaultFlavor(String name) {
 		this(name, name)
@@ -14,6 +16,7 @@ class DefaultFlavor implements Flavor {
 	DefaultFlavor(String name, String collapsedName) {
 		this.name = name
 		this.collapsedName = collapsedName
+		this.params = new HaxeCompileParameters()
 	}
 
 	@Override
@@ -24,6 +27,11 @@ class DefaultFlavor implements Flavor {
 	@Override
 	String getCollapsedName() {
 		return collapsedName
+	}
+
+	@Override
+	HaxeCompileParameters getParams() {
+		return params
 	}
 
 	@Override
