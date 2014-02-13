@@ -1,6 +1,5 @@
 package com.prezi.gradle.haxe
 
-import com.prezi.gradle.PreziPlugin
 import org.gradle.api.Action
 import org.gradle.api.DomainObjectCollection
 import org.gradle.api.DomainObjectSet
@@ -12,12 +11,14 @@ import org.gradle.api.internal.DefaultDomainObjectSet
 import org.gradle.api.internal.file.DefaultSourceDirectorySet
 import org.gradle.api.internal.file.FileResolver
 import org.gradle.api.internal.tasks.TaskResolver
+import org.gradle.api.plugins.BasePlugin
 import org.gradle.internal.reflect.Instantiator
 import org.gradle.language.base.BinaryContainer
 import org.gradle.language.base.FunctionalSourceSet
 import org.gradle.language.base.LanguageSourceSet
 import org.gradle.language.base.ProjectSourceSet
 import org.gradle.language.base.internal.BinaryInternal
+import org.gradle.language.base.plugins.LanguageBasePlugin
 import org.gradle.language.jvm.ResourceSet
 import org.gradle.language.jvm.internal.DefaultResourceSet
 
@@ -45,7 +46,8 @@ class HaxePlugin implements Plugin<Project> {
 
 	@Override
 	void apply(Project project) {
-		project.getPlugins().apply(PreziPlugin.class)
+		project.getPlugins().apply(BasePlugin.class)
+		project.getPlugins().apply(LanguageBasePlugin.class)
 
 		def binaryContainer = project.getExtensions().getByType(BinaryContainer.class)
 
