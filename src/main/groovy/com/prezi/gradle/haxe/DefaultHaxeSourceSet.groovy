@@ -15,17 +15,10 @@ import org.gradle.language.base.internal.AbstractLanguageSourceSet
 class DefaultHaxeSourceSet extends AbstractLanguageSourceSet implements HaxeSourceSet {
 
 	private final Configuration compileClassPath
-	private final FileCollection output
 
 	public DefaultHaxeSourceSet(String name, FunctionalSourceSet parent, Configuration compileClassPath, FileResolver fileResolver, TaskResolver taskResolver) {
 		super(name, parent, "Haxe source", new DefaultSourceDirectorySet("source", fileResolver))
 		this.compileClassPath = compileClassPath
-		this.output = new DefaultConfigurableFileCollection("${name} output", fileResolver, taskResolver)
-	}
-
-	@Override
-	FileCollection getOutput() {
-		return output
 	}
 
 	@Override

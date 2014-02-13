@@ -9,6 +9,4 @@ import org.gradle.language.base.LanguageSourceSet
  */
 interface HaxeSourceSet extends LanguageSourceSet {
 	Configuration getCompileClassPath()
-
-	FileCollection getOutput()
 }
