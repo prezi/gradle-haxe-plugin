@@ -30,6 +30,11 @@ abstract class AbstractHaxeBinary extends AbstractBuildableModelElement implemen
 	}
 
 	@Override
+	String getDisplayName() {
+		return namingScheme.description
+	}
+
+	@Override
 	DomainObjectCollection<LanguageSourceSet> getSource() {
 		return source
 	}
