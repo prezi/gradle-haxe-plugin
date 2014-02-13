@@ -1,5 +1,10 @@
 targetPlatforms {
-	js
+	js {
+		flavors {
+			node {}
+		}
+	}
+	// swf
 }
 
 dependencies {
@@ -21,17 +26,8 @@ compileJs {
 	spaghetti "module"
 }
 
-// task "lajos-node"(type: HaxeCompile) {
-// 	configuration configurations.node
-// 	source "src/main/haxe/common"
-// 	targetPlatform "js"
-// 	classifier "node"
-// }
-
-// task tibor(type: HaxeCompile) {
-// 	configuration configurations.runtime
-// 	baseName "tibor"
-// 	source "src/main/haxe/common"
-// 	targetPlatform "swf"
-// 	outputFile "${buildDir}/compiled-haxe/tibor.swf"
-// }
+compileJsNode {
+	doFirst {
+		println "Running node compile"
+	}
+}

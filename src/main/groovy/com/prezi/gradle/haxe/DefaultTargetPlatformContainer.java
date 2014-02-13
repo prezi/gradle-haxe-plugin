@@ -1,5 +1,7 @@
 package com.prezi.gradle.haxe;
 
+import org.gradle.api.Action;
+import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.internal.AbstractNamedDomainObjectContainer;
 import org.gradle.internal.reflect.Instantiator;
 
@@ -12,7 +14,12 @@ public class DefaultTargetPlatformContainer extends AbstractNamedDomainObjectCon
 	@Override
 	protected TargetPlatform doCreate(String name)
 	{
-		return getInstantiator().newInstance(DefaultTargetPlatform.class, name);
+		return getInstantiator().newInstance(DefaultTargetPlatform.class, name, getInstantiator());
 	}
 
+	@Override
+	public TargetPlatform create(String name, Action<? super TargetPlatform> configureAction) throws InvalidUserDataException
+	{
+		return super.create(name, configureAction);
+	}
 }

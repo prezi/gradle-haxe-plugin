@@ -4,7 +4,7 @@ package com.prezi.gradle.haxe
  * Created by lptr on 09/02/14.
  */
 class DefaultHaxeSourceBinary extends AbstractHaxeBinary implements HaxeSourceBinary {
-	public DefaultHaxeSourceBinary(String parentName, TargetPlatform targetPlatform) {
-		super(parentName, targetPlatform)
+	public DefaultHaxeSourceBinary(String parentName, TargetPlatform targetPlatform, Flavor flavor) {
+		super(parentName, targetPlatform, flavor)
 	}
 }

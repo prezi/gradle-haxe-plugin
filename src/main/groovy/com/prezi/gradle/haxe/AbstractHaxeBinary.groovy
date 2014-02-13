@@ -15,11 +15,13 @@ abstract class AbstractHaxeBinary extends AbstractBuildableModelElement implemen
 	private final String name
 	private final BinaryNamingScheme namingScheme
 	private final TargetPlatform targetPlatform
+	private final Flavor flavor
 
-	protected AbstractHaxeBinary(String parentName, TargetPlatform targetPlatform) {
+	protected AbstractHaxeBinary(String parentName, TargetPlatform targetPlatform, Flavor flavor) {
 		this.namingScheme = new HaxeBinaryNamingScheme(parentName)
 		this.name = namingScheme.getLifecycleTaskName()
 		this.targetPlatform = targetPlatform
+		this.flavor = flavor
 	}
 
 	@Override
@@ -35,6 +37,11 @@ abstract class AbstractHaxeBinary extends AbstractBuildableModelElement implemen
 	@Override
 	TargetPlatform getTargetPlatform() {
 		return targetPlatform
+	}
+
+	@Override
+	Flavor getFlavor() {
+		return flavor
 	}
 
 	@Override

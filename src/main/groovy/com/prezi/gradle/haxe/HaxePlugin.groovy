@@ -49,13 +49,6 @@ class HaxePlugin implements Plugin<Project> {
 
 		def binaryContainer = project.getExtensions().getByType(BinaryContainer.class)
 
-		// Add "targetPlatforms"
-		def targetPlatforms = project.getExtensions().create(
-				"targetPlatforms",
-				DefaultTargetPlatformContainer.class,
-				instantiator
-		);
-
 		def projectSourceSet = project.getExtensions().getByType(ProjectSourceSet.class)
 
 		// Add functional source sets for main code
@@ -90,6 +83,13 @@ class HaxePlugin implements Plugin<Project> {
 			}
 		})
 
+		// Add "targetPlatforms"
+		def targetPlatforms = project.getExtensions().create(
+				"targetPlatforms",
+				DefaultTargetPlatformContainer.class,
+				instantiator
+		);
+
 		// For each target platform add functional source sets
 		targetPlatforms.all(new Action<TargetPlatform>() {
 			@Override
@@ -107,17 +107,29 @@ class HaxePlugin implements Plugin<Project> {
 				def mainLanguageSets = getLanguageSets(main, platformMain)
 				def testLanguageSets = getLanguageSets(test, platformTest)
 
-				// Add compiled binary
-				def compiledHaxe = new DefaultHaxeCompiledBinary(targetPlatform.name, targetPlatform)
-				compiledHaxe.source.addAll(mainLanguageSets)
-				binaryContainer.add(compiledHaxe)
+				createBinariesAndTasks(project, targetPlatform.name, targetPlatform, null, mainLanguageSets, testLanguageSets)
 
-				// Add source bundle binary
-				def sourceHaxe = new DefaultHaxeSourceBinary("source" + targetPlatform.name.capitalize(), targetPlatform)
-				sourceHaxe.source.addAll(mainLanguageSets)
-				binaryContainer.add(sourceHaxe)
+				// Add some flavor
+				targetPlatform.flavors.all(new Action<Flavor>() {
+					@Override
+					void execute(Flavor flavor) {
+						def flavorName = targetPlatform.name + flavor.name.capitalize()
 
-				createMUnitTask(project, mainLanguageSets, testLanguageSets, targetPlatform)
+						Configuration flavorMainCompile = maybeCreateCompileConfigurationFor(project, flavorName)
+						Configuration flavorTestCompile = maybeCreateCompileConfigurationFor(project, flavorName + "Test")
+						flavorMainCompile.extendsFrom platformMainCompile
+						flavorTestCompile.extendsFrom platformTestCompile
+						flavorTestCompile.extendsFrom flavorMainCompile
+
+						def flavorMain = projectSourceSet.maybeCreate(flavorName)
+						def flavorTest = projectSourceSet.maybeCreate(flavorName + "Test")
+
+						def flavorMainLanguageSets = getLanguageSets(main, platformMain, flavorMain)
+						def flavorTestLanguageSets = getLanguageSets(test, platformTest, flavorTest)
+
+						createBinariesAndTasks(project, flavorName, targetPlatform, flavor, flavorMainLanguageSets, flavorTestLanguageSets)
+					}
+				})
 			}
 		})
 
@@ -137,6 +149,7 @@ class HaxePlugin implements Plugin<Project> {
 
 				binary.source.withType(HaxeSourceSet)*.compileClassPath.each { Configuration configuration ->
 					project.artifacts.add(configuration.name, sourceTask) {
+						name = project.name + "-" + binary.name
 						type = "har"
 					}
 				}
@@ -187,6 +200,28 @@ class HaxePlugin implements Plugin<Project> {
 				testTask.dependsOn task
 			}
 		})
+
+		project.afterEvaluate {
+			println "Platforms: ${targetPlatforms}"
+		}
+	}
+
+	private static void createBinariesAndTasks(
+			Project project, String name, TargetPlatform targetPlatform, Flavor flavor,
+			DomainObjectSet<LanguageSourceSet> mainLanguageSets, DomainObjectSet<LanguageSourceSet> testLanguageSets) {
+		def binaryContainer = project.getExtensions().getByType(BinaryContainer.class)
+
+		// Add compiled binary
+		def compiledHaxe = new DefaultHaxeCompiledBinary(name, targetPlatform, flavor)
+		compiledHaxe.source.addAll(mainLanguageSets)
+		binaryContainer.add(compiledHaxe)
+
+		// Add source bundle binary
+		def sourceHaxe = new DefaultHaxeSourceBinary("source" + name.capitalize(), targetPlatform, flavor)
+		sourceHaxe.source.addAll(mainLanguageSets)
+		binaryContainer.add(sourceHaxe)
+
+		createMUnitTask(project, name, targetPlatform, mainLanguageSets, testLanguageSets)
 	}
 
 	private static DomainObjectSet<LanguageSourceSet> getLanguageSets(FunctionalSourceSet... sets) {
@@ -227,8 +262,8 @@ class HaxePlugin implements Plugin<Project> {
 		return compileTask
 	}
 
-	private static MUnit createMUnitTask(Project project, DomainObjectSet<LanguageSourceSet> main, DomainObjectSet<LanguageSourceSet> test, TargetPlatform targetPlatform) {
-		def munitTask = project.task("test" + targetPlatform.name.capitalize(), type: MUnit) {
+	private static MUnit createMUnitTask(Project project, String name, TargetPlatform targetPlatform, DomainObjectSet<LanguageSourceSet> main, DomainObjectSet<LanguageSourceSet> test) {
+		def munitTask = project.task("test" + name.capitalize(), type: MUnit) {
 			description = "Runs ${targetPlatform.name} tests"
 		} as MUnit
 		munitTask.source(main.withType(HaxeSourceSet) + main.withType(ResourceSet))
