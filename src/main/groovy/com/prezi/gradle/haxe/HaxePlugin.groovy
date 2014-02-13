@@ -245,6 +245,7 @@ class HaxePlugin implements Plugin<Project> {
 		project.tasks.getByName(namingScheme.getLifecycleTaskName()).dependsOn compileTask
 		// Let' depend on the input configurations
 		compileTask.dependsOn binary.source.withType(HaxeSourceSet)*.compileClassPath
+		compileTask.dependsOn binary.source
 		return compileTask
 	}
 
@@ -264,6 +265,7 @@ class HaxePlugin implements Plugin<Project> {
 		// Let' depend on the input configurations (both from main and test)
 		munitTask.dependsOn main.withType(HaxeSourceSet)*.compileClassPath
 		munitTask.dependsOn test.withType(HaxeSourceSet)*.compileClassPath
+		munitTask.dependsOn main, test
 		return munitTask
 	}
 
@@ -290,6 +292,7 @@ class HaxePlugin implements Plugin<Project> {
 			duplicatesStrategy = DuplicatesStrategy.EXCLUDE
 			from binary.source.withType(HaxeResourceSet)*.embeddedResources*.values()
 		}
+		sourceTask.dependsOn binary.source
 		project.tasks.getByName(namingScheme.getLifecycleTaskName()).dependsOn sourceTask
 		return sourceTask
 	}
