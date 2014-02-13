@@ -39,8 +39,9 @@ dependencies {
 }
 
 task run(type: Exec) {
+	dependsOn install
 	workingDir "src/test/at"
-	commandLine = ["gradle", "clean", "test", "install", "-Pmunit.kill-browser", "--info", "--stacktrace"]
+	commandLine = ["gradle", "clean", "compile", "testJs", "uploadArchives", "-Pmunit.kill-browser", "--info", "--stacktrace"]
 }
 
 uploadArchives {
