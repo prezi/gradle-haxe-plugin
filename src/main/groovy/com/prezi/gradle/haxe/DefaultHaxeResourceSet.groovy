@@ -35,6 +35,9 @@ class DefaultHaxeResourceSet extends DefaultResourceSet implements HaxeResourceS
 	}
 
 	void embedInternal(String name, File file) {
+		if (!file.exists()) {
+			throw new IllegalArgumentException("File not found: " + file)
+		}
 		if (!file.file)
 		{
 			throw new IllegalArgumentException("Not a file: " + file)
@@ -45,9 +48,11 @@ class DefaultHaxeResourceSet extends DefaultResourceSet implements HaxeResourceS
 	@Override
 	void embedAll(Object directory) {
 		def resolvedDir = fileResolver.resolve(directory)
-		if (!resolvedDir.directory)
-		{
-			throw new IllegalArgumentException("embedAll requires a directory: " + directory)
+		if (!resolvedDir.exists()) {
+			throw new IllegalArgumentException("Directory to embed does not exist: " + directory)
+		}
+		if (!resolvedDir.directory) {
+			throw new IllegalArgumentException("Requires a directory to embed all files from, but it was not: " + directory)
 		}
 		resolvedDir.eachFile {
 			if (it.file) {
