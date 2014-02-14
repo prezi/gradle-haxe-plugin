@@ -136,15 +136,15 @@ class HaxePlugin implements Plugin<Project> {
 		})
 
 		// Add a compile task for each compiled binary
-		binaryContainer.withType(HaxeCompiledBinary.class).all(new Action<HaxeCompiledBinary>() {
+		binaryContainer.withType(HaxeCompiledBinary).all(new Action<HaxeCompiledBinary>() {
 			public void execute(final HaxeCompiledBinary binary) {
 				def compileTask = createCompileTask(project, binary)
 				binary.builtBy(compileTask)
 			}
-		});
+		})
 
 		// Add a source task for each source binary
-		binaryContainer.withType(HaxeSourceBinary.class).all(new Action<HaxeSourceBinary>() {
+		binaryContainer.withType(HaxeSourceBinary).all(new Action<HaxeSourceBinary>() {
 			public void execute(final HaxeSourceBinary binary) {
 				def sourceTask = createSourceTask(project, binary)
 				binary.builtBy(sourceTask)
@@ -156,7 +156,7 @@ class HaxePlugin implements Plugin<Project> {
 					}
 				}
 			}
-		});
+		})
 
 		// Add compile all task
 		def compileTask = project.tasks.findByName(COMPILE_TASK_NAME)
