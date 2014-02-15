@@ -1,5 +1,6 @@
 package com.prezi.gradle.haxe
 
+import com.prezi.spaghetti.gradle.SpaghettiPlugin
 import org.gradle.api.Action
 import org.gradle.api.DomainObjectCollection
 import org.gradle.api.DomainObjectSet
@@ -196,7 +197,7 @@ class HaxePlugin implements Plugin<Project> {
 		def binaryContainer = project.getExtensions().getByType(BinaryContainer.class)
 
 		// Add compiled binary
-		def compiledHaxe = new DefaultHaxeCompiledBinary(name, targetPlatform, flavor)
+		def compiledHaxe = createHaxeCompiledBinary(project, name, targetPlatform, flavor)
 		compiledHaxe.source.addAll(mainLanguageSets)
 		binaryContainer.add(compiledHaxe)
 
@@ -206,6 +207,21 @@ class HaxePlugin implements Plugin<Project> {
 		binaryContainer.add(sourceHaxe)
 
 		createMUnitTask(project, name, targetPlatform, flavor, mainLanguageSets, testLanguageSets)
+	}
+
+	// TODO Move this to a HaxeSpaghettiPlugin perhaps
+	private	static HaxeCompiledBinary createHaxeCompiledBinary(Project project, String name, TargetPlatform targetPlatform, Flavor flavor) {
+		HaxeCompiledBinary compiledHaxe
+		if (isSpaghettiEnabled(project, targetPlatform)) {
+			compiledHaxe = new DefaultHaxeCompiledSpaghettiCompatibleJavaScriptBinary(name, targetPlatform, flavor)
+		} else {
+			compiledHaxe = new DefaultHaxeCompiledBinary(name, targetPlatform, flavor)
+		}
+		return compiledHaxe
+	}
+
+	private static boolean isSpaghettiEnabled(Project project, TargetPlatform targetPlatform) {
+		return targetPlatform.name == "js" && project.plugins.findPlugin(SpaghettiPlugin)
 	}
 
 	private static DomainObjectSet<LanguageSourceSet> getLanguageSets(FunctionalSourceSet... sets) {
