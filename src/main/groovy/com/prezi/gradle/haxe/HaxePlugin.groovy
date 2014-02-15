@@ -1,5 +1,6 @@
 package com.prezi.gradle.haxe
 
+import com.prezi.spaghetti.gradle.SpaghettiGeneratedSourceSet
 import com.prezi.spaghetti.gradle.SpaghettiPlugin
 import org.gradle.api.Action
 import org.gradle.api.DomainObjectCollection
@@ -229,6 +230,9 @@ class HaxePlugin implements Plugin<Project> {
 			result.add set.getByName(HAXE_SOURCE_SET_NAME)
 			result.add set.getByName(RESOURCE_SET_NAME)
 			result.add set.getByName(HAXE_RESOURCE_SET_NAME)
+			// For JS target add Spaghetti's generated headers to platform source
+			// if (targetPlatform.name == "js" && project.plugins.hasPlugin(SpaghettiPlugin)) {
+			result.addAll set.withType(SpaghettiGeneratedSourceSet)
 		}
 		return result
 	}
