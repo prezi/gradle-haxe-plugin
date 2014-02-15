@@ -40,6 +40,6 @@ class DefaultTargetPlatform implements TargetPlatform {
 
 	@Override
 	String toString() {
-		return "platform: ${name} ${flavors}"
+		return "platform: ${name} ${flavors*.name}"
 	}
 }
