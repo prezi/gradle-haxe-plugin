@@ -11,7 +11,6 @@ import org.gradle.api.file.DuplicatesStrategy
 import org.gradle.api.internal.DefaultDomainObjectSet
 import org.gradle.api.internal.file.DefaultSourceDirectorySet
 import org.gradle.api.internal.file.FileResolver
-import org.gradle.api.internal.tasks.TaskResolver
 import org.gradle.api.plugins.BasePlugin
 import org.gradle.internal.reflect.Instantiator
 import org.gradle.language.base.BinaryContainer
@@ -68,7 +67,7 @@ class HaxePlugin implements Plugin<Project> {
 				// Inspired by JavaBasePlugin
 				// Add Haxe source set for "src/<name>/haxe"
 				def compileConfiguration = project.configurations.getByName(functionalSourceSet.name)
-				def haxeSourceSet = instantiator.newInstance(DefaultHaxeSourceSet, HAXE_SOURCE_SET_NAME, functionalSourceSet, compileConfiguration, fileResolver, (TaskResolver) project.tasks)
+				def haxeSourceSet = instantiator.newInstance(DefaultHaxeSourceSet, HAXE_SOURCE_SET_NAME, functionalSourceSet, compileConfiguration, fileResolver)
 				haxeSourceSet.source.srcDir(String.format("src/%s/haxe", functionalSourceSet.name))
 				functionalSourceSet.add(haxeSourceSet)
 
@@ -221,7 +220,7 @@ class HaxePlugin implements Plugin<Project> {
 	}
 
 	private static boolean isSpaghettiEnabled(Project project, TargetPlatform targetPlatform) {
-		return targetPlatform.name == "js" && project.plugins.findPlugin(SpaghettiPlugin)
+		return targetPlatform.name == "js" && project.plugins.hasPlugin(SpaghettiPlugin)
 	}
 
 	private static DomainObjectSet<LanguageSourceSet> getLanguageSets(FunctionalSourceSet... sets) {

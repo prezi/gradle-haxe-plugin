@@ -58,11 +58,6 @@ class HaxeBinaryNamingScheme implements BinaryNamingScheme {
 		builder.append(Character.toLowerCase(word.charAt(0))).append(word.substring(1));
 	}
 
-
-	private static String nullToEmpty(String input) {
-		return input == null ? "" : input;
-	}
-
 	public String getOutputDirectoryBase() {
 		return parentName
 	}
