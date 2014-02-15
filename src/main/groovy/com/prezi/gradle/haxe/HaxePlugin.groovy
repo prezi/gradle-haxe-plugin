@@ -139,6 +139,7 @@ class HaxePlugin implements Plugin<Project> {
 		binaryContainer.withType(HaxeCompiledBinary).all(new Action<HaxeCompiledBinary>() {
 			public void execute(final HaxeCompiledBinary binary) {
 				def compileTask = createCompileTask(project, binary)
+				binary.setCompileTask(compileTask)
 				binary.builtBy(compileTask)
 			}
 		})
