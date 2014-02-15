@@ -25,6 +25,6 @@ class DefaultFlavor implements Flavor {
 
 	@Override
 	String toString() {
-		return name
+		return "flavor: ${name}"
 	}
 }
