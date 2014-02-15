@@ -33,7 +33,7 @@ repositories {
 dependencies {
 	compile gradleApi()
 	compile localGroovy()
-	compile "com.prezi.spaghetti:gradle-spaghetti-plugin:1.2-SNAPSHOT"
+	compile "com.prezi.spaghetti:gradle-spaghetti-plugin:1.3-SNAPSHOT"
 	compile "org.webjars:requirejs:2.1.8"
 }
 
