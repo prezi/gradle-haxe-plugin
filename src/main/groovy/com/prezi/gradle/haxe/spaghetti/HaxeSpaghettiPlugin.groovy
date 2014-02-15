@@ -3,7 +3,6 @@ package com.prezi.gradle.haxe.spaghetti
 import com.prezi.gradle.haxe.HaxeCompiledBinary
 import com.prezi.gradle.haxe.HaxePlugin
 import com.prezi.gradle.haxe.HaxeSourceBinary
-import com.prezi.gradle.haxe.TargetPlatformContainer
 import com.prezi.spaghetti.gradle.SpaghettiBasePlugin
 import com.prezi.spaghetti.gradle.SpaghettiExtension
 import com.prezi.spaghetti.gradle.SpaghettiGeneratedSourceSet
