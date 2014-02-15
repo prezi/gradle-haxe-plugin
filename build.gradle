@@ -27,7 +27,7 @@ targetCompatibility = "1.6"
 
 repositories {
 	mavenLocal()
-	maven downloadRepo("plugins-snapshot")
+	maven preziDownloadRepo("plugins-snapshot")
 }
 
 dependencies {
