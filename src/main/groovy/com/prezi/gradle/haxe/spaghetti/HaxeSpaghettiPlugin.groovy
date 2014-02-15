@@ -46,7 +46,7 @@ class HaxeSpaghettiPlugin implements Plugin<Project> {
 		def projectSourceSet = project.extensions.getByType(ProjectSourceSet)
 
 		// We'll be needing a "js" platform
-		def targetPlatforms = project.extensions.getByType(TargetPlatformContainer)
+		def targetPlatforms = HaxePlugin.getExtension(project).targetPlatforms
 		targetPlatforms.maybeCreate("js")
 
 		// Tests should always depend on modules

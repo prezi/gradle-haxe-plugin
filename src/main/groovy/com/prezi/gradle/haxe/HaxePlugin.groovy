@@ -92,12 +92,13 @@ class HaxePlugin implements Plugin<Project> {
 			}
 		})
 
-		// Add "targetPlatforms"
-		def targetPlatforms = project.getExtensions().create(
-				"targetPlatforms",
-				DefaultTargetPlatformContainer.class,
+		// Add "haxe" extension
+		def extension = project.getExtensions().create(
+				"haxe",
+				HaxeExtension.class,
 				instantiator
 		);
+		def targetPlatforms = extension.targetPlatforms
 
 		// For each target platform add functional source sets
 		targetPlatforms.all(new Action<TargetPlatform>() {
@@ -319,7 +320,7 @@ class HaxePlugin implements Plugin<Project> {
 	}
 
 	private static Set<HaxeCompileParameters> getParams(Project project, TargetPlatform targetPlatform, Flavor flavor) {
-		def rootParams = project.getExtensions().getByType(TargetPlatformContainer).params
+		def rootParams = getExtension(project).params
 		def platformParams = targetPlatform.params
 		def flavorParams = flavor?.params
 		return [ rootParams, platformParams, flavorParams ] - null
@@ -327,5 +328,9 @@ class HaxePlugin implements Plugin<Project> {
 
 	public static LinkedHashMap<String, File> gatherEmbeddedResources(DomainObjectCollection<LanguageSourceSet> source) {
 		return source.withType(HaxeResourceSet)*.embeddedResources.flatten().inject([:]) { acc, val -> acc + val }
+	}
+
+	public static getExtension(Project project) {
+		return project.extensions.getByType(HaxeExtension)
 	}
 }
