@@ -11,6 +11,7 @@ class HaxeCompile extends AbstractHaxeCompileTask {
 	void compile()
 	{
 		def output = getAndCreateOutput()
+		def sources = getSourceSets()
 		def builder = new HaxeCommandBuilder(project, "haxe")
 				.withMain(getMain())
 				.withTarget(getTargetPlatform().name, output)

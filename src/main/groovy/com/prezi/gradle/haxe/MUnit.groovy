@@ -1,5 +1,6 @@
 package com.prezi.gradle.haxe
 
+import com.prezi.gradle.haxe.spaghetti.HaxeSpaghettiPlugin
 import com.prezi.spaghetti.gradle.ModuleExtractor
 import org.gradle.api.DomainObjectSet
 import org.gradle.api.internal.DefaultDomainObjectSet
@@ -43,6 +44,7 @@ class MUnit extends AbstractHaxeCompileTask {
 		def output = getOutput()
 		project.mkdir(output.parentFile)
 
+		def sources = getSourceSets()
 		def builder = new HaxeCommandBuilder(project)
 				.withSources([testSourcesDirectory])
 				.withSources(getAllSourceDirectories(sources))
@@ -70,7 +72,7 @@ class MUnit extends AbstractHaxeCompileTask {
 		}
 
 		if (getTargetPlatform().name == "js") {
-			def bundleFile = project.getPlugins().getPlugin(HaxePlugin).getSpaghettiBundleTool(project)
+			def bundleFile = HaxeSpaghettiPlugin.getSpaghettiBundleTool(project)
 			haxeCmd += "\n-cmd haxe -cp ${bundleFile.parentFile} --run SpaghettiBundler module ${output}"
 			[ sources, testSources ].each {
 				it.withType(HaxeSourceSet).each { haxeSourceSet ->

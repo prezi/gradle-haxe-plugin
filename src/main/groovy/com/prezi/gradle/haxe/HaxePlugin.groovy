@@ -1,7 +1,5 @@
 package com.prezi.gradle.haxe
 
-import com.prezi.spaghetti.gradle.SpaghettiGeneratedSourceSet
-import com.prezi.spaghetti.gradle.SpaghettiPlugin
 import org.gradle.api.Action
 import org.gradle.api.DomainObjectCollection
 import org.gradle.api.DomainObjectSet
@@ -22,10 +20,13 @@ import org.gradle.language.base.internal.BinaryInternal
 import org.gradle.language.base.plugins.LanguageBasePlugin
 import org.gradle.language.jvm.ResourceSet
 import org.gradle.language.jvm.internal.DefaultResourceSet
+import org.slf4j.LoggerFactory
 
 import javax.inject.Inject
 
 class HaxePlugin implements Plugin<Project> {
+
+	private static final logger = LoggerFactory.getLogger(HaxePlugin)
 
 	public static final String COMPILE_TASK_NAME = "compile"
 	public static final String COMPILE_TASKS_GROUP = "compile"
@@ -57,9 +58,11 @@ class HaxePlugin implements Plugin<Project> {
 		// Add functional source sets for main code
 		def main = projectSourceSet.maybeCreate("main")
 		def test = projectSourceSet.maybeCreate("test")
+		logger.debug("Created ${main} and ${test}")
 		Configuration mainCompile = maybeCreateCompileConfigurationFor(project, "main")
 		Configuration testCompile = maybeCreateCompileConfigurationFor(project, "test")
 		testCompile.extendsFrom mainCompile
+		logger.debug("Created ${mainCompile} and ${testCompile}")
 
 		// For each source set create a configuration and language source sets
 		projectSourceSet.all(new Action<FunctionalSourceSet>() {
@@ -71,6 +74,7 @@ class HaxePlugin implements Plugin<Project> {
 				def haxeSourceSet = instantiator.newInstance(DefaultHaxeSourceSet, HAXE_SOURCE_SET_NAME, functionalSourceSet, compileConfiguration, fileResolver)
 				haxeSourceSet.source.srcDir(String.format("src/%s/haxe", functionalSourceSet.name))
 				functionalSourceSet.add(haxeSourceSet)
+				logger.debug("Added ${haxeSourceSet}")
 
 				// Add resources if not exists yet
 				if (!functionalSourceSet.findByName(RESOURCE_SET_NAME)) {
@@ -78,11 +82,13 @@ class HaxePlugin implements Plugin<Project> {
 					resourcesDirectorySet.srcDir(String.format("src/%s/haxe", functionalSourceSet.name))
 					def resourceSet = instantiator.newInstance(DefaultResourceSet, RESOURCE_SET_NAME, resourcesDirectorySet, functionalSourceSet)
 					functionalSourceSet.add(resourceSet)
+					logger.debug("Added ${resourceSet}")
 				}
 
 				// Add Haxe resource set to be used for embedded resources
 				def haxeResourceSet = instantiator.newInstance(DefaultHaxeResourceSet, HAXE_RESOURCE_SET_NAME, functionalSourceSet, fileResolver)
 				functionalSourceSet.add(haxeResourceSet)
+				logger.debug("Added ${haxeResourceSet}")
 			}
 		})
 
@@ -97,15 +103,19 @@ class HaxePlugin implements Plugin<Project> {
 		targetPlatforms.all(new Action<TargetPlatform>() {
 			@Override
 			void execute(TargetPlatform targetPlatform) {
+				logger.debug("Configuring ${targetPlatform}")
+
 				// Create platform configurations
 				Configuration platformMainCompile = maybeCreateCompileConfigurationFor(project, targetPlatform.name)
 				Configuration platformTestCompile = maybeCreateCompileConfigurationFor(project, targetPlatform.name + "Test")
 				platformMainCompile.extendsFrom mainCompile
 				platformTestCompile.extendsFrom testCompile
 				platformTestCompile.extendsFrom platformMainCompile
+				logger.debug("Added ${platformMainCompile} and ${platformTestCompile}")
 
 				def platformMain = projectSourceSet.maybeCreate(targetPlatform.name)
 				def platformTest = projectSourceSet.maybeCreate(targetPlatform.name + "Test")
+				logger.debug("Added ${platformMain} and ${platformTest}")
 
 				def mainLanguageSets = getLanguageSets(main, platformMain)
 				def testLanguageSets = getLanguageSets(test, platformTest)
@@ -116,6 +126,8 @@ class HaxePlugin implements Plugin<Project> {
 				targetPlatform.flavors.all(new Action<Flavor>() {
 					@Override
 					void execute(Flavor flavor) {
+						logger.debug("Configuring ${targetPlatform} with ${flavor}")
+
 						def flavorName = targetPlatform.name + flavor.name.capitalize()
 
 						Configuration flavorMainCompile = maybeCreateCompileConfigurationFor(project, flavorName)
@@ -123,9 +135,11 @@ class HaxePlugin implements Plugin<Project> {
 						flavorMainCompile.extendsFrom platformMainCompile
 						flavorTestCompile.extendsFrom platformTestCompile
 						flavorTestCompile.extendsFrom flavorMainCompile
+						logger.debug("Added ${flavorMainCompile} and ${flavorTestCompile}")
 
 						def flavorMain = projectSourceSet.maybeCreate(flavorName)
 						def flavorTest = projectSourceSet.maybeCreate(flavorName + "Test")
+						logger.debug("Added ${flavorMain} and ${flavorTest}")
 
 						def flavorMainLanguageSets = getLanguageSets(main, platformMain, flavorMain)
 						def flavorTestLanguageSets = getLanguageSets(test, platformTest, flavorTest)
@@ -142,6 +156,7 @@ class HaxePlugin implements Plugin<Project> {
 				def compileTask = createCompileTask(project, binary)
 				binary.setCompileTask(compileTask)
 				binary.builtBy(compileTask)
+				logger.debug("Created compile task ${compileTask} for ${binary}")
 			}
 		})
 
@@ -157,6 +172,7 @@ class HaxePlugin implements Plugin<Project> {
 						type = "har"
 					}
 				}
+				logger.debug("Created source source task ${sourceTask} for ${binary}")
 			}
 		})
 
@@ -197,31 +213,19 @@ class HaxePlugin implements Plugin<Project> {
 		def binaryContainer = project.getExtensions().getByType(BinaryContainer.class)
 
 		// Add compiled binary
-		def compiledHaxe = createHaxeCompiledBinary(project, name, targetPlatform, flavor)
+		def compiledHaxe = new DefaultHaxeCompiledBinary(name, targetPlatform, flavor)
 		compiledHaxe.source.addAll(mainLanguageSets)
 		binaryContainer.add(compiledHaxe)
+		logger.debug("Added compiled binary ${compiledHaxe}")
 
 		// Add source bundle binary
 		def sourceHaxe = new DefaultHaxeSourceBinary("source" + name.capitalize(), targetPlatform, flavor)
 		sourceHaxe.source.addAll(mainLanguageSets)
 		binaryContainer.add(sourceHaxe)
+		logger.debug("Added source binary ${sourceHaxe}")
 
-		createMUnitTask(project, name, targetPlatform, flavor, mainLanguageSets, testLanguageSets)
-	}
-
-	// TODO Move this to a HaxeSpaghettiPlugin perhaps
-	private	static HaxeCompiledBinary createHaxeCompiledBinary(Project project, String name, TargetPlatform targetPlatform, Flavor flavor) {
-		HaxeCompiledBinary compiledHaxe
-		if (isSpaghettiEnabled(project, targetPlatform)) {
-			compiledHaxe = new DefaultHaxeCompiledSpaghettiCompatibleJavaScriptBinary(name, targetPlatform, flavor)
-		} else {
-			compiledHaxe = new DefaultHaxeCompiledBinary(name, targetPlatform, flavor)
-		}
-		return compiledHaxe
-	}
-
-	private static boolean isSpaghettiEnabled(Project project, TargetPlatform targetPlatform) {
-		return targetPlatform.name == "js" && project.plugins.hasPlugin(SpaghettiPlugin)
+		def munit = createMUnitTask(project, name, targetPlatform, flavor, mainLanguageSets, testLanguageSets)
+		logger.debug("Added MUnit task ${munit}")
 	}
 
 	private static DomainObjectSet<LanguageSourceSet> getLanguageSets(FunctionalSourceSet... sets) {
@@ -230,9 +234,6 @@ class HaxePlugin implements Plugin<Project> {
 			result.add set.getByName(HAXE_SOURCE_SET_NAME)
 			result.add set.getByName(RESOURCE_SET_NAME)
 			result.add set.getByName(HAXE_RESOURCE_SET_NAME)
-			// For JS target add Spaghetti's generated headers to platform source
-			// if (targetPlatform.name == "js" && project.plugins.hasPlugin(SpaghettiPlugin)) {
-			result.addAll set.withType(SpaghettiGeneratedSourceSet)
 		}
 		return result
 	}
@@ -326,14 +327,5 @@ class HaxePlugin implements Plugin<Project> {
 
 	public static LinkedHashMap<String, File> gatherEmbeddedResources(DomainObjectCollection<LanguageSourceSet> source) {
 		return source.withType(HaxeResourceSet)*.embeddedResources.flatten().inject([:]) { acc, val -> acc + val }
-	}
-
-	File getSpaghettiBundleTool(Project project) {
-		def workDir = project.file("${project.buildDir}/spaghetti-haxe")
-		workDir.mkdirs()
-		def bundleFile = new File(workDir, "SpaghettiBundler.hx")
-		bundleFile.delete()
-		bundleFile << this.class.getResourceAsStream("/SpaghettiBundler.hx").text
-		return bundleFile
 	}
 }

@@ -1,5 +1,6 @@
 package com.prezi.gradle.haxe
 
+import com.prezi.gradle.haxe.spaghetti.HaxeSpaghettiPlugin
 import com.prezi.spaghetti.ModuleBundle
 import com.prezi.spaghetti.gradle.ModuleDefinitionLookup
 import org.gradle.api.DomainObjectSet
@@ -116,10 +117,10 @@ class HaxeCommandBuilder {
 	{
 		if (spaghettiType != null)
 		{
-			def bundleFile = project.getPlugins().getPlugin(HaxePlugin).getSpaghettiBundleTool(project)
+			def bundleFile = HaxeSpaghettiPlugin.getSpaghettiBundleTool(project)
 			append("--next", "-cp", bundleFile.parentFile, "--run", "SpaghettiBundler", spaghettiType, output)
 			def bundles = configurations.collectMany(new HashSet<ModuleBundle>()) { configuration ->
-				ModuleDefinitionLookup.getAllBundles(configuration)
+				ModuleDefinitionLookup.getAllBundles((Configuration) configuration)
 			}
 			append(bundles.collect { ModuleBundle bundle ->
 				bundle.name.fullyQualifiedName

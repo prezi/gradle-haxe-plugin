@@ -17,14 +17,17 @@ abstract class AbstractHaxeCompileTask extends ConventionTask {
 	@Delegate(deprecated = true)
 	protected final HaxeCompileParameters params = new HaxeCompileParameters()
 
-	final DomainObjectSet<LanguageSourceSet> sources = new DefaultDomainObjectSet<>(LanguageSourceSet)
+	Set<Object> sources = []
 	LinkedHashMap<String, File> embeddedResources = [:]
 	TargetPlatform targetPlatform
 
 	public source(Object... sources) {
-		sources.each { source ->
-			this.sources.addAll(notationParser.parseNotation(source))
-		}
+		this.sources.addAll(sources)
+	}
+
+	protected DomainObjectSet<LanguageSourceSet> getSourceSets() {
+		def sourceSets = sources.collectMany { notationParser.parseNotation(it) }
+		return new DefaultDomainObjectSet<LanguageSourceSet>(LanguageSourceSet, sourceSets)
 	}
 
 	protected static Set<File> getAllSourceDirectories(Set<LanguageSourceSet> sources) {
@@ -34,6 +37,6 @@ abstract class AbstractHaxeCompileTask extends ConventionTask {
 	@InputFiles
 	public Set<File> getInputFiles()
 	{
-		return getAllSourceDirectories(sources) + getEmbeddedResources().values()
+		return getAllSourceDirectories(getSourceSets()) + getEmbeddedResources().values()
 	}
 }
