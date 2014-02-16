@@ -1,3 +1,23 @@
+**Table of Contents**  *generated with [DocToc](http://doctoc.herokuapp.com/)*
+
+- [Gradle Haxe Plugin](#gradle-haxe-plugin)
+	- [Standard project layout](#standard-project-layout)
+		- [Target platforms and Configurations](#target-platforms-and-configurations)
+		- [Configurations](#configurations)
+		- [Source directories](#source-directories)
+		- [Tasks](#tasks)
+		- [Published artifacts](#published-artifacts)
+	- [Customizations](#customizations)
+		- [Compiler options](#compiler-options)
+		- [Compiling generated code](#compiling-generated-code)
+		- [Embedding resources](#embedding-resources)
+		- [MUnit command-line parameters](#munit-command-line-parameters)
+		- [Tasks](#tasks-1)
+			- [Compilation](#compilation)
+			- [Testing](#testing)
+	- [Example](#example)
+	- [To develop the plugin](#to-develop-the-plugin)
+
 Gradle Haxe Plugin
 ==================
 
