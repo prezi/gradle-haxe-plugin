@@ -167,6 +167,7 @@ class HaxePlugin implements Plugin<Project> {
 				def sourceTask = createSourceTask(project, binary)
 				binary.builtBy(sourceTask)
 
+				// TODO This should state more clearly what it does
 				binary.source.withType(HaxeSourceSet)*.compileClassPath.each { Configuration configuration ->
 					project.artifacts.add(configuration.name, sourceTask) {
 						name = project.name + "-" + binary.name
