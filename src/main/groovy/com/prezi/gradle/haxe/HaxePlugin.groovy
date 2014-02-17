@@ -79,7 +79,7 @@ class HaxePlugin implements Plugin<Project> {
 				// Add resources if not exists yet
 				if (!functionalSourceSet.findByName(RESOURCE_SET_NAME)) {
 					def resourcesDirectorySet = instantiator.newInstance(DefaultSourceDirectorySet, String.format("%s resources", functionalSourceSet.name), fileResolver)
-					resourcesDirectorySet.srcDir(String.format("src/%s/haxe", functionalSourceSet.name))
+					resourcesDirectorySet.srcDir(String.format("src/%s/resources", functionalSourceSet.name))
 					def resourceSet = instantiator.newInstance(DefaultResourceSet, RESOURCE_SET_NAME, resourcesDirectorySet, functionalSourceSet)
 					functionalSourceSet.add(resourceSet)
 					logger.debug("Added ${resourceSet}")
