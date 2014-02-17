@@ -1,29 +1,12 @@
-import com.prezi.gradle.haxe.CompileHaxe
-import org.gradle.api.publish.ivy.IvyPublication
-
-configurations {
-	haxelibs
-	runtime
-	node { extendsFrom runtime }
+targetPlatforms {
+	js
 }
 
 dependencies {
-	runtime project(path: ":project-a", configuration: "runtime")
-	node project(path: ":project-a", configuration: "node")
+	js project(path: ":project-a", configuration: "js")
+	jsTest project(path: ":project-a", configuration: "jsTest")
 }
 
-task frici(type: CompileHaxe) {
-	configuration configurations.runtime
-	source "src/main/haxe/common"
-	source "src/main/haxe/js"
-	targetPlatform "js"
-	main "prezi.test.Main"
-}
-
-task friciNode(type: CompileHaxe) {
-	configuration configurations.node
-	source "src/main/haxe/common"
-	targetPlatform "js"
-	classifier "node"
-	main "prezi.test.Main"
+compileJs {
+	main "prezi.test.DependentMain"
 }

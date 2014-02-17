@@ -1,16 +1,22 @@
 package com.prezi.gradle.haxe
 
+import com.prezi.gradle.haxe.spaghetti.HaxeSpaghettiPlugin
+import com.prezi.spaghetti.ModuleBundle
 import com.prezi.spaghetti.gradle.ModuleDefinitionLookup
+import org.gradle.api.DomainObjectSet
 import org.gradle.api.Project
 import org.gradle.api.artifacts.Configuration
+import org.gradle.language.base.LanguageSourceSet
 
 class HaxeCommandBuilder {
 	private final Project project
+	private final HaxelibDependencyExtractor extractor
 	private List<String> cmd
 
 	public HaxeCommandBuilder(Project project, String... cmd)
 	{
 		this.project = project
+		this.extractor = new HaxelibDependencyExtractor(project)
 		this.cmd = cmd
 	}
 
@@ -76,6 +82,20 @@ class HaxeCommandBuilder {
 		this
 	}
 
+	HaxeCommandBuilder withSourceSets(DomainObjectSet<LanguageSourceSet> sources) {
+		LinkedHashSet<File> sourcePath = []
+		LinkedHashSet<File> resourcePath = []
+		LinkedHashMap<String, File> allEmbeddedResources = [:]
+
+		sources.withType(HaxeSourceSet) { source ->
+			extractor.extractDependenciesFrom(source.compileClassPath, sourcePath, resourcePath, allEmbeddedResources)
+		}
+
+		withSources(sourcePath)
+		withSources(resourcePath)
+		withEmbeddedResources(allEmbeddedResources)
+	}
+
 	HaxeCommandBuilder withFlags(def flags)
 	{
 		flags.each { String flag ->
@@ -93,15 +113,18 @@ class HaxeCommandBuilder {
 		this
 	}
 
-	HaxeCommandBuilder withSpaghetti(String spaghettiType, File output, Configuration configuration)
+	HaxeCommandBuilder withSpaghetti(String spaghettiType, File output, Collection<Configuration> configurations)
 	{
 		if (spaghettiType != null)
 		{
-			def bundleFile = project.getPlugins().getPlugin(HaxePlugin).getSpaghettiBundleTool(project)
+			def bundleFile = HaxeSpaghettiPlugin.getSpaghettiBundleTool(project)
 			append("--next", "-cp", bundleFile.parentFile, "--run", "SpaghettiBundler", spaghettiType, output)
-			append(ModuleDefinitionLookup.getAllBundles(configuration).collect { bundle ->
+			def bundles = configurations.collectMany(new HashSet<ModuleBundle>()) { configuration ->
+				ModuleDefinitionLookup.getAllBundles((Configuration) configuration)
+			}
+			append(bundles.collect { ModuleBundle bundle ->
 				bundle.name.fullyQualifiedName
-			}.toArray())
+			}.sort { it }.unique().toArray())
 		}
 		this
 	}

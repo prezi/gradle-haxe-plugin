@@ -1,32 +1,28 @@
 package com.prezi.gradle.haxe
 
-import org.gradle.api.Project
-import org.gradle.api.internal.ClosureBackedAction
+import org.gradle.internal.reflect.Instantiator
 
+import javax.inject.Inject
+
+/**
+ * Created by lptr on 15/02/14.
+ */
 class HaxeExtension {
-
 	@Delegate(deprecated = true)
-	private final HaxeCompileParameters compileParams
-	private final HaxeCompileParameters testParams
+	private final HaxeCompileParameters params
+	private final TargetPlatformContainer targetPlatforms
 
-	public HaxeExtension(Project project)
-	{
-		this.compileParams = new HaxeCompileParameters(project)
-		this.testParams = new HaxeCompileParameters(project)
+	@Inject
+	HaxeExtension(Instantiator instantiator) {
+		this.params = new HaxeCompileParameters()
+		this.targetPlatforms = instantiator.newInstance(DefaultTargetPlatformContainer, instantiator)
 	}
 
-	void mapTo(CompileHaxe compileTask)
-	{
-		compileParams.copyTo compileTask.params
+	HaxeCompileParameters getParams() {
+		return params
 	}
 
-	void mapTo(MUnit testTask)
-	{
-		testParams.copyTo testTask.params
-	}
-
-	public void test(Closure c)
-	{
-		new ClosureBackedAction<>(c).execute(testParams)
+	TargetPlatformContainer getTargetPlatforms() {
+		return targetPlatforms
 	}
 }

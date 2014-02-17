@@ -1,25 +1,192 @@
+**Table of Contents**  *generated with [DocToc](http://doctoc.herokuapp.com/)*
+
+- [Gradle Haxe Plugin](#gradle-haxe-plugin)
+	- [Standard project layout](#standard-project-layout)
+		- [Target platforms and Configurations](#target-platforms-and-configurations)
+		- [Configurations](#configurations)
+		- [Source directories](#source-directories)
+		- [Tasks](#tasks)
+		- [Published artifacts](#published-artifacts)
+	- [Customizations](#customizations)
+		- [Compiler options](#compiler-options)
+		- [Compiling generated code](#compiling-generated-code)
+		- [Embedding resources](#embedding-resources)
+		- [MUnit command-line parameters](#munit-command-line-parameters)
+		- [Tasks](#tasks-1)
+			- [Compilation](#compilation)
+			- [Testing](#testing)
+	- [Example](#example)
+	- [To develop the plugin](#to-develop-the-plugin)
+
 Gradle Haxe Plugin
 ==================
 
-# Basics
+The Haxe plugin allows you to build, test and package Haxe projects from Gradle.
 
-The Haxe plugin consists of three parts:
+The plugin requires [Haxe](http://haxe.org/download) to be installed and available on the path. For testing it also requires [Neko](http://nekovm.org/download) and the [MUnit haxelib](http://lib.haxe.org/p/munit) to be installed.
 
-* compilation and source bundling
-* testing
-* publishing
+## Standard project layout
 
-### Compilation
+As most Gradle plugins, the Haxe plugin tries to be clever and figure out what you want by looking at what you have. it acts as the middle-man between you and Gradle: you give it the high-level detail, and it will create all the low-level stuff like tasks and source directories. In most cases you need little configuration to describe what you want it to do, but full customization is also possible.
+
+### Target platforms and Configurations
+
+Haxe is an inherently multi-platform programming language that can build software for JavaScript, Flash and Java from the same source. Each of your builds must specify which platforms you are targetting:
+
+```groovy
+haxe {
+	targetPlatforms {
+		js
+		swf
+	}
+}
+```
+
+### Configurations
+
+For each target platform the plugin creates two configurations:
+
+* one to contain the dependencies and resulting artifacts for the production code for that platform
+* and another for all the test code
+
+There are also two shared configurations called `main` and `test` that hold the shared production/test dependencies for every platform. The platform configurations extend their respective shared configurations.
+
+### Source directories
+
+When compiling and packaging your project, the plugin will check these directories:
+
+* `src/main` -- shared production sources and resources for all platforms
+* `src/test` -- shared test sources and resources for all platforms
+* `src/<platform>` -- production sources and resources for a specific platform (e.g. `src/js`)
+* `src/<platform>Test` -- production sources and resources for a specific platform (e.g. `src/jsTest`)
+
+Each of these directories can contain the following sub-directories (among others):
+
+* `haxe` -- Haxe code to compile
+* `resources` -- resources and assets (images, data etc.) -- these will be made available on the compiler's classpath
+
+This makes things easy to find for both human and plugin. For example if you are looking for the JavaScript specific Haxe code, you don't need to look no further than `src/js/haxe`.
+
+See below about how you can embed resources in your Haxe programs.
+
+### Tasks
+
+For each target platform the plugin creates the following tasks:
+
+* `compile<platform>` -- calls the Haxe compiler (e.g. `compileJs`)
+* `test<platform>` -- runs the tests via MUnit (e.g. `testJs`)
+* `source<platform>` -- creates the [`.har` archive](#published-artifacts) from the sources used to compile the platform (e.g. `sourceJs`)
+
+There is also a `compile` and a `test` task created that run all compile- and test tasks, respectively.
+
+### Published artifacts
+
+The source code is published to the target platform's configuration as a Haxe ARchive (.har).
+
+The `.har` archive includes every source code and resource needed to build your project:
+
+	+- META-INF
+	|   +- MANIFEST.MF  -- manifest describing the archive
+	+- sources          -- all source files copied into one folder
+	+- resources        -- all resources copied into one folder
+	+- embedded			-- all embedded resources
+
+Each source task builds a `.har` artifact for one specific platform. This means if you want to build a project for JS and AS3 as well, you will end up with one archive for each platform.
+
+
+## Customizations
+
+While the plugin tries to be as clever as possible, sometimes you have to give it a helping hand.
+
+### Compiler options
+
+You can set compiler options for all your code, or for just a specific platform. For compiler options see [Compilation](#Compilation).
+
+```groovy
+haxe {
+	// Set compiler options here for all platforms
+	inlcude "com.example.test.haxe"
+
+	targetPlatforms {
+		js {
+			// Set compiler options here for only the JavaScript target
+			inlcude "com.example.test.haxe.javascript"
+			flag "-D js-enabled"
+		}
+		swc {
+			// Set compiler options here for only the Flash target
+			flag "-D only-for-flash"
+		}
+	}
+}
+```
+
+### Compiling generated code
+
+Say you have a nice task that generates some Haxe code, and you'd like to add it to the compiler's classpath:
+
+```groovy
+task generateSomething(type: SomeGenerator) {
+	inputFile = file("...")
+	outputDirectory = file("${buildDir}/geneated-haxe")
+}
+```
+
+Here's how you can add it for every platform:
+
+```groovy
+sources {
+	main {
+		haxe {
+			// This tells the plugin where to find the code to compile
+			source.srcDir generateSomething.outputDirectory
+			// This tells it which task to run when it needs the generated source
+			builtBy generateSomething
+		}
+	}
+}
+```
+
+If you wanted to only add it for the `js` platform, you'd have to add it to the `js` source set:
+
+```groovy
+// Notice that here we say 'js' instead of 'main':
+sources.js.haxe {
+	source.srcDir generateSomething.outputDirectory
+	builtBy generateSomething
+}
+```
+
+### Embedding resources
+
+TBD
+
+### MUnit command-line parameters
+
+You can pass some command-line parameters to Gradle so that it will pass some to MUnit:
+
+* `-Pmunit.browser=<browser>` -- adds `-browser <browser>`
+* `-Pmunit.debug` -- turns on `-debug`
+* `-Pmunit.kill-browser` -- adds `-kill-browser`
+* `-Pmunit.nogen` -- turns on `-nogen`
+* `-Pmunit.platform=<platform>` -- adds `-<platform>`
+
+A typical server-side example:
+
+	$ gradle clean uploadArchives -Pmunit.browser=chromium -Pmunit.kill-browser`
+
+### Tasks
+
+#### Compilation
 
 Syntax:
 
-	task compile(type: com.prezi.gradle.haxe.CompileHaxe) {
+	task compile(type: com.prezi.gradle.haxe.HaxeCompile) {
 		main "<main-class>"
 		source <directory>
 		targetPlatform "<js|swf|as3>"
 	
 		// Optional parameters
-		classifier "<classifier>"
 		configuration <configuration>
 		debug <true|false>
 		embed <file> ["<name>"]
@@ -35,7 +202,6 @@ Syntax:
 
 Parameters:
 
-* `classifier` -- the classifier to use for the built artifacts.
 * `configuration` -- the Gradle configuration to bind the resulting artifacts to, and to search for dependencies from.
 * `debug` -- enables `-debug` and `-D fdb`.
 * `embed` -- embeds the file (with the given name) as a built-in [Haxe resource](http://haxe.org/doc/advanced/resources).
@@ -51,142 +217,73 @@ Parameters:
 * `targetPlatform` -- specify the target platform.
 
 
-### Testing
+#### Testing
 
-The `MUnit` task tests the results of a compilation task with [MassiveUnit](https://github.com/massiveinteractive/MassiveUnit). To set it up you need to provide two things:
+The `MUnit` task tests the results of a compilation task with [MassiveUnit](https://github.com/massiveinteractive/MassiveUnit). It works with the same configuration as the compile task above.
 
 	task munit(type: com.prezi.gradle.haxe.MUnit) {
-		test <task>
 		source <directory>
-
+		targetPlatform "<js|swf|as3>"
+	
 		// Optional parameters
-		resource <directory>
+		configuration <configuration>
 		debug <true|false>
+		embed <file> ["<name>"]
+		embedAll <directory>
+		exclude "<package|class>"
+		flag "<flag>"
+		include "<package|class>"
+		macro "<macro>"
+		outputDirectory <directory>
+		outputFile <file>
+		resource <directory>
 	}
 
-Parameters:
+You can supply MUnit-specific parameters.
 
-* `debug` -- run tests tagged with `@TestDebug` only.
-* `resource` -- directory with test resources. Repeat clause for multiple directories.
-* `source` -- directory with test sources. Repeat clause for multiple directories.
-* `test` -- the `CompileHaxe` task to test.
+## Example
 
+You have a project with the following source folders for separate platforms:
 
-### Publishing
+	/src
+		/main
+			/haxe		-- shared code for all platforms
+		/as
+			/haxe		-- ActionScript-specific stuff
+		/js
+			/haxe		-- JS-specific code (i.e. for Node.JS and browser)
+		/jsBrowser
+			/haxe		-- code when used from a web browser
+		/jsNode
+			/haxe		-- code used only from Node.JS
 
-A `CompileHaxe` task will create two output artifacts:
+You can set up three builds for Node, web browser and AS as follows:
 
-* `artifact`: the compiled code, i.e. the `.js` or `.swf` file. You can use this output as is.
-* `soruces`: the `.har` archive that you can use to link your module together with other projects on the source level.
+	haxe {
+		main "com.example.test.Main"
 
-The artifacts pick up configuration parameters (like `classifier` and `configuration`) from the compile task.
+		targetPlatforms {
+			js {
+				browser {}
+				node {}
+			}
+			swf
+		}
+	}
 
-The `artifact` is automatically published via the `archives` configuration. The `sources` are published via the `archives` configuration and the configuration specified in the compiler task.
+You will be able to run several commands to build your code. For example `compileJsNode` will run the Haxe compiler on the following directories:
 
-### To Develop the plugin
+* `/src/main/haxe`
+* `/src/js/haxe`
+* `/src/jsNode/haxe`
+
+Each source task will give you a source `.har` archive. E.g. `sourceJs` will zip you the following:
+
+* `src/main/haxe`
+* `src/js/haxe`
+
+## To develop the plugin
 
 * Generate IDEA project by `gradle idea`
 * Make sure you have Groovy plugin installed in IDEA
 * Open the generated `gradle-haxe-plugin-ng.ipr` file and import the generated module `gradle-haxe-plugin-ng.iml`
-
-# Examples
-
-## Compilation: the `CompileHaxe` task
-
-You have a project with the following source folders for separate platforms:
-
-	/src/common  -- shared code for all platforms
-	/src/js      -- JS-specific code (i.e. for Node.JS and browser)
-	/src/node    -- code used only from Node.JS
-	/src/browser -- code when used from a web browser
-	/src/as      -- ActionScript-specific stuff
-
-You can set up three builds for Node, web browser and AS as follows:
-
-	configurations {
-		as
-		js
-			browser { extendsFrom js }
-			node { extendsFrom js }
-	}
-
-	task compileBrowser(type: CompileHaxe) {
-		targetPlatform "js"
-		classifier "browser"
-		configuration configurations.browser
-		source "src/common"
-		source "src/js"
-		source "src/browser"
-	}
-
-	task compileNode(type: CompileHaxe) {
-		targetPlatform "js"
-		classifier "node"
-		configuration configurations.node
-		source "src/common"
-		source "src/js"
-		source "src/node"
-	}
-
-	task compileAS(type: CompileHaxe) {
-		targetPlatform "swf"
-		classifier "as"
-		configuration configurations.as
-		source "src/common"
-		source "src/as"
-	}
-
-Each task will give you two artifacts: the built code and the source `.har` archive:
-
-* `compileBrowser`:
-	* `project-browser.js`
-	* `project-browser.har` -- including `src/common`, `src/js`, `src/browser`
-* `compileNode`:
-	* `project-node.js`
-	* `project-node.har` -- including `src/common`, `src/js`, `src/node`
-* `compileAS`:
-	* `project-as.swf`	
-	* `project-as.har` -- including `src/common`, `src/as`
-
-
-### Resources
-
-TBD
-
-### The `.har` archive
-
-The `.har` archive includes everything needed to build your project:
-
-	+- META-INF
-	|   +- MANIFEST.MF  -- manifest describing the archive
-	+- sources          -- all source files copied into one folder
-	+- resources        -- all resources copied into one folder
-	+- embedded			-- all embedded resources
-
-Each compile task builds a `.har` artifact for one specific platform. This means if you want to build a project for JS and AS3 as well, you will end up with two archives. See example below.
-
-### The `compile` task
-
-A task called `compile` is automatically generated by the Haxe plugin that automatically depends on all `CompileHaxe` tasks. So in order to compile everything in your project, you can simply issue
-
-	gradle compile
-
-## Testing: the `MUnit` task
-
-If you want to test your code with MUnit, you will need to define some test tasks. Keeping with the example above, here's how you could test the browser artifact:
-
-	task munitBrowser(type: MUnit) {
-		test compileBrowser
-		source "test/common"
-		source "test/some-tests-for-browser-only"
-	}
-
-You can then run the tests via
-
-	gradle munitBrowser
-
-### The `test` task
-
-Similar to the auto-generated `build` task, the Haxe plugin also creates a catch-all task for all tasks of type `MUnit` called `test`. So to run all MUnit tests on your project you can go:
-
-	gradle test

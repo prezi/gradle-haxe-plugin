@@ -11,16 +11,13 @@ buildscript {
 	}
 
 	dependencies {
-		classpath "com.prezi.gradle:gradle-haxe-plugin:1.2-SNAPSHOT"
+		classpath "com.prezi.gradle:gradle-haxe-plugin:2.0-SNAPSHOT"
 	}
 }
 
-configure(allprojects) {
+allprojects {
 	group = "prezi.test"
 	version = "0.1-SNAPSHOT"
-
-	apply plugin: "haxe"
-	apply plugin: "ivy-publish"
 
 	repositories {
 		mavenLocal()
@@ -35,8 +32,10 @@ configure(allprojects) {
 	}
 }
 
-configure(subprojects) {
-	install {
+subprojects {
+	apply plugin: "haxe"
+
+	tasks.withType(Upload) {
 		repositories {
 			ivy {
 				url "file://$rootProject.buildDir/repo"

@@ -1,46 +1,38 @@
 package com.prezi.gradle.haxe
 
-import com.prezi.gradle.DeprecationLogger
-import com.prezi.spaghetti.gradle.ModuleDefinitionLookup
+import com.prezi.gradle.haxe.spaghetti.HaxeSpaghettiPlugin
 import com.prezi.spaghetti.gradle.ModuleExtractor
-import org.gradle.api.DefaultTask
-import org.gradle.api.artifacts.Configuration
-import org.gradle.api.artifacts.PublishArtifact
-import org.gradle.api.file.FileCollection
+import org.gradle.api.DomainObjectSet
+import org.gradle.api.internal.DefaultDomainObjectSet
 import org.gradle.api.tasks.InputFiles
-import org.gradle.api.tasks.SkipWhenEmpty
 import org.gradle.api.tasks.TaskAction
+import org.gradle.language.base.LanguageSourceSet
 
 import java.util.regex.Pattern
 
-class MUnit extends DefaultTask implements HaxeTask {
-	@Delegate(deprecated = true)
-	final HaxeCompileParameters params
+class MUnit extends AbstractHaxeCompileTask {
+	final DomainObjectSet<LanguageSourceSet> testSources = new DefaultDomainObjectSet<>(LanguageSourceSet)
+	LinkedHashMap<String, File> embeddedTestResources = [:]
 
-	static final String WORKING_DIRECTORY_PREFIX = "munit-work"
 	static final Pattern SUCCESSFUL_TEST_PATTERN = ~/(?m)^PLATFORMS TESTED: \d+, PASSED: \d+, FAILED: 0, ERRORS: 0, TIME:/
-
-	public MUnit()
-	{
-		this.params = new HaxeCompileParameters(project)
-	}
 
 	@TaskAction
 	void munit()
 	{
 		def workDir = getWorkingDirectory()
-		project.mkdir(workDir)
+		workDir.mkdirs()
 
 		// Copy all tests into one directory
 		def testSourcesDirectory = new File(workDir, "tests")
+		testSourcesDirectory.mkdirs()
 		project.copy {
-			from getSourceFiles().files
+			from testSources*.source*.srcDirs
 			into testSourcesDirectory
 		}
 
 		// Extract Require JS
 		File requireJsFile = null
-		if (compileTask.targetPlatform == "js") {
+		if (getTargetPlatform().name == "js") {
 			def requireJsProps = new Properties()
 			requireJsProps.load(this.class.getResourceAsStream("/META-INF/maven/org.webjars/requirejs/pom.properties"))
 			def requireJsVersion = requireJsProps.getProperty("version")
@@ -49,45 +41,25 @@ class MUnit extends DefaultTask implements HaxeTask {
 			requireJsFile << this.class.getResourceAsStream("/META-INF/resources/webjars/requirejs/${requireJsVersion}/require.js")
 		}
 
-		LinkedHashSet<File> sourcePath = []
-		LinkedHashSet<File> resourcePath = []
-		def extractor = new HaxelibDependencyExtractor(project, [ compileTask.legacyPlatformPaths, legacyPlatformPaths ].flatten())
-
-		sourcePath.add(testSourcesDirectory)
-		LinkedHashMap<String, File> testEmbeddedResources = [:]
-		extractor.extractDependenciesFrom(getConfiguration(), sourcePath, resourcePath, testEmbeddedResources)
-		testEmbeddedResources.putAll(embeddedResources)
-
-		sourcePath.addAll(compileTask.getSourceFiles().files)
-		LinkedHashMap<String, File> compilerEmbeddedResources = [:]
-		extractor.extractDependenciesFrom(compileTask.getConfiguration(), sourcePath, resourcePath, compilerEmbeddedResources)
-		compilerEmbeddedResources.putAll(compileTask.embeddedResources)
-
-		LinkedHashMap<String, File> allEmbeddedResources = [:]
-		allEmbeddedResources.putAll(compilerEmbeddedResources)
-		allEmbeddedResources.putAll(testEmbeddedResources)
-
-		resourcePath.addAll(compileTask.getResourceFiles().files)
-		resourcePath.addAll(getResourceFiles().files)
-
 		def output = getOutput()
 		project.mkdir(output.parentFile)
 
-		def haxeCmdParts = new HaxeCommandBuilder(project)
-				.withIncludes(compileTask.includes)
-				.withExcludes(compileTask.excludes)
-				.withIncludes(includes)
-				.withExcludes(excludes)
-				.withSources(sourcePath)
-				.withSources(resourcePath)
-				.withEmbeddedResources(allEmbeddedResources)
-				.withMacros(compileTask.macros)
-				.withFlags(flagList)
-				.withFlags(compileTask.flagList.findAll({ it != "--js-modern" && it != "--no-traces" }))
-				.withDebugFlags(compileTask.debug)
-				.withTarget(compileTask.targetPlatform, output)
+		def sources = getSourceSets()
+		def builder = new HaxeCommandBuilder(project)
+				.withSources([testSourcesDirectory])
+				.withSources(getAllSourceDirectories(sources))
+				.withSourceSets(sources)
+				.withEmbeddedResources(getEmbeddedResources())
+				.withSourceSets(testSources)
+				.withEmbeddedResources(getEmbeddedTestResources())
+				.withIncludes(getIncludes())
+				.withExcludes(getExcludes())
+				.withMacros(getMacros())
+				.withFlags(getFlagList())
+				.withDebugFlags(getDebug())
+				.withTarget(getTargetPlatform().name, output)
 				.withMain("TestMain")
-				.build()
+		def haxeCmdParts = builder.build()
 
 		def haxeCmd = "";
 		haxeCmdParts.each {
@@ -99,11 +71,15 @@ class MUnit extends DefaultTask implements HaxeTask {
 			haxeCmd += it
 		}
 
-		if (compileTask.targetPlatform == "js") {
-			def bundleFile = project.getPlugins().getPlugin(HaxePlugin).getSpaghettiBundleTool(project)
+		if (getTargetPlatform().name == "js") {
+			def bundleFile = HaxeSpaghettiPlugin.getSpaghettiBundleTool(project)
 			haxeCmd += "\n-cmd haxe -cp ${bundleFile.parentFile} --run SpaghettiBundler module ${output}"
-			ModuleExtractor.extractModules(configuration, workDir).each { bundle ->
-				haxeCmd += " ${bundle.name.fullyQualifiedName}"
+			[ sources, testSources ].each {
+				it.withType(HaxeSourceSet).each { haxeSourceSet ->
+					ModuleExtractor.extractModules(haxeSourceSet.compileClassPath, workDir).each { bundle ->
+						haxeCmd += " ${bundle.name.fullyQualifiedName}"
+					}
+				}
 			}
 		}
 
@@ -120,7 +96,7 @@ class MUnit extends DefaultTask implements HaxeTask {
 		munitConfig << "hxml=${testHxml}\n"
 
 		// Issue #1 -- Use UTF-8 compatible JS runner template
-		if (compileTask.targetPlatform == "js")
+		if (getTargetPlatform().name == "js")
 		{
 			munitConfig << "templates=${workDir}/templates\n"
 			def templatesDir = new File(workDir, "templates")
@@ -130,8 +106,7 @@ class MUnit extends DefaultTask implements HaxeTask {
 			jsRunnerTemplate << this.class.getResourceAsStream("/js_runner-html.mtt")
 		}
 
-		def munitCmd = new MUnitCommandBuilder(project)
-				.build()
+		def munitCmd = new MUnitCommandBuilder(project).build()
 
 		CommandExecutor.execute(project, munitCmd, workDir) { ExecutionResult result ->
 			def errorExit = result.exitValue != 0
@@ -149,40 +124,17 @@ class MUnit extends DefaultTask implements HaxeTask {
 				throw new RuntimeException("There are failing tests");
 			}
 		}
-
-		HarUtils.createArchive(project, temporaryDirFactory, project.buildDir,
-				getFullName(), getSourceFiles(), getResourceFiles(), embeddedResources)
 	}
 
-	private PublishArtifact testSourceBundle
-
-	public PublishArtifact getTests()
-	{
-		if (testSourceBundle == null)
-		{
-			testSourceBundle = new HarPublishArtifact(this, getTestSourceArchive())
+	public testSource(Object... sources) {
+		sources.each { source ->
+			this.testSources.addAll(notationParser.parseNotation(source))
 		}
-		return testSourceBundle
-	}
-
-	public File getTestSourceArchive()
-	{
-		return new File(project.buildDir, getFullName() + ".har")
-	}
-
-	public String getBaseName()
-	{
-		return compileTask.baseName
-	}
-
-	private String getFullName()
-	{
-		return compileTask.getBaseName() + "-" + getClassifier()
 	}
 
 	private File getOutput()
 	{
-		switch (compileTask.targetPlatform)
+		switch (getTargetPlatform().name)
 		{
 			case "js":
 				return new File(getWorkingDirectory(), "js_test.js")
@@ -193,103 +145,20 @@ class MUnit extends DefaultTask implements HaxeTask {
 			case "as3":
 			case "java":
 			default:
-				throw new IllegalStateException("Cannot test platform " + targetPlatform)
+				throw new IllegalStateException("Cannot test platform " + getTargetPlatform())
 		}
 	}
 
-	private CompileHaxe compileTask
-
-	public void test(CompileHaxe compileTask)
-	{
-		this.compileTask = compileTask
-		dependsOn(compileTask)
-	}
-
-	public Configuration getConfiguration()
-	{
-		return params.hasConfiguration() ? params.configuration : compileTask.configuration
-	}
-
-	@Deprecated
-	public void testConfiguration(Configuration conf)
-	{
-		DeprecationLogger.nagUserOfReplacedProperty("testConfiguration", "configuration")
-		configuration(conf)
-	}
-
+	@Override
 	@InputFiles
-	@SkipWhenEmpty
-	public FileCollection getSourceFiles()
-	{
-		return project.files(sourcePaths)
+	Set<File> getInputFiles() {
+		return super.getInputFiles() + getAllSourceDirectories(testSources) + getEmbeddedTestResources()
 	}
 
-	@Deprecated
-	public void testSource(path)
-	{
-		DeprecationLogger.nagUserOfReplacedProperty("testSource", "source")
-		source(path)
-	}
-
-	@InputFiles
-	@SkipWhenEmpty
-	public FileCollection getResourceFiles()
-	{
-		return project.files(resourcePaths)
-	}
-
-	@Deprecated
-	public testResource(path)
-	{
-		DeprecationLogger.nagUserOfReplacedProperty("testReource", "resource")
-		resource(path)
-	}
-
-	@InputFiles
-	@SkipWhenEmpty
-	public FileCollection getEmbeddedResourceFiles()
-	{
-		return project.files(embeddedResources.values())
-	}
-
-	private String classifier
-
-	public String getClassifier()
-	{
-		if (classifier)
-		{
-			return classifier
-		}
-
-		def result = compileTask.classifier
-		return result ? result + "-tests" : "tests"
-	}
-
-	public classifier(String classifier)
-	{
-		this.classifier = classifier
-	}
-
-	private File workingDirectory
-
-	public File getWorkingDirectory()
-	{
-		if (workingDirectory == null)
-		{
-			return project.file("${project.buildDir}/" + WORKING_DIRECTORY_PREFIX + "/" + compileTask.name)
-		}
-		return workingDirectory
-	}
+	File workingDirectory
 
 	public workingDirectory(Object workingDirectory)
 	{
 		this.workingDirectory = project.file(workingDirectory)
-	}
-
-	@Deprecated
-	public void testFlag(String... flags)
-	{
-		DeprecationLogger.nagUserOfReplacedProperty("testFlag", "flag")
-		flag(flags)
 	}
 }
