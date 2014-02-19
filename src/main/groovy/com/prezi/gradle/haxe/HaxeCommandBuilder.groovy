@@ -123,7 +123,7 @@ class HaxeCommandBuilder {
 				ModuleDefinitionLookup.getAllBundles((Configuration) configuration)
 			}
 			append(bundles.collect { ModuleBundle bundle ->
-				bundle.name.fullyQualifiedName
+				bundle.name
 			}.sort { it }.unique().toArray())
 		}
 		this

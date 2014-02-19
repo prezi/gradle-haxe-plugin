@@ -77,7 +77,7 @@ class MUnit extends AbstractHaxeCompileTask {
 			[ sources, testSources ].each {
 				it.withType(HaxeSourceSet).each { haxeSourceSet ->
 					ModuleExtractor.extractModules(haxeSourceSet.compileClassPath, workDir).each { bundle ->
-						haxeCmd += " ${bundle.name.fullyQualifiedName}"
+						haxeCmd += " ${bundle.name}"
 					}
 				}
 			}
