@@ -1,5 +1,6 @@
 package com.prezi.gradle.haxe
 
+import org.gradle.api.Action
 import org.gradle.internal.reflect.Instantiator
 
 import javax.inject.Inject
@@ -24,5 +25,9 @@ class HaxeExtension {
 
 	TargetPlatformContainer getTargetPlatforms() {
 		return targetPlatforms
+	}
+
+	public void targetPlatforms(Action<TargetPlatformContainer> action) {
+		action.execute(targetPlatforms)
 	}
 }
