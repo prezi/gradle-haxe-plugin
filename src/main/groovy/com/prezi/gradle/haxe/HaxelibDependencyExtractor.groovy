@@ -94,38 +94,38 @@ class HaxelibDependencyExtractor {
 		}
 
 		if (type == null) {
-			throw new RuntimeException("Unsupported library type: ${file}")
-		}
+			project.logger.warn("Unsupported library type: ${file}")
+		} else {
+			switch (type) {
+				case HaxelibType.VERSION_1_0:
+					def sources = new File(libraryRoot, "sources")
+					def resources = new File(libraryRoot, "resources")
+					def embedded = new File(libraryRoot, "embedded")
+					if (sources.exists())
+					{
+						project.logger.debug("Prezi Haxelib 1.0, adding sources at {}", sources)
+						sourcePath.add(sources)
+					}
+					if (resources.exists())
+					{
+						project.logger.debug("Prezi Haxelib 1.0, adding resources at {}", resources)
+						resourcePath.add(resources)
+					}
+					if (embedded.exists())
+					{
+						project.logger.debug("Prezi Haxelib 1.0, adding embedded resources at {}", embedded)
+						resourcePath.add(embedded)
+						embeddedResources.putAll EmbeddedResourceEncoding.decode(
+								manifest.mainAttributes.getValue(Har.MANIFEST_ATTR_EMBEDDED_RESOURCES),
+								embedded)
+					}
+					break
 
-		switch (type) {
-			case HaxelibType.VERSION_1_0:
-				def sources = new File(libraryRoot, "sources")
-				def resources = new File(libraryRoot, "resources")
-				def embedded = new File(libraryRoot, "embedded")
-				if (sources.exists())
-				{
-					project.logger.debug("Prezi Haxelib 1.0, adding sources at {}", sources)
-					sourcePath.add(sources)
-				}
-				if (resources.exists())
-				{
-					project.logger.debug("Prezi Haxelib 1.0, adding resources at {}", resources)
-					resourcePath.add(resources)
-				}
-				if (embedded.exists())
-				{
-					project.logger.debug("Prezi Haxelib 1.0, adding embedded resources at {}", embedded)
-					resourcePath.add(embedded)
-					embeddedResources.putAll EmbeddedResourceEncoding.decode(
-							manifest.mainAttributes.getValue(Har.MANIFEST_ATTR_EMBEDDED_RESOURCES),
-							embedded)
-				}
-				break
-
-			case HaxelibType.HAXELIB:
-				project.logger.debug("Official Haxelib, adding root at {}", libraryRoot)
-				sourcePath.add(libraryRoot)
-				break
+				case HaxelibType.HAXELIB:
+					project.logger.debug("Official Haxelib, adding root at {}", libraryRoot)
+					sourcePath.add(libraryRoot)
+					break
+			}
 		}
 	}
 }
