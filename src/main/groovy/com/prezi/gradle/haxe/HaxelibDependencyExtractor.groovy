@@ -94,7 +94,7 @@ class HaxelibDependencyExtractor {
 		}
 
 		if (type == null) {
-			throw new RuntimeException("Unsupported library type")
+			throw new RuntimeException("Unsupported library type: ${file}")
 		}
 
 		switch (type) {
