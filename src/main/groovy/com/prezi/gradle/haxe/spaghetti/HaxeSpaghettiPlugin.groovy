@@ -3,6 +3,7 @@ package com.prezi.gradle.haxe.spaghetti
 import com.prezi.gradle.haxe.HaxeCompiledBinary
 import com.prezi.gradle.haxe.HaxePlugin
 import com.prezi.gradle.haxe.HaxeSourceBinary
+import com.prezi.gradle.haxe.MUnit
 import com.prezi.spaghetti.gradle.SpaghettiBasePlugin
 import com.prezi.spaghetti.gradle.SpaghettiExtension
 import com.prezi.spaghetti.gradle.SpaghettiGeneratedSourceSet
@@ -70,6 +71,14 @@ class HaxeSpaghettiPlugin implements Plugin<Project> {
 					void execute(HaxeSourceBinary sourceBinary) {
 						sourceBinary.source.add spaghettiGeneratedSourceSet
 						HaxeSpaghettiPlugin.logger.debug("Added ${spaghettiGeneratedSourceSet} to ${sourceBinary}")
+					}
+				})
+
+				project.tasks.withType(MUnit).all(new Action<MUnit>() {
+					@Override
+					void execute(MUnit testTask) {
+						testTask.source(spaghettiGeneratedSourceSet)
+						HaxeSpaghettiPlugin.logger.debug("Added ${spaghettiGeneratedSourceSet} to ${testTask}")
 					}
 				})
 			}
