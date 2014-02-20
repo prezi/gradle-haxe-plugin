@@ -45,13 +45,13 @@ class MUnit extends AbstractHaxeCompileTask {
 		project.mkdir(output.parentFile)
 
 		def sources = getSourceSets()
+		def testSources = getTestSources()
+		Set<LanguageSourceSet> allSources = sources + testSources
+		Map<String, File> allResources = getEmbeddedResources() + getEmbeddedTestResources()
 		def builder = new HaxeCommandBuilder(project)
 				.withSources([testSourcesDirectory])
 				.withSources(getAllSourceDirectories(sources))
-				.withSourceSets(sources)
-				.withEmbeddedResources(getEmbeddedResources())
-				.withSourceSets(testSources)
-				.withEmbeddedResources(getEmbeddedTestResources())
+				.withSourceSets(allSources, allResources)
 				.withIncludes(getIncludes())
 				.withExcludes(getExcludes())
 				.withMacros(getMacros())

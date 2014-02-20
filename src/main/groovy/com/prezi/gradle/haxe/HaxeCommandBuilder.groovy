@@ -67,7 +67,7 @@ class HaxeCommandBuilder {
 		this
 	}
 
-	HaxeCommandBuilder withEmbeddedResources(Map<String, File> embeddedResources)
+	private HaxeCommandBuilder withEmbeddedResources(Map<String, File> embeddedResources)
 	{
 		embeddedResources.each { String name, File file ->
 			def filePath = file.getAbsolutePath()
@@ -82,13 +82,15 @@ class HaxeCommandBuilder {
 		this
 	}
 
-	HaxeCommandBuilder withSourceSets(DomainObjectSet<LanguageSourceSet> sources) {
+	HaxeCommandBuilder withSourceSets(Set<LanguageSourceSet> sources, Map<String, File> embeddedResources) {
 		LinkedHashSet<File> sourcePath = []
 		LinkedHashSet<File> resourcePath = []
-		LinkedHashMap<String, File> allEmbeddedResources = [:]
+		LinkedHashMap<String, File> allEmbeddedResources = new LinkedHashMap<>(embeddedResources)
 
-		sources.withType(HaxeSourceSet) { source ->
-			extractor.extractDependenciesFrom(source.compileClassPath, sourcePath, resourcePath, allEmbeddedResources)
+		sources.each { source ->
+			if (source instanceof HaxeSourceSet) {
+				extractor.extractDependenciesFrom(source.compileClassPath, sourcePath, resourcePath, allEmbeddedResources)
+			}
 		}
 
 		withSources(sourcePath)

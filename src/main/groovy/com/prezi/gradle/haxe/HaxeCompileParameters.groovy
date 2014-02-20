@@ -27,7 +27,7 @@ class HaxeCompileParameters {
 		excludes.add(thing)
 	}
 
-	List<String> flagList = []
+	LinkedHashSet<String> flagList = []
 	public void flag(String... flag)
 	{
 		flagList.addAll(flag)
@@ -52,7 +52,7 @@ class HaxeCompileParameters {
 		task.conventionMapping.macros = { new ArrayList<>(params*.macros.flatten()) }
 		task.conventionMapping.includes = { new LinkedHashSet<>(params*.includes.flatten()) }
 		task.conventionMapping.excludes = { new LinkedHashSet<>(params*.excludes.flatten()) }
-		task.conventionMapping.flagList = { new ArrayList<>(params*.flagList.flatten()) }
+		task.conventionMapping.flagList = { new LinkedHashSet<>(params*.flagList.flatten()) }
 		task.conventionMapping.spaghetti = { params*.spaghetti.find { it } }
 		task.conventionMapping.debug = { params*.debug.find { it } != null }
 	}
