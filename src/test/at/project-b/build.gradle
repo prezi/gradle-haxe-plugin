@@ -1,5 +1,7 @@
-targetPlatforms {
-	js
+haxe {
+	targetPlatforms {
+		js
+	}
 }
 
 dependencies {

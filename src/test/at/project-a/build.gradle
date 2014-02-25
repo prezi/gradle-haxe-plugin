@@ -1,15 +1,17 @@
-targetPlatforms {
+haxe {
 	main "prezi.test.Main"
 	include "prezi.test"
 
-	js {
-		flavors {
-			node {
-				main "prezi.test.NodeMain"
+	targetPlatforms {
+		js {
+			flavors {
+				node {
+					main "prezi.test.NodeMain"
+				}
 			}
 		}
+		// swf
 	}
-	// swf
 }
 
 dependencies {
@@ -27,4 +29,8 @@ compileJsNode {
 	doFirst {
 		println "Running node compile"
 	}
+}
+
+testJsNode {
+	enabled = false
 }
