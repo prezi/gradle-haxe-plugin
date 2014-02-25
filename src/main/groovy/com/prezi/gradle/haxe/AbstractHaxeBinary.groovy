@@ -1,6 +1,7 @@
 package com.prezi.gradle.haxe
 
 import org.gradle.api.DomainObjectCollection
+import org.gradle.api.artifacts.Configuration
 import org.gradle.api.internal.DefaultDomainObjectSet
 import org.gradle.language.base.LanguageSourceSet
 import org.gradle.language.base.internal.AbstractBuildableModelElement
@@ -13,13 +14,15 @@ import org.gradle.language.base.internal.BinaryNamingScheme
 abstract class AbstractHaxeBinary extends AbstractBuildableModelElement implements HaxeBinary, BinaryInternal {
 	private final source = new DefaultDomainObjectSet<>(LanguageSourceSet.class)
 	private final String name
+	private final Configuration configuration
 	private final BinaryNamingScheme namingScheme
 	private final TargetPlatform targetPlatform
 	private final Flavor flavor
 
-	protected AbstractHaxeBinary(String parentName, TargetPlatform targetPlatform, Flavor flavor) {
+	protected AbstractHaxeBinary(String parentName, Configuration configuration, TargetPlatform targetPlatform, Flavor flavor) {
 		this.namingScheme = new HaxeBinaryNamingScheme(parentName)
 		this.name = namingScheme.getLifecycleTaskName()
+		this.configuration = configuration
 		this.targetPlatform = targetPlatform
 		this.flavor = flavor
 	}
@@ -27,6 +30,11 @@ abstract class AbstractHaxeBinary extends AbstractBuildableModelElement implemen
 	@Override
 	String getName() {
 		return name
+	}
+
+	@Override
+	Configuration getConfiguration() {
+		return configuration
 	}
 
 	@Override

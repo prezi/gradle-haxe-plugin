@@ -121,7 +121,9 @@ class HaxePlugin implements Plugin<Project> {
 				def mainLanguageSets = getLanguageSets(main, platformMain)
 				def testLanguageSets = getLanguageSets(test, platformTest)
 
-				createBinariesAndTasks(project, targetPlatform.name, targetPlatform, null, mainLanguageSets, testLanguageSets)
+				createBinariesAndTasks(project, targetPlatform.name, targetPlatform, null,
+						mainLanguageSets, testLanguageSets,
+						platformMainCompile, platformTestCompile)
 
 				// Add some flavor
 				targetPlatform.flavors.all(new Action<Flavor>() {
@@ -145,7 +147,9 @@ class HaxePlugin implements Plugin<Project> {
 						def flavorMainLanguageSets = getLanguageSets(main, platformMain, flavorMain)
 						def flavorTestLanguageSets = getLanguageSets(test, platformTest, flavorTest)
 
-						createBinariesAndTasks(project, flavorName, targetPlatform, flavor, flavorMainLanguageSets, flavorTestLanguageSets)
+						createBinariesAndTasks(project, flavorName, targetPlatform, flavor,
+								flavorMainLanguageSets, flavorTestLanguageSets,
+								flavorMainCompile, flavorTestCompile)
 					}
 				})
 			}
@@ -168,11 +172,9 @@ class HaxePlugin implements Plugin<Project> {
 				binary.builtBy(sourceTask)
 
 				// TODO This should state more clearly what it does
-				binary.source.withType(HaxeSourceSet)*.compileClassPath.each { Configuration configuration ->
-					project.artifacts.add(configuration.name, sourceTask) {
-						name = project.name + "-" + binary.name
-						type = "har"
-					}
+				project.artifacts.add(binary.configuration.name, sourceTask) {
+					name = project.name + "-" + binary.name
+					type = "har"
 				}
 				HaxePlugin.logger.debug("Created source source task ${sourceTask} for ${binary}")
 			}
@@ -211,22 +213,23 @@ class HaxePlugin implements Plugin<Project> {
 
 	private static void createBinariesAndTasks(
 			Project project, String name, TargetPlatform targetPlatform, Flavor flavor,
-			DomainObjectSet<LanguageSourceSet> mainLanguageSets, DomainObjectSet<LanguageSourceSet> testLanguageSets) {
+			DomainObjectSet<LanguageSourceSet> mainLanguageSets, DomainObjectSet<LanguageSourceSet> testLanguageSets,
+			Configuration mainConfiguration, Configuration testConfiguration) {
 		def binaryContainer = project.getExtensions().getByType(BinaryContainer.class)
 
 		// Add compiled binary
-		def compiledHaxe = new DefaultHaxeCompiledBinary(name, targetPlatform, flavor)
+		def compiledHaxe = new DefaultHaxeCompiledBinary(name, mainConfiguration, targetPlatform, flavor)
 		compiledHaxe.source.addAll(mainLanguageSets)
 		binaryContainer.add(compiledHaxe)
 		HaxePlugin.logger.debug("Added compiled binary ${compiledHaxe}")
 
 		// Add source bundle binary
-		def sourceHaxe = new DefaultHaxeSourceBinary("source" + name.capitalize(), targetPlatform, flavor)
+		def sourceHaxe = new DefaultHaxeSourceBinary("source" + name.capitalize(), mainConfiguration, targetPlatform, flavor)
 		sourceHaxe.source.addAll(mainLanguageSets)
 		binaryContainer.add(sourceHaxe)
 		HaxePlugin.logger.debug("Added source binary ${sourceHaxe}")
 
-		def munit = createMUnitTask(project, name, targetPlatform, flavor, mainLanguageSets, testLanguageSets)
+		def munit = createMUnitTask(project, name, targetPlatform, flavor, mainLanguageSets, testLanguageSets, testConfiguration)
 		HaxePlugin.logger.debug("Added MUnit task ${munit}")
 	}
 
@@ -267,12 +270,12 @@ class HaxePlugin implements Plugin<Project> {
 
 		project.tasks.getByName(namingScheme.getLifecycleTaskName()).dependsOn compileTask
 		// Let' depend on the input configurations
-		compileTask.dependsOn binary.source.withType(HaxeSourceSet)*.compileClassPath
+		compileTask.dependsOn binary.configuration
 		compileTask.dependsOn binary.source
 		return compileTask
 	}
 
-	private static MUnit createMUnitTask(Project project, String name, TargetPlatform targetPlatform, Flavor flavor, DomainObjectSet<LanguageSourceSet> main, DomainObjectSet<LanguageSourceSet> test) {
+	private static MUnit createMUnitTask(Project project, String name, TargetPlatform targetPlatform, Flavor flavor, DomainObjectSet<LanguageSourceSet> main, DomainObjectSet<LanguageSourceSet> test, Configuration testConfiguration) {
 		def munitTask = project.task("test" + name.capitalize(), type: MUnit) {
 			description = "Runs ${targetPlatform.name} tests"
 		} as MUnit
@@ -286,8 +289,7 @@ class HaxePlugin implements Plugin<Project> {
 		HaxeCompileParameters.setConvention(munitTask, getParams(project, targetPlatform, flavor))
 
 		// Let' depend on the input configurations (both from main and test)
-		munitTask.dependsOn main.withType(HaxeSourceSet)*.compileClassPath
-		munitTask.dependsOn test.withType(HaxeSourceSet)*.compileClassPath
+		munitTask.dependsOn testConfiguration
 		munitTask.dependsOn main, test
 		return munitTask
 	}
