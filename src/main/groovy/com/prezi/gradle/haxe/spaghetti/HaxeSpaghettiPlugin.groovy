@@ -78,6 +78,7 @@ class HaxeSpaghettiPlugin implements Plugin<Project> {
 					@Override
 					void execute(MUnit testTask) {
 						testTask.source(spaghettiGeneratedSourceSet)
+						testTask.dependsOn spaghettiGeneratedSourceSet
 						HaxeSpaghettiPlugin.logger.debug("Added ${spaghettiGeneratedSourceSet} to ${testTask}")
 					}
 				})
