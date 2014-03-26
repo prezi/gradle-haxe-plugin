@@ -46,7 +46,7 @@ class HaxeCompileParameters {
 		this.spaghetti = output
 	}
 
-	static void setConvention(IConventionAware task, Iterable<HaxeCompileParameters> params)
+	static void setConventionMapping(IConventionAware task, Iterable<HaxeCompileParameters> params)
 	{
 		task.conventionMapping.main = { params*.main.find { it } }
 		task.conventionMapping.macros = { new ArrayList<>(params*.macros.flatten()) }

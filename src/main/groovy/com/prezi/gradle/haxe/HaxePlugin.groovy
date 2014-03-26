@@ -266,7 +266,7 @@ class HaxePlugin implements Plugin<Project> {
 		compileTask.conventionMapping.embeddedResources = { gatherEmbeddedResources(binary.source) }
 		compileTask.conventionMapping.outputFile = { project.file("${project.buildDir}/compiled-haxe/${namingScheme.outputDirectoryBase}/${binary.name}.${binary.targetPlatform.name}") }
 
-		HaxeCompileParameters.setConvention(compileTask, getParams(project, binary.targetPlatform, binary.flavor))
+		HaxeCompileParameters.setConventionMapping(compileTask, getParams(project, binary.targetPlatform, binary.flavor))
 
 		project.tasks.getByName(namingScheme.getLifecycleTaskName()).dependsOn compileTask
 		// Let' depend on the input configurations
@@ -286,7 +286,7 @@ class HaxePlugin implements Plugin<Project> {
 		munitTask.conventionMapping.embeddedTestResources = { gatherEmbeddedResources(test.withType(HaxeResourceSet)) }
 		munitTask.conventionMapping.workingDirectory = { project.file("${project.buildDir}/munit-work/" + targetPlatform.name) }
 
-		HaxeCompileParameters.setConvention(munitTask, getParams(project, targetPlatform, flavor))
+		HaxeCompileParameters.setConventionMapping(munitTask, getParams(project, targetPlatform, flavor))
 
 		// Let' depend on the input configurations (both from main and test)
 		munitTask.dependsOn testConfiguration
