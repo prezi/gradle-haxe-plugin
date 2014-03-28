@@ -93,11 +93,7 @@ class HaxePlugin implements Plugin<Project> {
 		})
 
 		// Add "haxe" extension
-		def extension = project.getExtensions().create(
-				"haxe",
-				HaxeExtension.class,
-				instantiator
-		);
+		def extension = project.extensions.create("haxe", HaxeExtension, project)
 		def targetPlatforms = extension.targetPlatforms
 
 		// For each target platform add functional source sets

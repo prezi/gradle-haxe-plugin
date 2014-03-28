@@ -1,7 +1,8 @@
 package com.prezi.gradle.haxe
 
 import org.gradle.api.Action
-import org.gradle.internal.reflect.Instantiator
+import org.gradle.api.NamedDomainObjectContainer
+import org.gradle.api.Project
 
 import javax.inject.Inject
 
@@ -11,23 +12,25 @@ import javax.inject.Inject
 class HaxeExtension {
 	@Delegate(deprecated = true)
 	private final HaxeCompileParameters params
-	private final TargetPlatformContainer targetPlatforms
+	private final NamedDomainObjectContainer<TargetPlatform> targetPlatforms
 
 	@Inject
-	HaxeExtension(Instantiator instantiator) {
+	HaxeExtension(Project project) {
 		this.params = new HaxeCompileParameters()
-		this.targetPlatforms = instantiator.newInstance(DefaultTargetPlatformContainer, instantiator)
+		this.targetPlatforms = project.container(TargetPlatform, { platformName ->
+			new DefaultTargetPlatform(platformName, project)
+		})
 	}
 
 	HaxeCompileParameters getParams() {
 		return params
 	}
 
-	TargetPlatformContainer getTargetPlatforms() {
+	NamedDomainObjectContainer<TargetPlatform> getTargetPlatforms() {
 		return targetPlatforms
 	}
 
-	public void targetPlatforms(Action<TargetPlatformContainer> action) {
+	public void targetPlatforms(Action<? super NamedDomainObjectContainer<TargetPlatform>> action) {
 		action.execute(targetPlatforms)
 	}
 }
