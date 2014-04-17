@@ -31,12 +31,11 @@ class MUnit extends AbstractHaxeCompileTask {
 		}
 
 		// Extract Require JS
-		File requireJsFile = null
 		if (getTargetPlatform().name == "js") {
 			def requireJsProps = new Properties()
 			requireJsProps.load(this.class.getResourceAsStream("/META-INF/maven/org.webjars/requirejs/pom.properties"))
 			def requireJsVersion = requireJsProps.getProperty("version")
-			requireJsFile = new File(workDir, "require.js")
+			def requireJsFile = new File(workDir, "require.js")
 			requireJsFile.delete()
 			requireJsFile << this.class.getResourceAsStream("/META-INF/resources/webjars/requirejs/${requireJsVersion}/require.js")
 		}
