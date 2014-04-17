@@ -10,7 +10,7 @@ class HaxeCompile extends AbstractHaxeCompileTask {
 	@TaskAction
 	void compile()
 	{
-		def output = getAndCreateOutput()
+		def output = getAndRecreateOutput()
 		def sources = getSourceSets()
 		def builder = new HaxeCommandBuilder(project, "haxe")
 				.withMain(getMain())
@@ -49,18 +49,20 @@ class HaxeCompile extends AbstractHaxeCompileTask {
 		this.outputDirectory = project.file(file)
 	}
 
-	private File getAndCreateOutput()
+	private File getAndRecreateOutput()
 	{
 		File output
 		File dirToMake
 		if (isOutputInADirectory())
 		{
 			output = getOutputDirectory()
+			output.delete() || output.deleteDir()
 			dirToMake = output
 		}
 		else
 		{
 			output = getOutputFile()
+			output.delete()
 			dirToMake = output.parentFile
 		}
 		project.mkdir(dirToMake)
