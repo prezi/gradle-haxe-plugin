@@ -20,6 +20,7 @@ class MUnit extends AbstractHaxeCompileTask {
 	void munit()
 	{
 		def workDir = getWorkingDirectory()
+		workDir.delete() || workDir.deleteDir()
 		workDir.mkdirs()
 
 		// Copy all tests into one directory
