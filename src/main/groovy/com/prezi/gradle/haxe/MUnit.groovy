@@ -1,7 +1,7 @@
 package com.prezi.gradle.haxe
 
 import com.prezi.gradle.haxe.spaghetti.HaxeSpaghettiPlugin
-import com.prezi.spaghetti.gradle.ModuleExtractor
+import com.prezi.spaghetti.gradle.ModuleDefinitionLookup
 import org.gradle.api.DomainObjectSet
 import org.gradle.api.internal.DefaultDomainObjectSet
 import org.gradle.api.tasks.InputFiles
@@ -76,8 +76,9 @@ class MUnit extends AbstractHaxeCompileTask {
 			haxeCmd += "\n-cmd haxe -cp ${bundleFile.parentFile} --run SpaghettiBundler module ${output}"
 			[ sources, testSources ].each {
 				it.withType(HaxeSourceSet).each { haxeSourceSet ->
-					ModuleExtractor.extractModules(haxeSourceSet.compileClassPath, workDir).each { bundle ->
-						haxeCmd += " ${bundle.name}"
+					ModuleDefinitionLookup.getAllBundles(haxeSourceSet.compileClassPath).each { bundle ->
+						bundle.extract(new File(workDir, bundle.name))
+						haxeCmd += " ${bundle.name}/${bundle.name}"
 					}
 				}
 			}
