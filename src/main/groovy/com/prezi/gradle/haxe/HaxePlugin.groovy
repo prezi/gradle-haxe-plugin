@@ -157,9 +157,9 @@ class HaxePlugin implements Plugin<Project> {
 				def compileTask = createCompileTask(project, binary)
 				binary.setCompileTask(compileTask)
 				binary.builtBy(compileTask)
-				HaxePlugin.logger.debug("Created compile task ${compileTask} for ${binary}")
 			}
 		})
+				HaxePlugin.logger.debug("Created compile task ${compileTask} for ${binary} in ${project.path}")
 
 		// Add a source task for each source binary
 		binaryContainer.withType(HaxeSourceBinary).all(new Action<HaxeSourceBinary>() {
