@@ -1,17 +1,11 @@
 buildscript {
 	repositories {
 		mavenLocal()
-		maven {
-			credentials {
-				username nexusUser
-				password nexusPassword
-			}
-			url "https://artifactory.prezi.com/repo"
-		}
+		mavenCentral()
 	}
 
 	dependencies {
-		classpath "com.prezi.gradle:gradle-haxe-plugin:2.0-SNAPSHOT"
+		classpath "com.prezi.haxe:gradle-haxe-plugin:2.0-SNAPSHOT"
 	}
 }
 

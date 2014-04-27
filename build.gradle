@@ -1,4 +1,4 @@
-group = 'com.prezi.gradle'
+group = 'com.prezi.haxe'
 
 buildscript {
 	repositories {
