@@ -21,10 +21,6 @@ dependencies {
 	test group: "haxelib3", name: "munit", version: "2.1.0"
 }
 
-compileJs {
-	spaghetti "module"
-}
-
 compileJsNode {
 	doFirst {
 		println "Running node compile"
