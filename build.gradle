@@ -24,6 +24,10 @@ dependencies {
 	compile "org.webjars:requirejs:2.1.8"
 }
 
+jar {
+	from "LICENSE.txt"
+}
+
 task run(type: Exec) {
 	dependsOn install
 	workingDir "src/test/at"
