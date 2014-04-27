@@ -1,6 +1,5 @@
-package com.prezi.gradle.gradle
+package com.prezi.haxe.gradle
 
-import com.prezi.haxe.gradle.EmbeddedResourceEncoding
 import spock.lang.Specification
 
 class EmbeddedResourceEncodingTest extends Specification {
