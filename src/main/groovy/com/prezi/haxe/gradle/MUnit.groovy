@@ -23,7 +23,6 @@ class MUnit extends AbstractHaxeCompileTask {
 
 		def sources = getSourceSets()
 		def testSources = getTestSourceSets()
-		Set<LanguageSourceSet> allSources = sources + testSources
 		Map<String, File> allResources = getEmbeddedResources() + getEmbeddedTestResources()
 
 		// Copy all tests into one directory
