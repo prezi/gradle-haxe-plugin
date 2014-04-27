@@ -217,10 +217,10 @@ class HaxeBasePlugin implements Plugin<Project> {
 		return config
 	}
 
-	public static HaxeCompile createCompileTask(Project project, HaxeBinary binary) {
+	public static HaxeCompile createCompileTask(Project project, HaxeBinary binary, Class<? extends HaxeCompile> compileType) {
 		def namingScheme = ((BinaryInternal) binary).namingScheme
 		def compileTaskName = namingScheme.getTaskName("compile")
-		HaxeCompile compileTask = project.tasks.create(compileTaskName, HaxeCompile)
+		HaxeCompile compileTask = project.tasks.create(compileTaskName, compileType)
 		compileTask.description = "Compiles $binary"
 		binary.source.all { compileTask.source it }
 		compileTask.conventionMapping.targetPlatform = { binary.targetPlatform }
@@ -240,10 +240,10 @@ class HaxeBasePlugin implements Plugin<Project> {
 		return compileTask
 	}
 
-	public static MUnit createMUnitTask(Project project, HaxeBinary binary) {
+	public static MUnit createMUnitTask(Project project, HaxeBinary binary, Class<? extends MUnit> munitType) {
 		def namingScheme = ((BinaryInternal) binary).namingScheme
 		def munitTaskName = namingScheme.getTaskName("test")
-		def munitTask = project.tasks.create(munitTaskName, MUnit)
+		def munitTask = project.tasks.create(munitTaskName, munitType)
 		munitTask.description = "Tests ${binary}"
 		binary.source.all { munitTask.source it }
 		binary.testSource.all { munitTask.testSource it }
@@ -261,14 +261,12 @@ class HaxeBasePlugin implements Plugin<Project> {
 		return munitTask
 	}
 
-	public static Har createSourceTask(Project project, HaxeBinary binary) {
+	public static Har createSourceTask(Project project, HaxeBinary binary, Class<? extends Har> harType) {
 		def namingScheme = ((BinaryInternal) binary).namingScheme
 
 		def sourceTaskName = namingScheme.getTaskName("bundle", "source")
-		Har sourceTask = project.task(sourceTaskName, type: Har) {
-			description = "Bundles the sources of $binary"
-		} as Har
-
+		Har sourceTask = project.tasks.create(sourceTaskName, harType)
+		sourceTask.description = "Bundles the sources of $binary"
 		sourceTask.conventionMapping.baseName = { project.name }
 		sourceTask.conventionMapping.destinationDir = { project.file("${project.buildDir}/haxe-source/${namingScheme.outputDirectoryBase}") }
 		sourceTask.conventionMapping.embeddedResources = { gatherEmbeddedResources(binary.source) }
