@@ -11,7 +11,7 @@ import org.gradle.language.base.LanguageSourceSet
 import java.util.regex.Pattern
 
 class MUnit extends AbstractHaxeCompileTask {
-	final DomainObjectSet<LanguageSourceSet> testSources = new DefaultDomainObjectSet<>(LanguageSourceSet)
+	final Set<Object> testSources = []
 	LinkedHashMap<String, File> embeddedTestResources = [:]
 
 	static final Pattern SUCCESSFUL_TEST_PATTERN = ~/(?m)^PLATFORMS TESTED: \d+, PASSED: \d+, FAILED: 0, ERRORS: 0, TIME:/
@@ -22,6 +22,11 @@ class MUnit extends AbstractHaxeCompileTask {
 		def workDir = getWorkingDirectory()
 		workDir.delete() || workDir.deleteDir()
 		workDir.mkdirs()
+
+		def sources = getSourceSets()
+		def testSources = getTestSourceSets()
+		Set<LanguageSourceSet> allSources = sources + testSources
+		Map<String, File> allResources = getEmbeddedResources() + getEmbeddedTestResources()
 
 		// Copy all tests into one directory
 		def testSourcesDirectory = new File(workDir, "tests")
@@ -44,10 +49,6 @@ class MUnit extends AbstractHaxeCompileTask {
 		def output = getOutput()
 		project.mkdir(output.parentFile)
 
-		def sources = getSourceSets()
-		def testSources = getTestSources()
-		Set<LanguageSourceSet> allSources = sources + testSources
-		Map<String, File> allResources = getEmbeddedResources() + getEmbeddedTestResources()
 		def builder = new HaxeCommandBuilder(project)
 				.withSources([testSourcesDirectory])
 				.withSources(getAllSourceDirectories(sources))
@@ -128,9 +129,12 @@ class MUnit extends AbstractHaxeCompileTask {
 	}
 
 	public testSource(Object... sources) {
-		sources.each { source ->
-			this.testSources.addAll(notationParser.parseNotation(source))
-		}
+		testSources.addAll(sources)
+	}
+
+	protected DomainObjectSet<LanguageSourceSet> getTestSourceSets() {
+		def testSourceSets = getTestSources().collectMany { notationParser.parseNotation(it) }
+		return new DefaultDomainObjectSet<LanguageSourceSet>(LanguageSourceSet, testSourceSets)
 	}
 
 	private File getOutput()
