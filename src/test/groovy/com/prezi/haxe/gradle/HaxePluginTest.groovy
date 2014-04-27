@@ -2,6 +2,7 @@ package com.prezi.haxe.gradle
 
 import org.gradle.api.Project
 import org.gradle.api.Task
+import org.gradle.language.base.BinaryContainer
 import org.gradle.language.base.LanguageSourceSet
 import org.gradle.language.base.ProjectSourceSet
 import org.gradle.language.jvm.ResourceSet
@@ -52,6 +53,9 @@ class HaxePluginTest extends Specification {
 		// Group tasks should be created, but should not depend on other tasks
 		compileTask.dependsOn.findAll { it instanceof Task }.empty
 		testTask.dependsOn.findAll { it instanceof Task }.empty
+
+		// There should be no binaries
+		project.extensions.getByType(BinaryContainer).empty
 	}
 
 	@SuppressWarnings("GroovyAssignabilityCheck")
@@ -82,6 +86,37 @@ class HaxePluginTest extends Specification {
 		project.configurations.getByName("jsTest").extendsFrom*.name.sort() == ["js", "test"]
 	}
 
+	def "js target platform creates binaries"() {
+		configureWithJsTargetPlatform()
+		def binaryContainer = project.extensions.getByType(BinaryContainer)
+		HaxeBinary binary = binaryContainer.iterator().next() as HaxeBinary
+
+		expect:
+		binaryContainer.size() == 1
+		binary.name == "js"
+		binary.buildDependencies.getDependencies(null)*.name == ["js"]
+		binary.compileTask.name == "compileJs"
+		binary.sourceHarTask.name == "bundleJsSource"
+		binary.targetPlatform.name == "js"
+		binary.flavor == null
+		binary.configuration.name == "js"
+		binary.testConfiguration.name == "jsTest"
+
+		sourceDirs(binary.source) == files(
+				"src/main/haxe",
+				"src/main/resources",
+				"src/js/haxe",
+				"src/js/resources"
+		)
+
+		sourceDirs(binary.testSource) == files(
+				"src/test/haxe",
+				"src/test/resources",
+				"src/jsTest/haxe",
+				"src/jsTest/resources"
+		)
+	}
+
 	def "js target platform creates tasks"() {
 		configureWithJsTargetPlatform()
 		HaxeCompile compileTask = project.tasks.getByName("compileJs") as HaxeCompile
@@ -89,6 +124,8 @@ class HaxePluginTest extends Specification {
 		// TODO Somehow test the source bundle task
 
 		expect:
+		compileTask.outputFile == project.file("${project.buildDir}/compiled-haxe/js/js.js")
+		compileTask.outputDirectory == null
 		compileTask.targetPlatform.name == "js"
 		sourceDirs(compileTask.sourceSets) == files(
 				"src/main/haxe",
