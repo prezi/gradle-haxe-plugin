@@ -157,7 +157,7 @@ class MUnit extends AbstractHaxeCompileTask {
 	@Override
 	@InputFiles
 	Set<File> getInputFiles() {
-		return super.getInputFiles() + getAllSourceDirectories(testSources) + getEmbeddedTestResources()
+		return super.getInputFiles() + getAllSourceDirectories(getTestSourceSets()) + getEmbeddedTestResources().values()
 	}
 
 	File workingDirectory
