@@ -1,8 +1,9 @@
 package com.prezi.gradle.haxe.spaghetti
 
+import com.prezi.gradle.haxe.Har
+import com.prezi.gradle.haxe.HaxeBasePlugin
 import com.prezi.gradle.haxe.HaxeBinary
 import com.prezi.gradle.haxe.HaxeExtension
-import com.prezi.gradle.haxe.HaxePlugin
 import com.prezi.spaghetti.gradle.SpaghettiBasePlugin
 import com.prezi.spaghetti.gradle.SpaghettiExtension
 import com.prezi.spaghetti.gradle.SpaghettiGeneratedSourceSet
@@ -38,7 +39,7 @@ class HaxeSpaghettiPlugin implements Plugin<Project> {
 		def spaghettiExtension = project.extensions.getByType(SpaghettiExtension)
 		spaghettiExtension.platform = "haxe"
 
-		project.plugins.apply(HaxePlugin)
+		project.plugins.apply(HaxeBasePlugin)
 		project.plugins.apply(SpaghettiPlugin)
 
 		def binaryContainer = project.extensions.getByType(BinaryContainer)
@@ -68,23 +69,20 @@ class HaxeSpaghettiPlugin implements Plugin<Project> {
 			}
 		})
 
-		// Create Spaghetti compatible binary
+		// For every Haxe binary...
 		binaryContainer.withType(HaxeBinary).all(new Action<HaxeBinary>() {
 			@Override
 			void execute(HaxeBinary binary) {
+				// Create Spaghetti compatible binary
 				def jsBinary = instantiator.newInstance(DefaultHaxeCompiledSpaghettiCompatibleJavaScriptBinary, binary)
 				jsBinary.builtBy(binary.getBuildDependencies())
 				binaryContainer.add(jsBinary)
+
+				// Add a compile, source and munit task
+				HaxeBasePlugin.createCompileTask(project, binary, HaxeCompileWithSpaghetti)
+				HaxeBasePlugin.createSourceTask(project, binary, Har)
+				HaxeBasePlugin.createMUnitTask(project, binary, MUnitWithSpaghetti)
 			}
 		})
-	}
-
-	public static File getSpaghettiBundleTool(Project project) {
-		def workDir = project.file("${project.buildDir}/spaghetti-haxe")
-		workDir.mkdirs()
-		def bundleFile = new File(workDir, "SpaghettiBundler.hx")
-		bundleFile.delete()
-		bundleFile << HaxeSpaghettiPlugin.class.classLoader.getResourceAsStream("SpaghettiBundler.hx").text
-		return bundleFile
 	}
 }

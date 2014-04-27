@@ -45,15 +45,6 @@ class HaxeCompileParameters {
 		this.debug = debug
 	}
 
-	@Input
-	String spaghetti
-	public spaghetti(String output) {
-		if (!(output in ["module", "application"])) {
-			throw new IllegalArgumentException("spaghetti argument must be either 'module' or 'application'")
-		}
-		this.spaghetti = output
-	}
-
 	static void setConventionMapping(IConventionAware task, Iterable<HaxeCompileParameters> params)
 	{
 		task.conventionMapping.main = { params*.main.find { it } }
@@ -61,7 +52,6 @@ class HaxeCompileParameters {
 		task.conventionMapping.includes = { new LinkedHashSet<>(params*.includes.flatten()) }
 		task.conventionMapping.excludes = { new LinkedHashSet<>(params*.excludes.flatten()) }
 		task.conventionMapping.flagList = { new LinkedHashSet<>(params*.flagList.flatten()) }
-		task.conventionMapping.spaghetti = { params*.spaghetti.find { it } }
 		task.conventionMapping.debug = { params*.debug.find { it } != null }
 	}
 

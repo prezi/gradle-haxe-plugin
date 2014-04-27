@@ -1,11 +1,6 @@
 package com.prezi.gradle.haxe
 
-import com.prezi.gradle.haxe.spaghetti.HaxeSpaghettiPlugin
-import com.prezi.spaghetti.ModuleBundle
-import com.prezi.spaghetti.gradle.ModuleDefinitionLookup
-import org.gradle.api.DomainObjectSet
 import org.gradle.api.Project
-import org.gradle.api.artifacts.Configuration
 import org.gradle.language.base.LanguageSourceSet
 
 class HaxeCommandBuilder {
@@ -25,7 +20,7 @@ class HaxeCommandBuilder {
 		cmd
 	}
 
-	private append(Object... what)
+	public append(Object... what)
 	{
 		what.each { cmd.push(String.valueOf(it)) }
 	}
@@ -111,22 +106,6 @@ class HaxeCommandBuilder {
 		if (debug)
 		{
 			withFlags(["-D fdb", "-debug"])
-		}
-		this
-	}
-
-	HaxeCommandBuilder withSpaghetti(String spaghettiType, File output, Collection<Configuration> configurations)
-	{
-		if (spaghettiType != null)
-		{
-			def bundleFile = HaxeSpaghettiPlugin.getSpaghettiBundleTool(project)
-			append("--next", "-cp", bundleFile.parentFile, "--run", "SpaghettiBundler", spaghettiType, output)
-			def bundles = configurations.collectMany(new HashSet<ModuleBundle>()) { configuration ->
-				ModuleDefinitionLookup.getAllBundles((Configuration) configuration)
-			}
-			append(bundles.collect { ModuleBundle bundle ->
-				bundle.name
-			}.sort { it }.unique().toArray())
 		}
 		this
 	}

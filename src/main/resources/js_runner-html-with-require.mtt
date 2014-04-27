@@ -17,6 +17,12 @@
     <div id="haxe:trace" ></div>
     <div id="munit" class="munit" >
     </div>
-    <script language='JavaScript' type='text/JavaScript' src="::runnerName::"></script>
+    <script src="../../require.js"></script>
+    <script>
+        require.config({
+            baseUrl: "../.."
+        });
+        require(["::runnerName::"]);
+    </script>
   </body>
 </html>

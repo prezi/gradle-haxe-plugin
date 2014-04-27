@@ -1,7 +1,5 @@
 package com.prezi.gradle.haxe
 
-import com.prezi.gradle.haxe.spaghetti.HaxeSpaghettiPlugin
-import com.prezi.spaghetti.gradle.ModuleDefinitionLookup
 import org.gradle.api.DomainObjectSet
 import org.gradle.api.internal.DefaultDomainObjectSet
 import org.gradle.api.tasks.InputFiles
@@ -29,39 +27,15 @@ class MUnit extends AbstractHaxeCompileTask {
 		Map<String, File> allResources = getEmbeddedResources() + getEmbeddedTestResources()
 
 		// Copy all tests into one directory
-		def testSourcesDirectory = new File(workDir, "tests")
-		testSourcesDirectory.mkdirs()
 		project.copy {
 			from testSources*.source*.srcDirs
 			into testSourcesDirectory
 		}
 
-		// Extract Require JS
-		if (getTargetPlatform().name == "js") {
-			def requireJsProps = new Properties()
-			requireJsProps.load(this.class.getResourceAsStream("/META-INF/maven/org.webjars/requirejs/pom.properties"))
-			def requireJsVersion = requireJsProps.getProperty("version")
-			def requireJsFile = new File(workDir, "require.js")
-			requireJsFile.delete()
-			requireJsFile << this.class.getResourceAsStream("/META-INF/resources/webjars/requirejs/${requireJsVersion}/require.js")
-		}
-
 		def output = getOutput()
 		project.mkdir(output.parentFile)
 
-		def builder = new HaxeCommandBuilder(project)
-				.withSources([testSourcesDirectory])
-				.withSources(getAllSourceDirectories(sources))
-				.withSourceSets(allSources, allResources)
-				.withIncludes(getIncludes())
-				.withExcludes(getExcludes())
-				.withMacros(getMacros())
-				.withFlags(getFlagList())
-				.withDebugFlags(getDebug())
-				.withTarget(getTargetPlatform().name, output)
-				.withMain("TestMain")
-		def haxeCmdParts = builder.build()
-
+		def haxeCmdParts = configureHaxeCommandLine(output, workDir, sources, testSources, allResources).build()
 		def haxeCmd = "";
 		haxeCmdParts.each {
 			if (it.startsWith("-")) {
@@ -70,19 +44,6 @@ class MUnit extends AbstractHaxeCompileTask {
 				haxeCmd += " "
 			}
 			haxeCmd += it
-		}
-
-		if (getTargetPlatform().name == "js") {
-			def bundleFile = HaxeSpaghettiPlugin.getSpaghettiBundleTool(project)
-			haxeCmd += "\n-cmd haxe -cp ${bundleFile.parentFile} --run SpaghettiBundler module ${output}"
-			[ sources, testSources ].each {
-				it.withType(HaxeSourceSet).each { haxeSourceSet ->
-					ModuleDefinitionLookup.getAllBundles(haxeSourceSet.compileClassPath).each { bundle ->
-						bundle.extract(new File(workDir, bundle.name))
-						haxeCmd += " ${bundle.name}/${bundle.name}"
-					}
-				}
-			}
 		}
 
 		def testHxml = new File(workDir, "test.hxml")
@@ -105,7 +66,7 @@ class MUnit extends AbstractHaxeCompileTask {
 			project.mkdir(templatesDir)
 			def jsRunnerTemplate = new File(templatesDir, "js_runner-html.mtt")
 			jsRunnerTemplate.delete()
-			jsRunnerTemplate << this.class.getResourceAsStream("/js_runner-html.mtt")
+			jsRunnerTemplate << getMUnitJsHtmlTemplate()
 		}
 
 		def munitCmd = new MUnitCommandBuilder(project).build()
@@ -126,6 +87,32 @@ class MUnit extends AbstractHaxeCompileTask {
 				throw new RuntimeException("There are failing tests");
 			}
 		}
+	}
+
+	protected InputStream getMUnitJsHtmlTemplate() {
+		return this.class.getResourceAsStream("/js_runner-html.mtt")
+	}
+
+	protected HaxeCommandBuilder configureHaxeCommandLine(File output, File workDir, DomainObjectSet<LanguageSourceSet> sources, Set<LanguageSourceSet> testSources, Map<String, File> allResources) {
+		Set<LanguageSourceSet> allSources = sources + testSources
+
+		return new HaxeCommandBuilder(project)
+				.withSources([testSourcesDirectory])
+				.withSources(getAllSourceDirectories(sources))
+				.withSourceSets(allSources, allResources)
+				.withIncludes(getIncludes())
+				.withExcludes(getExcludes())
+				.withMacros(getMacros())
+				.withFlags(getFlagList())
+				.withDebugFlags(getDebug())
+				.withTarget(getTargetPlatform().name, output)
+				.withMain("TestMain")
+	}
+
+	protected File getTestSourcesDirectory() {
+		def testSourcesDirectory = new File(getWorkingDirectory(), "tests")
+		testSourcesDirectory.mkdirs()
+		return testSourcesDirectory
 	}
 
 	public testSource(Object... sources) {

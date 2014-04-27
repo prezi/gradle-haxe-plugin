@@ -1,9 +1,11 @@
 package com.prezi.gradle.haxe
 
+import org.gradle.api.DomainObjectSet
 import org.gradle.api.tasks.Optional
 import org.gradle.api.tasks.OutputDirectory
 import org.gradle.api.tasks.OutputFile
 import org.gradle.api.tasks.TaskAction
+import org.gradle.language.base.LanguageSourceSet
 
 class HaxeCompile extends AbstractHaxeCompileTask {
 
@@ -12,7 +14,18 @@ class HaxeCompile extends AbstractHaxeCompileTask {
 	{
 		def output = getAndRecreateOutput()
 		def sources = getSourceSets()
-		def builder = new HaxeCommandBuilder(project, "haxe")
+		String[] cmd = configureHaxeCommandBuilder(output, sources).build()
+
+		CommandExecutor.execute(project, cmd, null) { ExecutionResult result ->
+			if (result.exitValue != 0)
+			{
+				throw new RuntimeException("Command finished with non-zero exit value (${result.exitValue}):\n${cmd.join(" ")}")
+			}
+		}
+	}
+
+	protected HaxeCommandBuilder configureHaxeCommandBuilder(File output, DomainObjectSet<LanguageSourceSet> sources) {
+		return new HaxeCommandBuilder(project, "haxe")
 				.withMain(getMain())
 				.withTarget(getTargetPlatform().name, output)
 				.withSources(getAllSourceDirectories(sources))
@@ -22,15 +35,6 @@ class HaxeCompile extends AbstractHaxeCompileTask {
 				.withExcludes(getExcludes())
 				.withFlags(getFlagList())
 				.withDebugFlags(getDebug())
-				.withSpaghetti(getSpaghetti(), output, sources.withType(HaxeSourceSet)*.compileClassPath)
-		String[] cmd = builder.build()
-
-		CommandExecutor.execute(project, cmd, null) { ExecutionResult result ->
-			if (result.exitValue != 0)
-			{
-				throw new RuntimeException("Command finished with non-zero exit value (${result.exitValue}):\n${cmd.join(" ")}")
-			}
-		}
 	}
 
 	@OutputFile
