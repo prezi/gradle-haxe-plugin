@@ -1,33 +1,21 @@
 group = 'com.prezi.haxe'
 
-buildscript {
-	repositories {
-		mavenLocal()
-		maven {
-			credentials {
-				username nexusUser
-				password nexusPassword
-			}
-			url "https://artifactory.prezi.com/plugins-snapshot"
-		}
-	}
-
-	dependencies {
-		classpath "com.prezi.gradle:gradle-prezi-plugin:2.0-SNAPSHOT"
-	}
+if (hasProperty("release")) {
+	version = [ "git", "describe", "--match", "[0-9]*", "--dirty"].execute().text.trim()
+} else {
+	version = [ "git", "describe", "--match", "[0-9]*", "--abbrev=0"].execute().text.trim() + "-SNAPSHOT"
 }
 
 apply plugin: 'groovy'
 apply plugin: 'maven'
 apply plugin: 'idea'
-apply plugin: 'prezi'
 
 sourceCompatibility = "1.6"
 targetCompatibility = "1.6"
 
 repositories {
 	mavenLocal()
-	maven preziDownloadRepo("plugins-snapshot")
+	mavenCentral()
 }
 
 dependencies {
