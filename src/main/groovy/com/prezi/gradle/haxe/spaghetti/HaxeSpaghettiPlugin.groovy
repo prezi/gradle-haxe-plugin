@@ -1,9 +1,7 @@
 package com.prezi.gradle.haxe.spaghetti
 
-import com.prezi.gradle.haxe.HaxeCompiledBinary
+import com.prezi.gradle.haxe.HaxeBinary
 import com.prezi.gradle.haxe.HaxePlugin
-import com.prezi.gradle.haxe.HaxeSourceBinary
-import com.prezi.gradle.haxe.MUnit
 import com.prezi.spaghetti.gradle.SpaghettiBasePlugin
 import com.prezi.spaghetti.gradle.SpaghettiExtension
 import com.prezi.spaghetti.gradle.SpaghettiGeneratedSourceSet
@@ -57,28 +55,11 @@ class HaxeSpaghettiPlugin implements Plugin<Project> {
 		projectSourceSet.findByName("main").withType(SpaghettiGeneratedSourceSet).all(new Action<SpaghettiGeneratedSourceSet>() {
 			@Override
 			void execute(SpaghettiGeneratedSourceSet spaghettiGeneratedSourceSet) {
-				binaryContainer.withType(HaxeCompiledBinary).all(new Action<HaxeCompiledBinary>() {
 				logger.debug("Adding ${spaghettiGeneratedSourceSet} to binaries in ${project.path}")
+				binaryContainer.withType(HaxeBinary).all(new Action<HaxeBinary>() {
 					@Override
-					void execute(HaxeCompiledBinary compiledBinary) {
+					void execute(HaxeBinary compiledBinary) {
 						compiledBinary.source.add spaghettiGeneratedSourceSet
-					}
-				})
-
-				binaryContainer.withType(HaxeSourceBinary).all(new Action<HaxeSourceBinary>() {
-					@Override
-					void execute(HaxeSourceBinary sourceBinary) {
-						sourceBinary.source.add spaghettiGeneratedSourceSet
-						HaxeSpaghettiPlugin.logger.debug("Added ${spaghettiGeneratedSourceSet} to ${sourceBinary}")
-					}
-				})
-
-				project.tasks.withType(MUnit).all(new Action<MUnit>() {
-					@Override
-					void execute(MUnit testTask) {
-						testTask.source(spaghettiGeneratedSourceSet)
-						testTask.dependsOn spaghettiGeneratedSourceSet
-						HaxeSpaghettiPlugin.logger.debug("Added ${spaghettiGeneratedSourceSet} to ${testTask}")
 						HaxeSpaghettiPlugin.logger.debug("Added ${spaghettiGeneratedSourceSet} to ${compiledBinary} in ${project.path}")
 					}
 				})
@@ -86,9 +67,9 @@ class HaxeSpaghettiPlugin implements Plugin<Project> {
 		})
 
 		// Create Spaghetti compatible binary
-		binaryContainer.withType(HaxeCompiledBinary).all(new Action<HaxeCompiledBinary>() {
+		binaryContainer.withType(HaxeBinary).all(new Action<HaxeBinary>() {
 			@Override
-			void execute(HaxeCompiledBinary binary) {
+			void execute(HaxeBinary binary) {
 				def jsBinary = instantiator.newInstance(DefaultHaxeCompiledSpaghettiCompatibleJavaScriptBinary, binary)
 				jsBinary.builtBy(binary.getBuildDependencies())
 				binaryContainer.add(jsBinary)

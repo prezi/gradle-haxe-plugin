@@ -1,6 +1,6 @@
 package com.prezi.gradle.haxe.spaghetti
 
-import com.prezi.gradle.haxe.HaxeCompiledBinary
+import com.prezi.gradle.haxe.HaxeBinary
 import org.gradle.language.base.internal.AbstractBuildableModelElement
 import org.gradle.language.base.internal.BinaryInternal
 import org.gradle.language.base.internal.BinaryNamingScheme
@@ -12,9 +12,9 @@ import org.gradle.language.base.internal.DefaultBinaryNamingScheme
 class DefaultHaxeCompiledSpaghettiCompatibleJavaScriptBinary
 		extends AbstractBuildableModelElement implements HaxeCompiledSpaghettiCompatibleJavaScriptBinary, BinaryInternal {
 	private final BinaryNamingScheme namingScheme
-	private final HaxeCompiledBinary binary
+	private final HaxeBinary binary
 
-	public DefaultHaxeCompiledSpaghettiCompatibleJavaScriptBinary(HaxeCompiledBinary binary) {
+	public DefaultHaxeCompiledSpaghettiCompatibleJavaScriptBinary(HaxeBinary binary) {
 		this.namingScheme = new DefaultBinaryNamingScheme(binary.name, "module", [])
 		this.binary = binary
 	}
