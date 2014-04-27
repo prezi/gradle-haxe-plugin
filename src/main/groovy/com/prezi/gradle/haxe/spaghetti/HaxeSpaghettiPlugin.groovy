@@ -1,6 +1,7 @@
 package com.prezi.gradle.haxe.spaghetti
 
 import com.prezi.gradle.haxe.HaxeBinary
+import com.prezi.gradle.haxe.HaxeExtension
 import com.prezi.gradle.haxe.HaxePlugin
 import com.prezi.spaghetti.gradle.SpaghettiBasePlugin
 import com.prezi.spaghetti.gradle.SpaghettiExtension
@@ -42,9 +43,10 @@ class HaxeSpaghettiPlugin implements Plugin<Project> {
 
 		def binaryContainer = project.extensions.getByType(BinaryContainer)
 		def projectSourceSet = project.extensions.getByType(ProjectSourceSet)
+		def haxeExtension = project.extensions.getByType(HaxeExtension)
 
 		// We'll be needing a "js" platform
-		def targetPlatforms = HaxePlugin.getExtension(project).targetPlatforms
+		def targetPlatforms = haxeExtension.targetPlatforms
 		targetPlatforms.maybeCreate("js")
 
 		// Tests should always depend on modules
