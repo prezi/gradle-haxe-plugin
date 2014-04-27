@@ -57,12 +57,11 @@ class HaxeSpaghettiPlugin implements Plugin<Project> {
 		projectSourceSet.findByName("main").withType(SpaghettiGeneratedSourceSet).all(new Action<SpaghettiGeneratedSourceSet>() {
 			@Override
 			void execute(SpaghettiGeneratedSourceSet spaghettiGeneratedSourceSet) {
-				logger.debug("Adding ${spaghettiGeneratedSourceSet} to binaries")
 				binaryContainer.withType(HaxeCompiledBinary).all(new Action<HaxeCompiledBinary>() {
+				logger.debug("Adding ${spaghettiGeneratedSourceSet} to binaries in ${project.path}")
 					@Override
 					void execute(HaxeCompiledBinary compiledBinary) {
 						compiledBinary.source.add spaghettiGeneratedSourceSet
-						HaxeSpaghettiPlugin.logger.debug("Added ${spaghettiGeneratedSourceSet} to ${compiledBinary}")
 					}
 				})
 
@@ -80,6 +79,7 @@ class HaxeSpaghettiPlugin implements Plugin<Project> {
 						testTask.source(spaghettiGeneratedSourceSet)
 						testTask.dependsOn spaghettiGeneratedSourceSet
 						HaxeSpaghettiPlugin.logger.debug("Added ${spaghettiGeneratedSourceSet} to ${testTask}")
+						HaxeSpaghettiPlugin.logger.debug("Added ${spaghettiGeneratedSourceSet} to ${compiledBinary} in ${project.path}")
 					}
 				})
 			}

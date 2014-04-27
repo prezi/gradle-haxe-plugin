@@ -58,11 +58,11 @@ class HaxePlugin implements Plugin<Project> {
 		// Add functional source sets for main code
 		def main = projectSourceSet.maybeCreate("main")
 		def test = projectSourceSet.maybeCreate("test")
-		logger.debug("Created ${main} and ${test}")
+		logger.debug("Created ${main} and ${test} in ${project.path}")
 		Configuration mainCompile = maybeCreateCompileConfigurationFor(project, "main")
 		Configuration testCompile = maybeCreateCompileConfigurationFor(project, "test")
 		testCompile.extendsFrom mainCompile
-		logger.debug("Created ${mainCompile} and ${testCompile}")
+		logger.debug("Created ${mainCompile} and ${testCompile} in ${project.path}")
 
 		// For each source set create a configuration and language source sets
 		projectSourceSet.all(new Action<FunctionalSourceSet>() {
@@ -74,7 +74,7 @@ class HaxePlugin implements Plugin<Project> {
 				def haxeSourceSet = instantiator.newInstance(DefaultHaxeSourceSet, HAXE_SOURCE_SET_NAME, functionalSourceSet, compileConfiguration, fileResolver)
 				haxeSourceSet.source.srcDir(String.format("src/%s/haxe", functionalSourceSet.name))
 				functionalSourceSet.add(haxeSourceSet)
-				HaxePlugin.logger.debug("Added ${haxeSourceSet}")
+				HaxePlugin.logger.debug("Added ${haxeSourceSet} in ${project.path}")
 
 				// Add resources if not exists yet
 				if (!functionalSourceSet.findByName(RESOURCE_SET_NAME)) {
@@ -82,13 +82,13 @@ class HaxePlugin implements Plugin<Project> {
 					resourcesDirectorySet.srcDir(String.format("src/%s/resources", functionalSourceSet.name))
 					def resourceSet = instantiator.newInstance(DefaultResourceSet, RESOURCE_SET_NAME, resourcesDirectorySet, functionalSourceSet)
 					functionalSourceSet.add(resourceSet)
-					HaxePlugin.logger.debug("Added ${resourceSet}")
+					HaxePlugin.logger.debug("Added ${resourceSet} in ${project.path}")
 				}
 
 				// Add Haxe resource set to be used for embedded resources
 				def haxeResourceSet = instantiator.newInstance(DefaultHaxeResourceSet, HAXE_RESOURCE_SET_NAME, functionalSourceSet, fileResolver)
 				functionalSourceSet.add(haxeResourceSet)
-				HaxePlugin.logger.debug("Added ${haxeResourceSet}")
+				HaxePlugin.logger.debug("Added ${haxeResourceSet} in ${project.path}")
 			}
 		})
 
@@ -100,7 +100,7 @@ class HaxePlugin implements Plugin<Project> {
 		targetPlatforms.all(new Action<TargetPlatform>() {
 			@Override
 			void execute(TargetPlatform targetPlatform) {
-				HaxePlugin.logger.debug("Configuring ${targetPlatform}")
+				HaxePlugin.logger.debug("Configuring ${targetPlatform} in ${project.path}")
 
 				// Create platform configurations
 				Configuration platformMainCompile = maybeCreateCompileConfigurationFor(project, targetPlatform.name)
@@ -108,11 +108,11 @@ class HaxePlugin implements Plugin<Project> {
 				platformMainCompile.extendsFrom mainCompile
 				platformTestCompile.extendsFrom testCompile
 				platformTestCompile.extendsFrom platformMainCompile
-				HaxePlugin.logger.debug("Added ${platformMainCompile} and ${platformTestCompile}")
+				HaxePlugin.logger.debug("Added ${platformMainCompile} and ${platformTestCompile} in ${project.path}")
 
 				def platformMain = projectSourceSet.maybeCreate(targetPlatform.name)
 				def platformTest = projectSourceSet.maybeCreate(targetPlatform.name + "Test")
-				HaxePlugin.logger.debug("Added ${platformMain} and ${platformTest}")
+				HaxePlugin.logger.debug("Added ${platformMain} and ${platformTest} in ${project.path}")
 
 				def mainLanguageSets = getLanguageSets(main, platformMain)
 				def testLanguageSets = getLanguageSets(test, platformTest)
@@ -125,7 +125,7 @@ class HaxePlugin implements Plugin<Project> {
 				targetPlatform.flavors.all(new Action<Flavor>() {
 					@Override
 					void execute(Flavor flavor) {
-						HaxePlugin.logger.debug("Configuring ${targetPlatform} with ${flavor}")
+						HaxePlugin.logger.debug("Configuring ${targetPlatform} with ${flavor} in ${project.path}")
 
 						def flavorName = targetPlatform.name + flavor.name.capitalize()
 
@@ -134,11 +134,11 @@ class HaxePlugin implements Plugin<Project> {
 						flavorMainCompile.extendsFrom platformMainCompile
 						flavorTestCompile.extendsFrom platformTestCompile
 						flavorTestCompile.extendsFrom flavorMainCompile
-						HaxePlugin.logger.debug("Added ${flavorMainCompile} and ${flavorTestCompile}")
+						HaxePlugin.logger.debug("Added ${flavorMainCompile} and ${flavorTestCompile} in ${project.path}")
 
 						def flavorMain = projectSourceSet.maybeCreate(flavorName)
 						def flavorTest = projectSourceSet.maybeCreate(flavorName + "Test")
-						HaxePlugin.logger.debug("Added ${flavorMain} and ${flavorTest}")
+						HaxePlugin.logger.debug("Added ${flavorMain} and ${flavorTest} in ${project.path}")
 
 						def flavorMainLanguageSets = getLanguageSets(main, platformMain, flavorMain)
 						def flavorTestLanguageSets = getLanguageSets(test, platformTest, flavorTest)
@@ -172,7 +172,7 @@ class HaxePlugin implements Plugin<Project> {
 					name = project.name + "-" + binary.name
 					type = "har"
 				}
-				HaxePlugin.logger.debug("Created source source task ${sourceTask} for ${binary}")
+				HaxePlugin.logger.debug("Created source source task ${sourceTask} for ${binary} in ${project.path}")
 			}
 		})
 
