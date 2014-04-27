@@ -163,7 +163,7 @@ A typical server-side example:
 
 Syntax:
 
-	task compile(type: com.prezi.gradle.haxe.HaxeCompile) {
+	task compile(type: com.prezi.haxe.gradle.HaxeCompile) {
 		main "<main-class>"
 		source <directory>
 		targetPlatform "<js|swf|as3>"
@@ -203,7 +203,7 @@ Parameters:
 
 The `MUnit` task tests the results of a compilation task with [MassiveUnit](https://github.com/massiveinteractive/MassiveUnit). It works with the same configuration as the compile task above.
 
-	task munit(type: com.prezi.gradle.haxe.MUnit) {
+	task munit(type: com.prezi.haxe.gradle.MUnit) {
 		source <directory>
 		targetPlatform "<js|swf|as3>"
 	
