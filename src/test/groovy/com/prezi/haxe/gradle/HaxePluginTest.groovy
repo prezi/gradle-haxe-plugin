@@ -18,7 +18,7 @@ class HaxePluginTest extends Specification {
 	HaxeExtension extension
 
 	def setup() {
-		this.project = ProjectBuilder.builder().withProjectDir(new File("root")).build()
+		this.project = ProjectBuilder.builder().build()
 		this.project.apply plugin: "haxe"
 		this.extension = project.extensions.getByType(HaxeExtension)
 	}
