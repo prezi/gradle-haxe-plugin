@@ -9,7 +9,7 @@ import org.gradle.language.base.LanguageSourceSet
 import java.util.regex.Pattern
 
 class MUnit extends AbstractHaxeCompileTask {
-	final Set<Object> testSources = []
+	final LinkedHashSet<Object> testSources = []
 	LinkedHashMap<String, File> embeddedTestResources = [:]
 
 	static final Pattern SUCCESSFUL_TEST_PATTERN = ~/(?m)^PLATFORMS TESTED: \d+, PASSED: \d+, FAILED: 0, ERRORS: 0, TIME:/
