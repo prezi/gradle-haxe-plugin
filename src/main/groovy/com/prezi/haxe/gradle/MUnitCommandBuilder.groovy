@@ -12,7 +12,7 @@ class MUnitCommandBuilder {
 		this.cmd = cmd
 	}
 
-	String[] build()
+	List<String> build()
 	{
 		if (isSet('munit.haxeRunner'))
 		{

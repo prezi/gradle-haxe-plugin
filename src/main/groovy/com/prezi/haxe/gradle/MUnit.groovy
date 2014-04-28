@@ -21,20 +21,7 @@ class MUnit extends AbstractHaxeCompileTask {
 		workDir.delete() || workDir.deleteDir()
 		workDir.mkdirs()
 
-		def sources = getSourceSets()
-		def testSources = getTestSourceSets()
-		Map<String, File> allResources = getEmbeddedResources() + getEmbeddedTestResources()
-
-		// Copy all tests into one directory
-		project.copy {
-			from testSources*.source*.srcDirs
-			into testSourcesDirectory
-		}
-
-		def output = getOutput()
-		project.mkdir(output.parentFile)
-
-		def haxeCmdParts = configureHaxeCommandLine(output, workDir, sources, testSources, allResources).build()
+		def haxeCmdParts = getHaxeCommandLine()
 		def haxeCmd = "";
 		haxeCmdParts.each {
 			if (it.startsWith("-")) {
@@ -68,7 +55,7 @@ class MUnit extends AbstractHaxeCompileTask {
 			jsRunnerTemplate << getMUnitJsHtmlTemplate()
 		}
 
-		def munitCmd = new MUnitCommandBuilder(project).build()
+		def munitCmd = getMUnitCommandLine()
 
 		CommandExecutor.execute(project, munitCmd, workDir) { ExecutionResult result ->
 			def errorExit = result.exitValue != 0
@@ -90,6 +77,27 @@ class MUnit extends AbstractHaxeCompileTask {
 
 	protected InputStream getMUnitJsHtmlTemplate() {
 		return this.class.getResourceAsStream("/js_runner-html.mtt")
+	}
+
+	public List<String> getHaxeCommandLine() {
+		def sources = getSourceSets()
+		def testSources = getTestSourceSets()
+		Map<String, File> allResources = getEmbeddedResources() + getEmbeddedTestResources()
+
+		// Copy all tests into one directory
+		project.copy {
+			from testSources*.source*.srcDirs
+			into testSourcesDirectory
+		}
+
+		def output = getOutput()
+		output.parentFile.mkdirs()
+
+		return configureHaxeCommandLine(output, getWorkingDirectory(), sources, testSources, allResources).build()
+	}
+
+	public List<String> getMUnitCommandLine() {
+		return new MUnitCommandBuilder(project).build()
 	}
 
 	protected HaxeCommandBuilder configureHaxeCommandLine(File output, File workDir, DomainObjectSet<LanguageSourceSet> sources, Set<LanguageSourceSet> testSources, Map<String, File> allResources) {

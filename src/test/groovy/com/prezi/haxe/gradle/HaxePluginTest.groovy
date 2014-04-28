@@ -148,7 +148,7 @@ class HaxePluginTest extends Specification {
 				"src/jsTest/resources"
 		)
 
-		def expectedHaxeCommandLine = [
+		def expectedCompileHaxeCommandLine = [
 				"haxe",
 				"-js", path("${project.buildDir}/compiled-haxe/js/js.js"),
 				*pathOptions("-cp",
@@ -157,7 +157,19 @@ class HaxePluginTest extends Specification {
 						"src/js/haxe",
 						"src/js/resources")
 		]
-		compileTask.haxeCommandToExecute == expectedHaxeCommandLine
+		compileTask.haxeCommandToExecute == expectedCompileHaxeCommandLine
+
+		def expectedMUnitHaxeCommandLine = [
+				*pathOptions("-cp",
+						"${project.buildDir}/munit-work/js/tests",
+						"src/main/haxe",
+						"src/main/resources",
+						"src/js/haxe",
+						"src/js/resources"),
+				"-js", path("${project.buildDir}/munit-work/js/js_test.js"),
+				"-main", "TestMain"
+		]
+		munitTask.haxeCommandLine == expectedMUnitHaxeCommandLine
 	}
 
 	private List<File> sourceDirs(String functionalSourceSet, String languageSourceSet, Class<? extends LanguageSourceSet> type = LanguageSourceSet) {

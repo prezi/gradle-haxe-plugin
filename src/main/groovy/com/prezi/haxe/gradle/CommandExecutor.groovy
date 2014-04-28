@@ -3,7 +3,7 @@ package com.prezi.haxe.gradle
 import org.gradle.api.Project
 
 class CommandExecutor {
-	public static void execute(Project project, String[] cmd, File dir, Closure c)
+	public static void execute(Project project, List<String> cmd, File dir, Closure c)
 	{
 		def executionDir = dir ?: project.rootDir
 		project.logger.info("Executing in {}: {}", executionDir, cmd.join(" "))
