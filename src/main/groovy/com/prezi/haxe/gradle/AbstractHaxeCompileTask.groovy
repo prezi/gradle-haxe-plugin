@@ -17,7 +17,7 @@ abstract class AbstractHaxeCompileTask extends ConventionTask {
 	@Delegate(deprecated = true)
 	protected final HaxeCompileParameters params = new HaxeCompileParameters()
 
-	Set<Object> sources = []
+	LinkedHashSet<Object> sources = []
 	LinkedHashMap<String, File> embeddedResources = [:]
 	TargetPlatform targetPlatform
 
@@ -30,7 +30,7 @@ abstract class AbstractHaxeCompileTask extends ConventionTask {
 		return new DefaultDomainObjectSet<LanguageSourceSet>(LanguageSourceSet, sourceSets)
 	}
 
-	protected static Set<File> getAllSourceDirectories(Set<LanguageSourceSet> sources) {
+	protected static LinkedHashSet<File> getAllSourceDirectories(Set<LanguageSourceSet> sources) {
 		return (sources*.source*.srcDirs).flatten()
 	}
 
