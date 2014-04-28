@@ -12,9 +12,7 @@ class HaxeCompile extends AbstractHaxeCompileTask {
 	@TaskAction
 	void compile()
 	{
-		def output = getAndRecreateOutput()
-		def sources = getSourceSets()
-		String[] cmd = configureHaxeCommandBuilder(output, sources).build()
+		def cmd = getHaxeCommandToExecute()
 
 		CommandExecutor.execute(project, cmd, null) { ExecutionResult result ->
 			if (result.exitValue != 0)
@@ -22,6 +20,10 @@ class HaxeCompile extends AbstractHaxeCompileTask {
 				throw new RuntimeException("Command finished with non-zero exit value (${result.exitValue}):\n${cmd.join(" ")}")
 			}
 		}
+	}
+
+	public List<String> getHaxeCommandToExecute() {
+		return configureHaxeCommandBuilder(getAndRecreateOutput(), getSourceSets()).build()
 	}
 
 	protected HaxeCommandBuilder configureHaxeCommandBuilder(File output, DomainObjectSet<LanguageSourceSet> sources) {

@@ -15,7 +15,7 @@ class HaxeCommandBuilder {
 		this.cmd = cmd
 	}
 
-	String[] build()
+	List<String> build()
 	{
 		cmd
 	}

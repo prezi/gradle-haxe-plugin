@@ -147,6 +147,17 @@ class HaxePluginTest extends Specification {
 				"src/jsTest/haxe",
 				"src/jsTest/resources"
 		)
+
+		def expectedHaxeCommandLine = [
+				"haxe",
+				"-js", path("${project.buildDir}/compiled-haxe/js/js.js"),
+				*pathOptions("-cp",
+						"src/main/haxe",
+						"src/main/resources",
+						"src/js/haxe",
+						"src/js/resources")
+		]
+		compileTask.haxeCommandToExecute == expectedHaxeCommandLine
 	}
 
 	private List<File> sourceDirs(String functionalSourceSet, String languageSourceSet, Class<? extends LanguageSourceSet> type = LanguageSourceSet) {
@@ -165,7 +176,23 @@ class HaxePluginTest extends Specification {
 		(sourceSet*.source.srcDirs).flatten().sort()
 	}
 
-	private files(String... name) {
-		project.files(name).files.sort()
+	private List<File> files(String... names) {
+		project.files(names).files.sort()
+	}
+
+	private List<String> pathOptions(String option, String... names) {
+		paths(names).collectMany { [option, it] }
+	}
+
+	private List<String> paths(String... names) {
+		project.files(names).files*.absolutePath
+	}
+
+	private File file(String name) {
+		project.file(name)
+	}
+
+	private String path(String name) {
+		file(name).absolutePath
 	}
 }
