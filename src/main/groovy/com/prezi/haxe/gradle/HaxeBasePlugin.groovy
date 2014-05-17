@@ -217,7 +217,7 @@ class HaxeBasePlugin implements Plugin<Project> {
 		return config
 	}
 
-	public static HaxeCompile createCompileTask(Project project, HaxeBinary binary, Class<? extends HaxeCompile> compileType) {
+	public static <T extends HaxeCompile> T createCompileTask(Project project, HaxeBinary binary, Class<T> compileType) {
 		def namingScheme = ((BinaryInternal) binary).namingScheme
 		def compileTaskName = namingScheme.getTaskName("compile")
 		HaxeCompile compileTask = project.tasks.create(compileTaskName, compileType)
@@ -240,7 +240,7 @@ class HaxeBasePlugin implements Plugin<Project> {
 		return compileTask
 	}
 
-	public static MUnit createMUnitTask(Project project, HaxeBinary binary, Class<? extends MUnit> munitType) {
+	public static <T extends MUnit> T createMUnitTask(Project project, HaxeBinary binary, Class<T> munitType) {
 		def namingScheme = ((BinaryInternal) binary).namingScheme
 		def munitTaskName = namingScheme.getTaskName("test")
 		def munitTask = project.tasks.create(munitTaskName, munitType)
@@ -261,7 +261,7 @@ class HaxeBasePlugin implements Plugin<Project> {
 		return munitTask
 	}
 
-	public static Har createSourceTask(Project project, HaxeBinary binary, Class<? extends Har> harType) {
+	public static <T extends Har> T createSourceTask(Project project, HaxeBinary binary, Class<T> harType) {
 		def namingScheme = ((BinaryInternal) binary).namingScheme
 
 		def sourceTaskName = namingScheme.getTaskName("bundle", "source")
