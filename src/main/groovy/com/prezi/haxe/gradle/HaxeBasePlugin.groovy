@@ -220,23 +220,47 @@ class HaxeBasePlugin implements Plugin<Project> {
 	public static <T extends HaxeCompile> T createCompileTask(Project project, HaxeBinary binary, Class<T> compileType) {
 		def namingScheme = ((BinaryInternal) binary).namingScheme
 		def compileTaskName = namingScheme.getTaskName("compile")
-		HaxeCompile compileTask = project.tasks.create(compileTaskName, compileType)
+
+		def compileTask = createCompileTaskInternal(compileTaskName, project, binary, compileType)
 		compileTask.description = "Compiles $binary"
-		binary.source.all { compileTask.source it }
-		compileTask.conventionMapping.targetPlatform = { binary.targetPlatform }
 		compileTask.conventionMapping.embeddedResources = { gatherEmbeddedResources(binary.source) }
-		compileTask.conventionMapping.outputFile = { project.file("${project.buildDir}/compiled-haxe/${namingScheme.outputDirectoryBase}/${binary.name}.${binary.targetPlatform.name}") }
+		compileTask.conventionMapping.outputFile = { project.file("${project.buildDir}/compiled-haxe/${namingScheme.outputDirectoryBase}/compiled.${binary.targetPlatform.name}") }
+
+		project.tasks.getByName(namingScheme.lifecycleTaskName).dependsOn compileTask
+		binary.compileTask = compileTask
+		binary.builtBy(compileTask)
+
+		logger.debug "Created compile task {} for {} in {}", compileTask, binary, project.path
+		return compileTask
+	}
+
+	public static <T extends HaxeCompile> T createTestCompileTask(Project project, HaxeBinary binary, Class<T> compileType) {
+		def namingScheme = ((BinaryInternal) binary).namingScheme
+		def compileTaskName = namingScheme.getTaskName("testCompile")
+		def compileTask = createCompileTaskInternal(compileTaskName, project, binary, compileType)
+		compileTask.description = "Compiles tests for $binary"
+		compileTask.conventionMapping.embeddedResources = { gatherEmbeddedResources(binary.source) + gatherEmbeddedResources(binary.testSource) }
+		compileTask.conventionMapping.outputFile = { project.file("${project.buildDir}/compiled-haxe/${namingScheme.outputDirectoryBase}/test.${binary.targetPlatform.name}") }
+
+		binary.testSource.all { compileTask.source it }
+		compileTask.dependsOn binary.testConfiguration
+		compileTask.dependsOn binary.testSource
+
+		logger.debug "Created test compile task {} for {} in {}", compileTask, binary, project.path
+		return compileTask
+	}
+
+	protected static <T extends HaxeCompile> T createCompileTaskInternal(String name, Project project, HaxeBinary binary, Class<T> compileType) {
+		HaxeCompile compileTask = project.tasks.create(name, compileType)
+		compileTask.conventionMapping.targetPlatform = { binary.targetPlatform }
 
 		HaxeCompileParameters.setConventionMapping(compileTask, getParams(project, binary.targetPlatform, binary.flavor))
 
-		project.tasks.getByName(namingScheme.getLifecycleTaskName()).dependsOn compileTask
-		// Let' depend on the input configurations
+		// TODO Maybe we can depend on the binary instead?
+		binary.source.all { compileTask.source it }
 		compileTask.dependsOn binary.configuration
 		compileTask.dependsOn binary.source
 
-		binary.compileTask = compileTask
-		binary.builtBy(compileTask)
-		logger.debug("Created compile task ${compileTask} for ${binary} in ${project.path}")
 		return compileTask
 	}
 
