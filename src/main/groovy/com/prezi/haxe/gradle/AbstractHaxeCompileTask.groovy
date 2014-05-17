@@ -4,6 +4,7 @@ import org.gradle.api.DomainObjectSet
 import org.gradle.api.internal.ConventionTask
 import org.gradle.api.internal.DefaultDomainObjectSet
 import org.gradle.api.tasks.InputFiles
+import org.gradle.internal.typeconversion.NotationParser
 import org.gradle.language.base.LanguageSourceSet
 import org.gradle.nativebinaries.internal.SourceSetNotationParser
 
@@ -12,7 +13,7 @@ import org.gradle.nativebinaries.internal.SourceSetNotationParser
  */
 abstract class AbstractHaxeCompileTask extends ConventionTask {
 
-	protected static final notationParser = SourceSetNotationParser.parser()
+	protected static final NotationParser<Object, Set<LanguageSourceSet>> notationParser = SourceSetNotationParser.parser()
 
 	@Delegate(deprecated = true)
 	protected final HaxeCompileParameters params = new HaxeCompileParameters()
