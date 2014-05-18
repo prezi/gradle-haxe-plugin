@@ -1,17 +1,10 @@
 package com.prezi.haxe.gradle
 
-import org.gradle.api.DomainObjectSet
-import org.gradle.api.internal.DefaultDomainObjectSet
-import org.gradle.api.tasks.InputFiles
 import org.gradle.api.tasks.TaskAction
-import org.gradle.language.base.LanguageSourceSet
 
 import java.util.regex.Pattern
 
 class MUnit extends AbstractHaxeCompileTask {
-	final LinkedHashSet<Object> testSources = []
-	LinkedHashMap<String, File> embeddedTestResources = [:]
-
 	static final Pattern SUCCESSFUL_TEST_PATTERN = ~/(?m)^PLATFORMS TESTED: \d+, PASSED: \d+, FAILED: 0, ERRORS: 0, TIME:/
 
 	@TaskAction
@@ -81,32 +74,26 @@ class MUnit extends AbstractHaxeCompileTask {
 
 	public List<String> getHaxeCommandLine() {
 		def sources = getSourceSets()
-		def testSources = getTestSourceSets()
-		Map<String, File> allResources = getEmbeddedResources() + getEmbeddedTestResources()
-
-		// Copy all tests into one directory
+		// Copy all sources into one directory
 		project.copy {
-			from testSources*.source*.srcDirs
+			from sources*.source*.srcDirs
 			into testSourcesDirectory
 		}
 
 		def output = getOutput()
 		output.parentFile.mkdirs()
 
-		return configureHaxeCommandLine(output, getWorkingDirectory(), sources, testSources, allResources).build()
+		return configureHaxeCommandLine(output).build()
 	}
 
 	public List<String> getMUnitCommandLine() {
 		return new MUnitCommandBuilder(project).build()
 	}
 
-	protected HaxeCommandBuilder configureHaxeCommandLine(File output, File workDir, DomainObjectSet<LanguageSourceSet> sources, Set<LanguageSourceSet> testSources, Map<String, File> allResources) {
-		Set<LanguageSourceSet> allSources = sources + testSources
-
+	protected HaxeCommandBuilder configureHaxeCommandLine(File output) {
 		return new HaxeCommandBuilder(project)
 				.withSources([testSourcesDirectory])
-				.withSources(getAllSourceDirectories(sources))
-				.withSourceSets(allSources, allResources)
+				.withSourceSets(getSourceSets(), getEmbeddedResources())
 				.withIncludes(getIncludes())
 				.withExcludes(getExcludes())
 				.withMacros(getMacros())
@@ -120,15 +107,6 @@ class MUnit extends AbstractHaxeCompileTask {
 		def testSourcesDirectory = new File(getWorkingDirectory(), "tests")
 		testSourcesDirectory.mkdirs()
 		return testSourcesDirectory
-	}
-
-	public testSource(Object... sources) {
-		testSources.addAll(sources)
-	}
-
-	protected DomainObjectSet<LanguageSourceSet> getTestSourceSets() {
-		def testSourceSets = getTestSources().collectMany { notationParser.parseNotation(it) }
-		return new DefaultDomainObjectSet<LanguageSourceSet>(LanguageSourceSet, testSourceSets)
 	}
 
 	private File getOutput()
@@ -146,12 +124,6 @@ class MUnit extends AbstractHaxeCompileTask {
 			default:
 				throw new IllegalStateException("Cannot test platform " + getTargetPlatform())
 		}
-	}
-
-	@Override
-	@InputFiles
-	Set<File> getInputFiles() {
-		return super.getInputFiles() + getAllSourceDirectories(getTestSourceSets()) + getEmbeddedTestResources().values()
 	}
 
 	File workingDirectory

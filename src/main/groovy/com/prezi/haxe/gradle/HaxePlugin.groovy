@@ -18,8 +18,13 @@ class HaxePlugin implements Plugin<Project> {
 			public void execute(final HaxeBinary binary) {
 				HaxeBasePlugin.createCompileTask(project, binary, HaxeCompile)
 				HaxeBasePlugin.createSourceTask(project, binary, Har)
-				HaxeBasePlugin.createMUnitTask(project, binary, MUnit)
 			}
 		})
+		binaryContainer.withType(HaxeTestBinary).all(new Action<HaxeTestBinary>() {
+			@Override
+			void execute(HaxeTestBinary binary) {
+				HaxeBasePlugin.createMUnitTask(project, binary, MUnit)
+			}
+		});
 	}
 }

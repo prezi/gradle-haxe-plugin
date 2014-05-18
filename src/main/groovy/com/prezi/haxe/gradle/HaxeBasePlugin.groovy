@@ -36,7 +36,7 @@ class HaxeBasePlugin implements Plugin<Project> {
 
 	public static final String COMPILE_TASK_NAME = "compile"
 	public static final String COMPILE_TASKS_GROUP = "compile"
-	public static final String TEST_TASK_NAME = "test"
+	public static final String CHECK_TASK_NAME = "check"
 	public static final String TEST_TASKS_GROUP = "test"
 
 	private final Instantiator instantiator
@@ -117,7 +117,7 @@ class HaxeBasePlugin implements Plugin<Project> {
 				def mainLanguageSets = getLanguageSets(main, platformMain)
 				def testLanguageSets = getLanguageSets(test, platformTest)
 
-				createHaxeBinary(project, targetPlatform.name, targetPlatform, null,
+				createBinaries(project, targetPlatform.name, targetPlatform, null,
 						mainLanguageSets, testLanguageSets,
 						platformMainCompile, platformTestCompile)
 
@@ -143,7 +143,7 @@ class HaxeBasePlugin implements Plugin<Project> {
 						def flavorMainLanguageSets = getLanguageSets(main, platformMain, flavorMain)
 						def flavorTestLanguageSets = getLanguageSets(test, platformTest, flavorTest)
 
-						createHaxeBinary(project, flavorName, targetPlatform, flavor,
+						createBinaries(project, flavorName, targetPlatform, flavor,
 								flavorMainLanguageSets, flavorTestLanguageSets,
 								flavorMainCompile, flavorTestCompile)
 					}
@@ -167,34 +167,40 @@ class HaxeBasePlugin implements Plugin<Project> {
 		})
 
 		// Add test all task
-		def testTask = project.tasks.findByName(TEST_TASK_NAME)
-		if (testTask == null) {
-			testTask = project.tasks.create(TEST_TASK_NAME)
-			testTask.group = TEST_TASKS_GROUP
-			testTask.description = "Test built Haxe artifacts"
+		def checkTask = project.tasks.findByName(CHECK_TASK_NAME)
+		if (checkTask == null) {
+			checkTask = project.tasks.create(CHECK_TASK_NAME)
+			checkTask.group = TEST_TASKS_GROUP
+			checkTask.description = "Runs all checks"
 		}
 		project.tasks.withType(MUnit).all(new Action<MUnit>() {
 			@Override
 			void execute(MUnit task) {
 				task.group = TEST_TASKS_GROUP
-				testTask.dependsOn task
+				checkTask.dependsOn task
 			}
 		})
 	}
 
-	private static HaxeBinary createHaxeBinary(
+	private static void createBinaries(
 			Project project, String name, TargetPlatform targetPlatform, Flavor flavor,
 			DomainObjectSet<LanguageSourceSet> mainLanguageSets, DomainObjectSet<LanguageSourceSet> testLanguageSets,
 			Configuration mainConfiguration, Configuration testConfiguration) {
 		def binaryContainer = project.extensions.getByType(BinaryContainer.class)
 
 		// Add compiled binary
-		def compiledHaxe = new DefaultHaxeBinary(name, mainConfiguration, testConfiguration, targetPlatform, flavor)
-		mainLanguageSets.all { compiledHaxe.source.add it }
-		testLanguageSets.all { compiledHaxe.testSource.add it }
-		binaryContainer.add(compiledHaxe)
-		logger.debug("Added compiled binary ${compiledHaxe} in ${project.path}")
-		return compiledHaxe
+		def compileBinary = new HaxeBinary(name, mainConfiguration, targetPlatform, flavor)
+		def testBinary = new HaxeTestBinary(name, testConfiguration, targetPlatform, flavor)
+		mainLanguageSets.all {
+			compileBinary.source.add it
+			testBinary.source.add it
+		}
+		testLanguageSets.all {
+			testBinary.source.add it
+		}
+		binaryContainer.add compileBinary
+		binaryContainer.add testBinary
+		logger.debug "Added binaries {} and {} in {}", compileBinary, testBinary, project.path
 	}
 
 	private static DomainObjectSet<LanguageSourceSet> getLanguageSets(FunctionalSourceSet... sets) {
@@ -264,23 +270,21 @@ class HaxeBasePlugin implements Plugin<Project> {
 		return compileTask
 	}
 
-	public static <T extends MUnit> T createMUnitTask(Project project, HaxeBinary binary, Class<T> munitType) {
+	public static <T extends MUnit> T createMUnitTask(Project project, HaxeTestBinary binary, Class<T> munitType) {
 		def namingScheme = ((BinaryInternal) binary).namingScheme
-		def munitTaskName = namingScheme.getTaskName("test")
+		def munitTaskName = namingScheme.getTaskName("munit")
 		def munitTask = project.tasks.create(munitTaskName, munitType)
-		munitTask.description = "Tests ${binary}"
+		munitTask.description = "Runs MUnit on ${binary}"
 		binary.source.all { munitTask.source it }
-		binary.testSource.all { munitTask.testSource it }
 		munitTask.conventionMapping.targetPlatform = { binary.targetPlatform }
 		munitTask.conventionMapping.embeddedResources = { gatherEmbeddedResources(binary.source.withType(HaxeResourceSet)) }
-		munitTask.conventionMapping.embeddedTestResources = { gatherEmbeddedResources(binary.testSource.withType(HaxeResourceSet)) }
 		munitTask.conventionMapping.workingDirectory = { project.file("${project.buildDir}/munit-work/" + binary.targetPlatform.name) }
 
 		HaxeCompileParameters.setConventionMapping(munitTask, getParams(project, binary.targetPlatform, binary.flavor))
 
-		// Let' depend on the input configurations (both from main and test)
-		munitTask.dependsOn binary.testConfiguration
-		munitTask.dependsOn binary.source, binary.testSource
+		munitTask.dependsOn binary.configuration
+		munitTask.dependsOn binary.source
+		project.tasks.getByName(namingScheme.lifecycleTaskName).dependsOn munitTask
 		logger.debug("Created munit task ${munitTask} for ${binary} in ${project.path}")
 		return munitTask
 	}

@@ -1,10 +1,12 @@
 package prezi.test;
 
+import massive.munit.Assert;
+
 class DummyTest
 {
 	@Test
 	public function testSomething()
 	{
-		// This just works
+		Assert.isTrue(Util.yes());
 	}
 }

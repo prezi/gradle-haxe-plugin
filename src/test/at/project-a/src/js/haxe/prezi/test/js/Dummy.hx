@@ -2,5 +2,8 @@ package prezi.test.js;
 
 class Dummy
 {
-	// Nothing to see here
+	public function new() {}
+	public function hello() {
+		return "Hello";
+	}
 }
