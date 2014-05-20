@@ -223,51 +223,31 @@ class HaxeBasePlugin implements Plugin<Project> {
 		return config
 	}
 
-	public static <T extends HaxeCompile> T createCompileTask(Project project, HaxeBinary binary, Class<T> compileType) {
+	public static <T extends HaxeCompile> T createCompileTask(Project project, HaxeBinaryBase binary, Class<T> compileType) {
 		def namingScheme = ((BinaryInternal) binary).namingScheme
 		def compileTaskName = namingScheme.getTaskName("compile")
 
-		def compileTask = createCompileTaskInternal(compileTaskName, project, binary, compileType)
+		T compileTask = project.tasks.create(compileTaskName, compileType)
 		compileTask.description = "Compiles $binary"
 		compileTask.conventionMapping.embeddedResources = { gatherEmbeddedResources(binary.source) }
-		compileTask.conventionMapping.outputFile = { project.file("${project.buildDir}/compiled-haxe/${namingScheme.outputDirectoryBase}/compiled.${binary.targetPlatform.name}") }
+		compileTask.conventionMapping.outputFile = { getDefaultCompileTarget(project, binary) }
+		compileTask.conventionMapping.targetPlatform = { binary.targetPlatform }
+		HaxeCompileParameters.setConventionMapping(compileTask, getParams(project, binary.targetPlatform, binary.flavor))
+		binary.source.all { compileTask.source it }
 
 		project.tasks.getByName(namingScheme.lifecycleTaskName).dependsOn compileTask
+		compileTask.dependsOn binary.configuration
+		compileTask.dependsOn binary.source
 		binary.compileTask = compileTask
-		binary.builtBy(compileTask)
+		binary.builtBy compileTask
 
 		logger.debug "Created compile task {} for {} in {}", compileTask, binary, project.path
 		return compileTask
 	}
 
-	public static <T extends HaxeCompile> T createTestCompileTask(Project project, HaxeBinary binary, Class<T> compileType) {
+	private static File getDefaultCompileTarget(Project project, HaxeBinaryBase binary) {
 		def namingScheme = ((BinaryInternal) binary).namingScheme
-		def compileTaskName = namingScheme.getTaskName("testCompile")
-		def compileTask = createCompileTaskInternal(compileTaskName, project, binary, compileType)
-		compileTask.description = "Compiles tests for $binary"
-		compileTask.conventionMapping.embeddedResources = { gatherEmbeddedResources(binary.source) + gatherEmbeddedResources(binary.testSource) }
-		compileTask.conventionMapping.outputFile = { project.file("${project.buildDir}/compiled-haxe/${namingScheme.outputDirectoryBase}/test.${binary.targetPlatform.name}") }
-
-		binary.testSource.all { compileTask.source it }
-		compileTask.dependsOn binary.testConfiguration
-		compileTask.dependsOn binary.testSource
-
-		logger.debug "Created test compile task {} for {} in {}", compileTask, binary, project.path
-		return compileTask
-	}
-
-	protected static <T extends HaxeCompile> T createCompileTaskInternal(String name, Project project, HaxeBinary binary, Class<T> compileType) {
-		HaxeCompile compileTask = project.tasks.create(name, compileType)
-		compileTask.conventionMapping.targetPlatform = { binary.targetPlatform }
-
-		HaxeCompileParameters.setConventionMapping(compileTask, getParams(project, binary.targetPlatform, binary.flavor))
-
-		// TODO Maybe we can depend on the binary instead?
-		binary.source.all { compileTask.source it }
-		compileTask.dependsOn binary.configuration
-		compileTask.dependsOn binary.source
-
-		return compileTask
+		return project.file("${project.buildDir}/compiled-haxe/${namingScheme.outputDirectoryBase}/compiled.${binary.targetPlatform.name}")
 	}
 
 	public static <T extends MUnit> T createMUnitTask(Project project, HaxeTestBinary binary, Class<T> munitType) {
@@ -278,7 +258,7 @@ class HaxeBasePlugin implements Plugin<Project> {
 		binary.source.all { munitTask.source it }
 		munitTask.conventionMapping.targetPlatform = { binary.targetPlatform }
 		munitTask.conventionMapping.embeddedResources = { gatherEmbeddedResources(binary.source.withType(HaxeResourceSet)) }
-		munitTask.conventionMapping.workingDirectory = { project.file("${project.buildDir}/munit-work/" + binary.targetPlatform.name) }
+		munitTask.conventionMapping.workingDirectory = { project.file("${project.buildDir}/munit-work/" + binary.name) }
 
 		HaxeCompileParameters.setConventionMapping(munitTask, getParams(project, binary.targetPlatform, binary.flavor))
 
