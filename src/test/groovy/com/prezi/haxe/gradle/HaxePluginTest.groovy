@@ -180,7 +180,7 @@ class HaxePluginTest extends Specification {
 				"haxe",
 				"-main", "TestMain",
 				"-js", path("${project.buildDir}/compiled-haxe/jsTest/compiled.js"),
-				"-cp", "${project.buildDir}/munit-work/jsTest/tests"
+				"-cp", "${project.buildDir}/haxe-test-compile/jsTest/tests"
 		]
 		testCompileTask.haxeCommandToExecute == expectedHaxeTestCommandLine
 
@@ -191,6 +191,7 @@ class HaxePluginTest extends Specification {
 				"munit",
 				"run"
 		]
+		munitTask.getWorkingDirectory() == project.file("${project.buildDir}/munit/jsTest")
 	}
 
 	private List<File> sourceDirs(String functionalSourceSet, String languageSourceSet, Class<? extends LanguageSourceSet> type = LanguageSourceSet) {

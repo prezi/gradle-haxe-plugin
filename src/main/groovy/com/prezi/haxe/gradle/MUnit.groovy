@@ -84,7 +84,6 @@ class MUnit extends ConventionTask {
 		return testBinaryName
 	}
 
-	@InputDirectory
 	File workingDirectory
 	public workingDirectory(Object workingDirectory)
 	{
