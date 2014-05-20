@@ -37,6 +37,7 @@ class HaxeBasePlugin implements Plugin<Project> {
 	public static final String COMPILE_TASK_NAME = "compile"
 	public static final String COMPILE_TASKS_GROUP = "compile"
 	public static final String CHECK_TASK_NAME = "check"
+	public static final String TEST_TASK_NAME = "test"
 	public static final String TEST_TASKS_GROUP = "test"
 
 	private final Instantiator instantiator
@@ -167,17 +168,24 @@ class HaxeBasePlugin implements Plugin<Project> {
 		})
 
 		// Add test all task
+		def testTask = project.tasks.findByName(TEST_TASK_NAME)
+		if (testTask == null) {
+			testTask = project.tasks.create(TEST_TASK_NAME)
+			testTask.group = TEST_TASKS_GROUP
+			testTask.description = "Runs all unit tests"
+		}
 		def checkTask = project.tasks.findByName(CHECK_TASK_NAME)
 		if (checkTask == null) {
 			checkTask = project.tasks.create(CHECK_TASK_NAME)
 			checkTask.group = TEST_TASKS_GROUP
 			checkTask.description = "Runs all checks"
 		}
+		checkTask.dependsOn testTask
 		project.tasks.withType(MUnit).all(new Action<MUnit>() {
 			@Override
 			void execute(MUnit task) {
 				task.group = TEST_TASKS_GROUP
-				checkTask.dependsOn task
+				testTask.dependsOn task
 			}
 		})
 	}
