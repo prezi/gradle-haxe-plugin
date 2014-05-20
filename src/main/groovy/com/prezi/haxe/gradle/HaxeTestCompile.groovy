@@ -14,16 +14,10 @@ class HaxeTestCompile extends HaxeCompile {
 		workDir.delete() || workDir.deleteDir()
 		workDir.mkdirs()
 
-		super.compile()
-	}
-
-	@Override
-	protected HaxeCommandBuilder configureHaxeCommandBuilder(File output, DomainObjectSet<LanguageSourceSet> sources) {
-		def workDir = getWorkingDirectory()
 		def testsDir = getTestsDirectory()
 
 		project.copy {
-			from super.getSourceDirectories(sources)
+			from super.getSourceDirectories(getSourceSets())
 			into testsDir
 		}
 
@@ -44,7 +38,7 @@ class HaxeTestCompile extends HaxeCompile {
 			suite << suiteText.tokenize("\n").findAll { !(it ==~ /(import |\s*add\()ExampleTest\)?;/) }.join("\n")
 		}
 
-		return super.configureHaxeCommandBuilder(output, sources)
+		super.compile()
 	}
 
 	@Override
