@@ -31,7 +31,7 @@ class MUnit extends ConventionTask {
 
 		prepareEnvironment(workDir)
 
-		def cmd = ["haxelib", "run", "munit", "run"]
+		def cmd = getMUnitCommandLine()
 		CommandExecutor.execute(project, cmd, getWorkingDirectory()) { ExecutionResult result ->
 			def errorExit = result.exitValue != 0
 			def testsFailing = !SUCCESSFUL_TEST_PATTERN.matcher(result.output).find()
@@ -48,6 +48,10 @@ class MUnit extends ConventionTask {
 				throw new RuntimeException("There are failing tests");
 			}
 		}
+	}
+
+	protected List<String> getMUnitCommandLine() {
+		return new MUnitCommandBuilder(project).build()
 	}
 
 	protected void prepareEnvironment(File workDir) {

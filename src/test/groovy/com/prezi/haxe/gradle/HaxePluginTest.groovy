@@ -185,6 +185,12 @@ class HaxePluginTest extends Specification {
 		testCompileTask.haxeCommandToExecute == expectedHaxeTestCommandLine
 
 		munitTask.getInputFile() == project.file("${project.buildDir}/compiled-haxe/jsTest/compiled.js")
+		munitTask.getMUnitCommandLine() == [
+				"haxelib",
+				"run",
+				"munit",
+				"run"
+		]
 	}
 
 	private List<File> sourceDirs(String functionalSourceSet, String languageSourceSet, Class<? extends LanguageSourceSet> type = LanguageSourceSet) {
