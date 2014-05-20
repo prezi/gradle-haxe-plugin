@@ -24,6 +24,7 @@ class HaxePlugin implements Plugin<Project> {
 			@Override
 			void execute(HaxeTestBinary binary) {
 				HaxeBasePlugin.createTestCompileTask(project, binary, HaxeTestCompile)
+				HaxeBasePlugin.createSourceTask(project, binary, Har)
 				HaxeBasePlugin.createMUnitTask(project, binary, MUnit)
 			}
 		});
