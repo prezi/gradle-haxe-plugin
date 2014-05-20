@@ -2,7 +2,6 @@ package com.prezi.haxe.gradle
 
 import org.gradle.api.internal.ConventionTask
 import org.gradle.api.tasks.Input
-import org.gradle.api.tasks.InputDirectory
 import org.gradle.api.tasks.TaskAction
 
 import java.util.regex.Pattern
