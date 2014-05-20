@@ -226,7 +226,6 @@ class HaxeBasePlugin implements Plugin<Project> {
 	public static <T extends HaxeTestCompile> T createTestCompileTask(Project project, HaxeTestBinary binary, Class<T> compileType) {
 		T compileTask = createCompileTask(project, binary, compileType)
 		compileTask.conventionMapping.workingDirectory = { project.file("${project.buildDir}/munit-work/" + binary.name) }
-		compileTask.conventionMapping.outputFile = { project.file("${compileTask.getWorkingDirectory()}/bin/${binary.name}_tests.${binary.targetPlatform.name}") }
 		return compileTask
 	}
 
@@ -263,6 +262,8 @@ class HaxeBasePlugin implements Plugin<Project> {
 		def munitTask = project.tasks.create(munitTaskName, munitType)
 		munitTask.description = "Runs MUnit on ${binary}"
 		munitTask.conventionMapping.workingDirectory = { binary.compileTask.getWorkingDirectory() }
+		munitTask.conventionMapping.targetPlatform = { binary.targetPlatform }
+		munitTask.conventionMapping.inputFile = { binary.compileTask.getOutputFile() }
 
 		munitTask.dependsOn binary.compileTask
 		project.tasks.getByName(namingScheme.lifecycleTaskName).dependsOn munitTask

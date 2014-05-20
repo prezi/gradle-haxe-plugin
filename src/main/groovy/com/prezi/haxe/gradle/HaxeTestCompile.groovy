@@ -27,23 +27,6 @@ class HaxeTestCompile extends HaxeCompile {
 			into testsDir
 		}
 
-		def testHxml = new File(workDir, "test.hxml")
-		testHxml << "-${getTargetPlatform().name} ${getOutputFile()}\n"
-
-		def munitConfig = new File(workDir, ".munit")
-		munitConfig << "bin=${workDir}/bin\n"
-		munitConfig << "report=${workDir}/report\n"
-		munitConfig << "hxml=${testHxml}\n"
-
-		// Issue #1 -- Use UTF-8 compatible JS runner template
-		if (getTargetPlatform().name == "js") {
-			munitConfig << "templates=${workDir}/templates\n"
-			def templatesDir = new File(workDir, "templates")
-			project.mkdir(templatesDir)
-			def jsRunnerTemplate = new File(templatesDir, "js_runner-html.mtt")
-			jsRunnerTemplate << getMUnitJsHtmlTemplate()
-		}
-
 		def cmd = ["haxelib", "run", "munit", "gen", testsDir.name]
 		CommandExecutor.execute(project, cmd, workDir) { ExecutionResult result ->
 			if (result.exitValue != 0)
@@ -67,10 +50,6 @@ class HaxeTestCompile extends HaxeCompile {
 	@Override
 	protected String getMainClass() {
 		return "TestMain"
-	}
-
-	protected InputStream getMUnitJsHtmlTemplate() {
-		return this.class.getResourceAsStream("/js_runner-html.mtt")
 	}
 
 	@Override
