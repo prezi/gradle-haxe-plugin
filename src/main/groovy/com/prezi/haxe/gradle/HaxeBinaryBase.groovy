@@ -8,13 +8,13 @@ import org.gradle.language.base.LanguageSourceSet
 /**
  * Created by lptr on 08/02/14.
  */
-public interface HaxeBinaryBase extends Binary {
+public interface HaxeBinaryBase<T extends HaxeCompile> extends Binary {
 	DomainObjectSet<LanguageSourceSet> getSource()
 	Configuration getConfiguration()
 	TargetPlatform getTargetPlatform()
 	Flavor getFlavor()
-	HaxeCompile getCompileTask()
-	void setCompileTask(HaxeCompile compileTask)
+	T getCompileTask()
+	void setCompileTask(T compileTask)
 	Har getSourceHarTask()
 	void setSourceHarTask(Har compileTask)
 }

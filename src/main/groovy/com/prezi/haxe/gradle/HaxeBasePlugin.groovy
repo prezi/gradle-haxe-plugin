@@ -223,6 +223,13 @@ class HaxeBasePlugin implements Plugin<Project> {
 		return config
 	}
 
+	public static <T extends HaxeTestCompile> T createTestCompileTask(Project project, HaxeTestBinary binary, Class<T> compileType) {
+		T compileTask = createCompileTask(project, binary, compileType)
+		compileTask.conventionMapping.workingDirectory = { project.file("${project.buildDir}/munit-work/" + binary.name) }
+		compileTask.conventionMapping.outputFile = { project.file("${compileTask.getWorkingDirectory()}/bin/${binary.name}_tests.${binary.targetPlatform.name}") }
+		return compileTask
+	}
+
 	public static <T extends HaxeCompile> T createCompileTask(Project project, HaxeBinaryBase binary, Class<T> compileType) {
 		def namingScheme = ((BinaryInternal) binary).namingScheme
 		def compileTaskName = namingScheme.getTaskName("compile")
@@ -255,21 +262,15 @@ class HaxeBasePlugin implements Plugin<Project> {
 		def munitTaskName = namingScheme.getTaskName("munit")
 		def munitTask = project.tasks.create(munitTaskName, munitType)
 		munitTask.description = "Runs MUnit on ${binary}"
-		binary.source.all { munitTask.source it }
-		munitTask.conventionMapping.targetPlatform = { binary.targetPlatform }
-		munitTask.conventionMapping.embeddedResources = { gatherEmbeddedResources(binary.source.withType(HaxeResourceSet)) }
-		munitTask.conventionMapping.workingDirectory = { project.file("${project.buildDir}/munit-work/" + binary.name) }
+		munitTask.conventionMapping.workingDirectory = { binary.compileTask.getWorkingDirectory() }
 
-		HaxeCompileParameters.setConventionMapping(munitTask, getParams(project, binary.targetPlatform, binary.flavor))
-
-		munitTask.dependsOn binary.configuration
-		munitTask.dependsOn binary.source
+		munitTask.dependsOn binary.compileTask
 		project.tasks.getByName(namingScheme.lifecycleTaskName).dependsOn munitTask
 		logger.debug("Created munit task ${munitTask} for ${binary} in ${project.path}")
 		return munitTask
 	}
 
-	public static <T extends Har> T createSourceTask(Project project, HaxeBinary binary, Class<T> harType) {
+	public static <T extends Har> T createSourceTask(Project project, HaxeBinaryBase binary, Class<T> harType) {
 		def namingScheme = ((BinaryInternal) binary).namingScheme
 
 		def sourceTaskName = namingScheme.getTaskName("bundle", "source")

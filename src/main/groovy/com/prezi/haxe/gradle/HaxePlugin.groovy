@@ -23,6 +23,7 @@ class HaxePlugin implements Plugin<Project> {
 		binaryContainer.withType(HaxeTestBinary).all(new Action<HaxeTestBinary>() {
 			@Override
 			void execute(HaxeTestBinary binary) {
+				HaxeBasePlugin.createTestCompileTask(project, binary, HaxeTestCompile)
 				HaxeBasePlugin.createMUnitTask(project, binary, MUnit)
 			}
 		});

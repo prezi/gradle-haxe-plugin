@@ -11,7 +11,7 @@ import org.gradle.language.base.internal.BinaryNamingScheme
 /**
  * Created by lptr on 09/02/14.
  */
-abstract class AbstractHaxeBinary extends AbstractBuildableModelElement implements HaxeBinaryBase, BinaryInternal {
+abstract class AbstractHaxeBinary<T extends HaxeCompile> extends AbstractBuildableModelElement implements HaxeBinaryBase<T>, BinaryInternal {
 	private final source = new DefaultDomainObjectSet<>(LanguageSourceSet.class)
 	private final String name
 	private final Configuration configuration
@@ -19,7 +19,7 @@ abstract class AbstractHaxeBinary extends AbstractBuildableModelElement implemen
 	private final TargetPlatform targetPlatform
 	private final Flavor flavor
 
-	HaxeCompile compileTask
+	T compileTask
 	Har sourceHarTask
 
 	protected AbstractHaxeBinary(String parentName, Configuration configuration, TargetPlatform targetPlatform, Flavor flavor) {
