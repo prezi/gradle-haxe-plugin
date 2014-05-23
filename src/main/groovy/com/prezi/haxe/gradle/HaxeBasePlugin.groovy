@@ -266,7 +266,7 @@ class HaxeBasePlugin implements Plugin<Project> {
 
 	public static <T extends MUnit> T createMUnitTask(Project project, HaxeTestBinary binary, Class<T> munitType) {
 		def namingScheme = ((BinaryInternal) binary).namingScheme
-		def munitTaskName = namingScheme.getTaskName("munit")
+		def munitTaskName = namingScheme.getTaskName("run")
 		def munitTask = project.tasks.create(munitTaskName, munitType)
 		munitTask.description = "Runs MUnit on ${binary}"
 		munitTask.conventionMapping.workingDirectory = { project.file("${project.buildDir}/munit/" + binary.name) }

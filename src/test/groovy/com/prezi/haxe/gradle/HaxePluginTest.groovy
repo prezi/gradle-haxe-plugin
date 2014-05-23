@@ -137,7 +137,7 @@ class HaxePluginTest extends Specification {
 		configureWithJsTargetPlatform()
 		HaxeCompile compileTask = project.tasks.getByName("compileJs") as HaxeCompile
 		HaxeTestCompile testCompileTask = project.tasks.getByName("compileJsTest") as HaxeTestCompile
-		MUnit munitTask = project.tasks.getByName("munitJsTest") as MUnit
+		MUnit munitTask = project.tasks.getByName("runJsTest") as MUnit
 		// TODO Somehow test the source bundle task
 
 		expect:
