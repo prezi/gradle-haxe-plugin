@@ -57,7 +57,7 @@ For each target platform the plugin creates the following tasks:
 
 * `compile<platform>` -- calls the Haxe compiler (e.g. `compileJs`)
 * `compile<platform>Test` -- calls the Haxe compiler to compile tests (e.g. `compileJsTest`)
-* `munit<platform>Test` -- runs the tests via MUnit (e.g. `munitJsTest`)
+* `run<platform>Test` -- runs the tests via MUnit (e.g. `runJsTest`)
 * `source<platform>` -- creates the [`.har` archive](#published-artifacts) from the sources used to compile the platform (e.g. `sourceJs`)
 * `source<platform>Test` -- same for tests
 
