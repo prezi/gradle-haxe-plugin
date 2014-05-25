@@ -28,15 +28,23 @@ class HaxeCompile extends AbstractHaxeCompileTask {
 
 	protected HaxeCommandBuilder configureHaxeCommandBuilder(File output, DomainObjectSet<LanguageSourceSet> sources) {
 		return new HaxeCommandBuilder(project, "haxe")
-				.withMain(getMain())
+				.withMain(getMainClass())
 				.withTarget(getTargetPlatform().name, output)
-				.withSources(getAllSourceDirectories(sources))
+				.withSources(getSourceDirectories(sources))
 				.withSourceSets(sources, getEmbeddedResources())
 				.withMacros(getMacros())
 				.withIncludes(getIncludes())
 				.withExcludes(getExcludes())
 				.withFlags(getFlagList())
 				.withDebugFlags(getDebug())
+	}
+
+	protected Set<File> getSourceDirectories(DomainObjectSet<LanguageSourceSet> sources) {
+		return getAllSourceDirectories(sources)
+	}
+
+	protected String getMainClass() {
+		return getMain()
 	}
 
 	@OutputFile
@@ -71,7 +79,7 @@ class HaxeCompile extends AbstractHaxeCompileTask {
 			output.delete()
 			dirToMake = output.parentFile
 		}
-		project.mkdir(dirToMake)
+		dirToMake.mkdirs()
 		return output
 	}
 

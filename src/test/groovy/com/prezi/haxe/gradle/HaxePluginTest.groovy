@@ -26,6 +26,7 @@ class HaxePluginTest extends Specification {
 	def "empty project"() {
 		def compileTask = project.tasks.getByName("compile")
 		def testTask = project.tasks.getByName("test")
+		def checkTask = project.tasks.getByName("check")
 
 		expect:
 		// Extension should be uninitialized
@@ -53,6 +54,7 @@ class HaxePluginTest extends Specification {
 		// Group tasks should be created, but should not depend on other tasks
 		compileTask.dependsOn.findAll { it instanceof Task }.empty
 		testTask.dependsOn.findAll { it instanceof Task }.empty
+		checkTask.dependsOn.findAll { it instanceof Task }*.name == ["test"]
 
 		// There should be no binaries
 		project.extensions.getByType(BinaryContainer).empty
@@ -89,10 +91,13 @@ class HaxePluginTest extends Specification {
 	def "js target platform creates binaries"() {
 		configureWithJsTargetPlatform()
 		def binaryContainer = project.extensions.getByType(BinaryContainer)
-		HaxeBinary binary = binaryContainer.iterator().next() as HaxeBinary
+		def binaries = binaryContainer.toList()
+		def binary = binaries.find { it instanceof HaxeBinary } as HaxeBinary
+		def testBinary = binaries.find { it instanceof HaxeTestBinary } as HaxeTestBinary
 
 		expect:
-		binaryContainer.size() == 1
+		binaryContainer.size() == 2
+
 		binary.name == "js"
 		binary.buildDependencies.getDependencies(null)*.name == ["js"]
 		binary.compileTask.name == "compileJs"
@@ -100,7 +105,14 @@ class HaxePluginTest extends Specification {
 		binary.targetPlatform.name == "js"
 		binary.flavor == null
 		binary.configuration.name == "js"
-		binary.testConfiguration.name == "jsTest"
+
+		testBinary.name == "jsTest"
+		testBinary.buildDependencies.getDependencies(null)*.name == ["jsTest"]
+		testBinary.compileTask.name == "compileJsTest"
+		testBinary.sourceHarTask.name == "bundleJsTestSource"
+		testBinary.targetPlatform.name == "js"
+		testBinary.flavor == null
+		testBinary.configuration.name == "jsTest"
 
 		sourceDirs(binary.source) == files(
 				"src/main/haxe",
@@ -109,7 +121,11 @@ class HaxePluginTest extends Specification {
 				"src/js/resources"
 		)
 
-		sourceDirs(binary.testSource) == files(
+		sourceDirs(testBinary.source) == files(
+				"src/main/haxe",
+				"src/main/resources",
+				"src/js/haxe",
+				"src/js/resources",
 				"src/test/haxe",
 				"src/test/resources",
 				"src/jsTest/haxe",
@@ -120,11 +136,12 @@ class HaxePluginTest extends Specification {
 	def "js target platform creates tasks"() {
 		configureWithJsTargetPlatform()
 		HaxeCompile compileTask = project.tasks.getByName("compileJs") as HaxeCompile
-		MUnit munitTask = project.tasks.getByName("testJs") as MUnit
+		HaxeTestCompile testCompileTask = project.tasks.getByName("compileJsTest") as HaxeTestCompile
+		MUnit munitTask = project.tasks.getByName("runJsTest") as MUnit
 		// TODO Somehow test the source bundle task
 
 		expect:
-		compileTask.outputFile == project.file("${project.buildDir}/compiled-haxe/js/js.js")
+		compileTask.outputFile == project.file("${project.buildDir}/compiled-haxe/js/compiled.js")
 		compileTask.outputDirectory == null
 		compileTask.targetPlatform.name == "js"
 		sourceDirs(compileTask.sourceSets) == files(
@@ -134,14 +151,14 @@ class HaxePluginTest extends Specification {
 				"src/js/resources"
 		)
 
-		sourceDirs(munitTask.sourceSets) == files(
+		testCompileTask.outputFile == project.file("${project.buildDir}/compiled-haxe/jsTest/compiled.js")
+		testCompileTask.outputDirectory == null
+		testCompileTask.targetPlatform.name == "js"
+		sourceDirs(testCompileTask.sourceSets) == files(
 				"src/main/haxe",
 				"src/main/resources",
 				"src/js/haxe",
-				"src/js/resources"
-		)
-
-		sourceDirs(munitTask.testSourceSets) == files(
+				"src/js/resources",
 				"src/test/haxe",
 				"src/test/resources",
 				"src/jsTest/haxe",
@@ -150,7 +167,7 @@ class HaxePluginTest extends Specification {
 
 		def expectedCompileHaxeCommandLine = [
 				"haxe",
-				"-js", path("${project.buildDir}/compiled-haxe/js/js.js"),
+				"-js", path("${project.buildDir}/compiled-haxe/js/compiled.js"),
 				*pathOptions("-cp",
 						"src/main/haxe",
 						"src/main/resources",
@@ -159,17 +176,22 @@ class HaxePluginTest extends Specification {
 		]
 		compileTask.haxeCommandToExecute == expectedCompileHaxeCommandLine
 
-		def expectedMUnitHaxeCommandLine = [
-				*pathOptions("-cp",
-						"${project.buildDir}/munit-work/js/tests",
-						"src/main/haxe",
-						"src/main/resources",
-						"src/js/haxe",
-						"src/js/resources"),
-				"-js", path("${project.buildDir}/munit-work/js/js_test.js"),
-				"-main", "TestMain"
+		def expectedHaxeTestCommandLine = [
+				"haxe",
+				"-main", "TestMain",
+				"-js", path("${project.buildDir}/compiled-haxe/jsTest/compiled.js"),
+				"-cp", "${project.buildDir}/haxe-test-compile/jsTest/tests"
 		]
-		munitTask.haxeCommandLine == expectedMUnitHaxeCommandLine
+		testCompileTask.haxeCommandToExecute == expectedHaxeTestCommandLine
+
+		munitTask.getInputFile() == project.file("${project.buildDir}/compiled-haxe/jsTest/compiled.js")
+		munitTask.getMUnitCommandLine() == [
+				"haxelib",
+				"run",
+				"munit",
+				"run"
+		]
+		munitTask.getWorkingDirectory() == project.file("${project.buildDir}/munit/jsTest")
 	}
 
 	private List<File> sourceDirs(String functionalSourceSet, String languageSourceSet, Class<? extends LanguageSourceSet> type = LanguageSourceSet) {

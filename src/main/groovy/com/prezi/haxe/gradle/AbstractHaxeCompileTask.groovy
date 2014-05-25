@@ -21,6 +21,9 @@ abstract class AbstractHaxeCompileTask extends ConventionTask {
 	LinkedHashSet<Object> sources = []
 	LinkedHashMap<String, File> embeddedResources = [:]
 	TargetPlatform targetPlatform
+	void targetPlatform(String targetPlatform) {
+		this.targetPlatform = project.extensions.getByType(HaxeExtension).targetPlatforms.maybeCreate(targetPlatform)
+	}
 
 	public source(Object... sources) {
 		this.sources.addAll(sources)

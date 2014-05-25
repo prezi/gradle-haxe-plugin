@@ -22,17 +22,13 @@ class MUnitCommandBuilder {
 		{
 			cmd << "haxelib"
 		}
-		cmd << "run" << "munit" << "test"
+		cmd << "run" << "munit" << "run"
 		processCommandLineOptions()
 		cmd
 	}
 
 	private String processCommandLineOptions()
 	{
-		if (isSet('munit.nogen'))
-		{
-			cmd << "-nogen"
-		}
 		if (isSet('munit.platform'))
 		{
 			cmd << "-${get('munit.platform')}"

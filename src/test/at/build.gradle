@@ -1,11 +1,18 @@
 buildscript {
+	def gitVersion
+	if (hasProperty("release")) {
+		gitVersion = [ "git", "describe", "--match", "[0-9]*", "--dirty"].execute().text.trim()
+	} else {
+		gitVersion = [ "git", "describe", "--match", "[0-9]*", "--abbrev=0"].execute().text.trim() + "-SNAPSHOT"
+	}
+
 	repositories {
 		mavenLocal()
 		mavenCentral()
 	}
 
 	dependencies {
-		classpath "com.prezi.haxe:gradle-haxe-plugin:2.0-SNAPSHOT"
+		classpath "com.prezi.haxe:gradle-haxe-plugin:${gitVersion}"
 	}
 }
 

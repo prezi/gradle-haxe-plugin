@@ -1,18 +1,25 @@
 package com.prezi.haxe.gradle
 
-import org.gradle.api.DomainObjectSet
-import org.gradle.api.internal.DefaultDomainObjectSet
-import org.gradle.api.tasks.InputFiles
+import org.gradle.api.internal.ConventionTask
+import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.TaskAction
-import org.gradle.language.base.LanguageSourceSet
 
 import java.util.regex.Pattern
 
-class MUnit extends AbstractHaxeCompileTask {
-	final LinkedHashSet<Object> testSources = []
-	LinkedHashMap<String, File> embeddedTestResources = [:]
-
+class MUnit extends ConventionTask {
 	static final Pattern SUCCESSFUL_TEST_PATTERN = ~/(?m)^PLATFORMS TESTED: \d+, PASSED: \d+, FAILED: 0, ERRORS: 0, TIME:/
+
+	@Input
+	TargetPlatform targetPlatform
+	void targetPlatform(String targetPlatform) {
+		this.targetPlatform = project.extensions.getByType(HaxeExtension).targetPlatforms.maybeCreate(targetPlatform)
+	}
+
+	@Input
+	File inputFile
+	void inputFile(Object file) {
+		this.inputFile = project.file(file)
+	}
 
 	@TaskAction
 	void munit()
@@ -21,43 +28,10 @@ class MUnit extends AbstractHaxeCompileTask {
 		workDir.delete() || workDir.deleteDir()
 		workDir.mkdirs()
 
-		def haxeCmdParts = getHaxeCommandLine()
-		def haxeCmd = "";
-		haxeCmdParts.each {
-			if (it.startsWith("-")) {
-				haxeCmd += "\n"
-			} else {
-				haxeCmd += " "
-			}
-			haxeCmd += it
-		}
+		prepareEnvironment(workDir)
 
-		def testHxml = new File(workDir, "test.hxml")
-		testHxml.delete()
-		testHxml << haxeCmd
-
-		def munitConfig = new File(workDir, ".munit")
-		munitConfig.delete()
-		munitConfig << "version=2.0.0\n"
-		munitConfig << "src=${testSourcesDirectory}\n"
-		munitConfig << "bin=${workDir}\n"
-		munitConfig << "report=${workDir}/report\n"
-		munitConfig << "hxml=${testHxml}\n"
-
-		// Issue #1 -- Use UTF-8 compatible JS runner template
-		if (getTargetPlatform().name == "js")
-		{
-			munitConfig << "templates=${workDir}/templates\n"
-			def templatesDir = new File(workDir, "templates")
-			project.mkdir(templatesDir)
-			def jsRunnerTemplate = new File(templatesDir, "js_runner-html.mtt")
-			jsRunnerTemplate.delete()
-			jsRunnerTemplate << getMUnitJsHtmlTemplate()
-		}
-
-		def munitCmd = getMUnitCommandLine()
-
-		CommandExecutor.execute(project, munitCmd, workDir) { ExecutionResult result ->
+		def cmd = getMUnitCommandLine()
+		CommandExecutor.execute(project, cmd, getWorkingDirectory()) { ExecutionResult result ->
 			def errorExit = result.exitValue != 0
 			def testsFailing = !SUCCESSFUL_TEST_PATTERN.matcher(result.output).find()
 			if (errorExit || testsFailing)
@@ -75,89 +49,47 @@ class MUnit extends AbstractHaxeCompileTask {
 		}
 	}
 
-	protected InputStream getMUnitJsHtmlTemplate() {
-		return this.class.getResourceAsStream("/js_runner-html.mtt")
-	}
-
-	public List<String> getHaxeCommandLine() {
-		def sources = getSourceSets()
-		def testSources = getTestSourceSets()
-		Map<String, File> allResources = getEmbeddedResources() + getEmbeddedTestResources()
-
-		// Copy all tests into one directory
-		project.copy {
-			from testSources*.source*.srcDirs
-			into testSourcesDirectory
-		}
-
-		def output = getOutput()
-		output.parentFile.mkdirs()
-
-		return configureHaxeCommandLine(output, getWorkingDirectory(), sources, testSources, allResources).build()
-	}
-
-	public List<String> getMUnitCommandLine() {
+	protected List<String> getMUnitCommandLine() {
 		return new MUnitCommandBuilder(project).build()
 	}
 
-	protected HaxeCommandBuilder configureHaxeCommandLine(File output, File workDir, DomainObjectSet<LanguageSourceSet> sources, Set<LanguageSourceSet> testSources, Map<String, File> allResources) {
-		Set<LanguageSourceSet> allSources = sources + testSources
+	protected void prepareEnvironment(File workDir) {
+		String testBinaryName = copyCompiledTest(workDir)
 
-		return new HaxeCommandBuilder(project)
-				.withSources([testSourcesDirectory])
-				.withSources(getAllSourceDirectories(sources))
-				.withSourceSets(allSources, allResources)
-				.withIncludes(getIncludes())
-				.withExcludes(getExcludes())
-				.withMacros(getMacros())
-				.withFlags(getFlagList())
-				.withDebugFlags(getDebug())
-				.withTarget(getTargetPlatform().name, output)
-				.withMain("TestMain")
-	}
+		def testHxml = new File(workDir, "test.hxml")
+		testHxml << "-${getTargetPlatform().name} ${testBinaryName}\n"
 
-	protected File getTestSourcesDirectory() {
-		def testSourcesDirectory = new File(getWorkingDirectory(), "tests")
-		testSourcesDirectory.mkdirs()
-		return testSourcesDirectory
-	}
+		def munitConfig = new File(workDir, ".munit")
+		munitConfig << "bin=.\n"
+		munitConfig << "report=report\n"
+		munitConfig << "hxml=test.hxml\n"
+		munitConfig << "resources=.\n"
 
-	public testSource(Object... sources) {
-		testSources.addAll(sources)
-	}
-
-	protected DomainObjectSet<LanguageSourceSet> getTestSourceSets() {
-		def testSourceSets = getTestSources().collectMany { notationParser.parseNotation(it) }
-		return new DefaultDomainObjectSet<LanguageSourceSet>(LanguageSourceSet, testSourceSets)
-	}
-
-	private File getOutput()
-	{
-		switch (getTargetPlatform().name)
-		{
-			case "js":
-				return new File(getWorkingDirectory(), "js_test.js")
-			case "swf":
-				return new File(getWorkingDirectory(), "swf_test.swf")
-			case "neko":
-				return new File(getWorkingDirectory(), "neko_test.n")
-			case "as3":
-			case "java":
-			default:
-				throw new IllegalStateException("Cannot test platform " + getTargetPlatform())
+		// Issue #1 -- Use UTF-8 compatible JS runner template
+		if (getTargetPlatform().name == "js") {
+			munitConfig << "templates=templates\n"
+			def templatesDir = new File(workDir, "templates")
+			project.mkdir(templatesDir)
+			def jsRunnerTemplate = new File(templatesDir, "js_runner-html.mtt")
+			jsRunnerTemplate << getMUnitJsHtmlTemplate()
 		}
 	}
 
-	@Override
-	@InputFiles
-	Set<File> getInputFiles() {
-		return super.getInputFiles() + getAllSourceDirectories(getTestSourceSets()) + getEmbeddedTestResources().values()
+	protected String copyCompiledTest(File workDir) {
+		def testBinaryName = "${getTargetPlatform().name}_test.js"
+		def testFile = new File(workDir, testBinaryName)
+		logger.debug "Copying test file from {} to {}", getInputFile(), testFile
+		testFile << getInputFile().text
+		return testBinaryName
 	}
 
 	File workingDirectory
-
 	public workingDirectory(Object workingDirectory)
 	{
 		this.workingDirectory = project.file(workingDirectory)
+	}
+
+	protected InputStream getMUnitJsHtmlTemplate() {
+		return this.class.getResourceAsStream("/js_runner-html.mtt")
 	}
 }

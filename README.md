@@ -56,10 +56,12 @@ See below about how you can embed resources in your Haxe programs.
 For each target platform the plugin creates the following tasks:
 
 * `compile<platform>` -- calls the Haxe compiler (e.g. `compileJs`)
-* `test<platform>` -- runs the tests via MUnit (e.g. `testJs`)
+* `compile<platform>Test` -- calls the Haxe compiler to compile tests (e.g. `compileJsTest`)
+* `run<platform>Test` -- runs the tests via MUnit (e.g. `runJsTest`)
 * `source<platform>` -- creates the [`.har` archive](#published-artifacts) from the sources used to compile the platform (e.g. `sourceJs`)
+* `source<platform>Test` -- same for tests
 
-There is also a `compile` and a `test` task created that run all compile- and test tasks, respectively.
+There is also a `compile` and a `test` task created that run all compile- and test tasks, respectively. There is a `check` task that calls `test` (so that you can hook in other tests, like integration and acceptance tests).
 
 ### Published artifacts
 
@@ -150,7 +152,6 @@ You can pass some command-line parameters to Gradle so that it will pass some to
 * `-Pmunit.browser=<browser>` -- adds `-browser <browser>`
 * `-Pmunit.debug` -- turns on `-debug`
 * `-Pmunit.kill-browser` -- adds `-kill-browser`
-* `-Pmunit.nogen` -- turns on `-nogen`
 * `-Pmunit.platform=<platform>` -- adds `-<platform>`
 
 A typical server-side example:
@@ -201,25 +202,22 @@ Parameters:
 
 #### Testing
 
+The `HaxeTestCompile` task generates an MUnit test suite in addition to compiling your tests. Additional parameter to `HaxeCompile`:
+
+* `workingDirectory` -- where the tests will be copied
+
 The `MUnit` task tests the results of a compilation task with [MassiveUnit](https://github.com/massiveinteractive/MassiveUnit). It works with the same configuration as the compile task above.
 
 	task munit(type: com.prezi.haxe.gradle.MUnit) {
-		source <directory>
 		targetPlatform "<js|swf|as3>"
-	
-		// Optional parameters
-		configuration <configuration>
-		debug <true|false>
-		embed <file> ["<name>"]
-		embedAll <directory>
-		exclude "<package|class>"
-		flag "<flag>"
-		include "<package|class>"
-		macro "<macro>"
-		outputDirectory <directory>
-		outputFile <file>
-		resource <directory>
+		inputFile <file>
+		workingDirectory <dir>
 	}
+
+* `inputFile` -- the tests compiled by a `HaxeTestCompile` task
+* `targetPlatform` -- specify the target platform.
+* `workingDirectory` -- the directory where the tests will be executed in
+
 
 You can supply MUnit-specific parameters.
 
