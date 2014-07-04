@@ -61,4 +61,9 @@ class HaxeBinaryNamingScheme implements BinaryNamingScheme {
 	public String getOutputDirectoryBase() {
 		return parentName
 	}
+
+	@Override
+	List<String> getVariantDimensions() {
+		return []
+	}
 }
