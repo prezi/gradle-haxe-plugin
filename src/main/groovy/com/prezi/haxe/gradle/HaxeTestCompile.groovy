@@ -42,6 +42,15 @@ class HaxeTestCompile extends HaxeCompile {
 	}
 
 	@Override
+	protected HaxeCommandBuilder configureHaxeCommandBuilder(File output, DomainObjectSet<LanguageSourceSet> sources) {
+		def builder = super.configureHaxeCommandBuilder(output, sources)
+		if (project.hasProperty("munit.debug")) {
+			builder.withFlags(["-D testDebug"])
+		}
+		return builder
+	}
+
+	@Override
 	protected String getMainClass() {
 		return "TestMain"
 	}

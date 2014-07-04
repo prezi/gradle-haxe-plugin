@@ -41,10 +41,6 @@ class MUnitCommandBuilder {
 		{
 			cmd << "-kill-browser"
 		}
-		if (isSet('munit.debug'))
-		{
-			cmd << "-debug"
-		}
 		cmd
 	}
 
