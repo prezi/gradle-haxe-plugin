@@ -70,7 +70,7 @@ uploadArchives {
 					description project.description
 
 					scm {
-						url "scm:git@github.com:prezi/gradle-haxe-plugin.git"
+						url "http://github.com/prezi/gradle-haxe-plugin"
 						connection "scm:git@github.com:prezi/gradle-haxe-plugin.git"
 						developerConnection "scm:git@github.com:prezi/gradle-haxe-plugin.git"
 					}
