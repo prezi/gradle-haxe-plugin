@@ -27,6 +27,6 @@ compileJsNode {
 	}
 }
 
-munitJsNodeTest {
+runJsNodeTest {
 	enabled = false
 }
