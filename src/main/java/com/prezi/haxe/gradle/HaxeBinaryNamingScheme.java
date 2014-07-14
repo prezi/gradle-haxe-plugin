@@ -6,8 +6,8 @@ import org.gradle.language.base.internal.BinaryNamingScheme;
 
 import java.util.List;
 
-/**
- * Copied from {@link org.gradle.language.jvm.internal.ClassDirectoryBinaryNamingScheme}.
+/*
+ * Copied from org.gradle.language.jvm.internal.ClassDirectoryBinaryNamingScheme.
  */
 public class HaxeBinaryNamingScheme implements BinaryNamingScheme {
 	private final String parentName;

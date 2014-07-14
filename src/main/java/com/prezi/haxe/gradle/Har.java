@@ -86,7 +86,7 @@ public class Har extends Zip {
 
 	/**
 	 * Configures the manifest for this JAR archive.
-	 * <p/>
+	 *
 	 * <p>The given closure is executed to configure the manifest. The {@link org.gradle.api.java.archives.Manifest}
 	 * is passed to the closure as its delegate.</p>
 	 *
@@ -107,7 +107,7 @@ public class Har extends Zip {
 
 	/**
 	 * Adds content to this JAR archive's META-INF directory.
-	 * <p/>
+	 * 
 	 * <p>The given closure is executed to configure a {@code CopySpec}. The {@link CopySpec} is passed to the closure
 	 * as its delegate.</p>
 	 *
