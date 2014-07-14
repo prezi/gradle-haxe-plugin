@@ -2,9 +2,6 @@ package com.prezi.haxe.gradle
 
 import org.gradle.api.tasks.bundling.Jar
 
-/**
- * Created by lptr on 09/02/14.
- */
 class Har extends Jar {
 	public static final String DEFAULT_EXTENSION = 'har'
 
