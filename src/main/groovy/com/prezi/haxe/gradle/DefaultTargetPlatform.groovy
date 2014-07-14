@@ -8,16 +8,13 @@ import org.gradle.util.ConfigureUtil
 /**
  * Created by lptr on 09/02/14.
  */
-class DefaultTargetPlatform implements TargetPlatform {
+class DefaultTargetPlatform extends DefaultHaxeCompilerParametersSupport implements TargetPlatform {
 	private final String name
 	private final NamedDomainObjectContainer<Flavor> flavors
-	@Delegate(deprecated = true)
-	private final HaxeCompileParameters params
 
 	public DefaultTargetPlatform(String name, Project project) {
 		this.name = name
 		this.flavors = project.container(DefaultFlavor)
-		this.params = new HaxeCompileParameters()
 	}
 
 	@Override
@@ -38,11 +35,6 @@ class DefaultTargetPlatform implements TargetPlatform {
 	@Override
 	void flavors(Closure closure) {
 		ConfigureUtil.configure(closure, getFlavors())
-	}
-
-	@Override
-	HaxeCompileParameters getParams() {
-		return params
 	}
 
 	@Override

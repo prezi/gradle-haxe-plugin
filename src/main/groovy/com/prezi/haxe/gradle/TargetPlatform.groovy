@@ -7,9 +7,8 @@ import org.gradle.api.NamedDomainObjectContainer
 /**
  * Created by lptr on 09/02/14.
  */
-interface TargetPlatform extends Named {
+interface TargetPlatform extends Named, HaxeCompilerParametersSupport {
 	void flavors(Action<? super NamedDomainObjectContainer<Flavor>> action)
 	void flavors(Closure closure)
 	NamedDomainObjectContainer<Flavor> getFlavors()
-	HaxeCompileParameters getParams()
 }

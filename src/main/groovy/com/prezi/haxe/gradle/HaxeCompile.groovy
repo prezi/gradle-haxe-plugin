@@ -36,7 +36,7 @@ class HaxeCompile extends AbstractHaxeCompileTask {
 				.withIncludes(getIncludes())
 				.withExcludes(getExcludes())
 				.withFlags(getFlagList())
-				.withDebugFlags(getDebug())
+				.withDebugFlags(isDebug())
 	}
 
 	protected Set<File> getSourceDirectories(DomainObjectSet<LanguageSourceSet> sources) {

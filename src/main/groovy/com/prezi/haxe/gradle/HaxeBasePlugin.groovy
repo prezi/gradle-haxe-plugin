@@ -246,7 +246,7 @@ class HaxeBasePlugin implements Plugin<Project> {
 		compileTask.conventionMapping.embeddedResources = { gatherEmbeddedResources(binary.source) }
 		compileTask.conventionMapping.outputFile = { getDefaultCompileTarget(project, binary) }
 		compileTask.conventionMapping.targetPlatform = { binary.targetPlatform }
-		HaxeCompileParameters.setConventionMapping(compileTask, getParams(project, binary.targetPlatform, binary.flavor))
+		compileTask.setConventionMapping(project.getExtensions().getByType(HaxeExtension), binary.targetPlatform, binary.flavor)
 		binary.source.all { compileTask.source it }
 
 		project.tasks.getByName(namingScheme.lifecycleTaskName).dependsOn compileTask
@@ -312,13 +312,6 @@ class HaxeBasePlugin implements Plugin<Project> {
 		}
 		logger.debug("Created source source task ${sourceTask} for ${binary} in ${project.path}")
 		return sourceTask
-	}
-
-	public static Set<HaxeCompileParameters> getParams(Project project, TargetPlatform targetPlatform, Flavor flavor) {
-		def rootParams = project.extensions.getByType(HaxeExtension).params
-		def platformParams = targetPlatform.params
-		def flavorParams = flavor?.params
-		return [ rootParams, platformParams, flavorParams ] - null
 	}
 
 	public static LinkedHashMap<String, File> gatherEmbeddedResources(DomainObjectCollection<LanguageSourceSet> source) {
