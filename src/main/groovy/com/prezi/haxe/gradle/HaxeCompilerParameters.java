@@ -3,7 +3,7 @@ package com.prezi.haxe.gradle;
 import java.util.List;
 import java.util.Set;
 
-public interface HaxeCompilerParametersSupport {
+public interface HaxeCompilerParameters {
 	String getMain();
 	void main(String main);
 	List<String> getMacros();

@@ -245,7 +245,7 @@ class HaxeBasePlugin implements Plugin<Project> {
 		compileTask.description = "Compiles $binary"
 		compileTask.conventionMapping.embeddedResources = { gatherEmbeddedResources(binary.source) }
 		compileTask.conventionMapping.outputFile = { getDefaultCompileTarget(project, binary) }
-		compileTask.conventionMapping.targetPlatform = { binary.targetPlatform }
+		compileTask.conventionMapping.targetPlatform = { binary.targetPlatform.name }
 		compileTask.setConventionMapping(project.getExtensions().getByType(HaxeExtension), binary.targetPlatform, binary.flavor)
 		binary.source.all { compileTask.source it }
 
@@ -270,7 +270,7 @@ class HaxeBasePlugin implements Plugin<Project> {
 		def munitTask = project.tasks.create(munitTaskName, munitType)
 		munitTask.description = "Runs MUnit on ${binary}"
 		munitTask.conventionMapping.workingDirectory = { project.file("${project.buildDir}/munit/" + binary.name) }
-		munitTask.conventionMapping.targetPlatform = { binary.targetPlatform }
+		munitTask.conventionMapping.targetPlatform = { binary.targetPlatform.name }
 		munitTask.conventionMapping.inputFile = { binary.compileTask.getOutputFile() }
 
 		munitTask.dependsOn binary.compileTask

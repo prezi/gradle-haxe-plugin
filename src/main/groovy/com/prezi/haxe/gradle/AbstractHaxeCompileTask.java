@@ -23,17 +23,13 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.Callable;
 
-public abstract class AbstractHaxeCompileTask extends ConventionTask implements HaxeCompilerParametersSupport {
+public abstract class AbstractHaxeCompileTask extends ConventionTask implements HaxeCompilerParameters {
 
 	protected static final NotationParser<Object, Set<LanguageSourceSet>> notationParser = SourceSetNotationParser.parser();
-	protected final HaxeCompilerParametersSupport params = new DefaultHaxeCompilerParametersSupport();
+	protected final HaxeCompilerParameters params = new DefaultHaxeCompilerParameters();
 	private Set<Object> sources = Sets.newLinkedHashSet();
 	private Map<String, File> embeddedResources = Maps.newLinkedHashMap();
-	private TargetPlatform targetPlatform;
-
-	public void targetPlatform(String targetPlatform) {
-		this.targetPlatform = getProject().getExtensions().getByType(HaxeExtension.class).getTargetPlatforms().maybeCreate(targetPlatform);
-	}
+	private String targetPlatform;
 
 	public void source(Object... sources) {
 		this.sources.addAll(Arrays.asList(sources));
@@ -60,17 +56,17 @@ public abstract class AbstractHaxeCompileTask extends ConventionTask implements 
 		return Sets.newLinkedHashSet(Iterables.concat(getAllSourceDirectories(getSourceSets()), getEmbeddedResources().values()));
 	}
 
-	public void setConventionMapping(final HaxeCompilerParametersSupport... params) {
-		final Iterable<HaxeCompilerParametersSupport> nonNullParams = Iterables.filter(Arrays.asList(params), new Predicate<HaxeCompilerParametersSupport>() {
+	public void setConventionMapping(final HaxeCompilerParameters... params) {
+		final Iterable<HaxeCompilerParameters> nonNullParams = Iterables.filter(Arrays.asList(params), new Predicate<HaxeCompilerParameters>() {
 			@Override
-			public boolean apply(HaxeCompilerParametersSupport param) {
+			public boolean apply(HaxeCompilerParameters param) {
 				return param != null;
 			}
 		});
 		getConventionMapping().map("main", new Callable<String>() {
 			@Override
 			public String call() throws Exception {
-				for (HaxeCompilerParametersSupport param : nonNullParams) {
+				for (HaxeCompilerParameters param : nonNullParams) {
 					if (!Strings.isNullOrEmpty(param.getMain())) {
 						return param.getMain();
 					}
@@ -82,7 +78,7 @@ public abstract class AbstractHaxeCompileTask extends ConventionTask implements 
 			@Override
 			public List<String> call() throws Exception {
 				List<String> result = Lists.newArrayList();
-				for (HaxeCompilerParametersSupport param : nonNullParams) {
+				for (HaxeCompilerParameters param : nonNullParams) {
 					result.addAll(param.getMacros());
 				}
 				return result;
@@ -92,7 +88,7 @@ public abstract class AbstractHaxeCompileTask extends ConventionTask implements 
 			@Override
 			public Set<String> call() throws Exception {
 				Set<String> result = Sets.newLinkedHashSet();
-				for (HaxeCompilerParametersSupport param : nonNullParams) {
+				for (HaxeCompilerParameters param : nonNullParams) {
 					result.addAll(param.getIncludes());
 				}
 				return result;
@@ -102,7 +98,7 @@ public abstract class AbstractHaxeCompileTask extends ConventionTask implements 
 			@Override
 			public Set<String> call() throws Exception {
 				Set<String> result = Sets.newLinkedHashSet();
-				for (HaxeCompilerParametersSupport param : nonNullParams) {
+				for (HaxeCompilerParameters param : nonNullParams) {
 					result.addAll(param.getExcludes());
 				}
 				return result;
@@ -112,7 +108,7 @@ public abstract class AbstractHaxeCompileTask extends ConventionTask implements 
 			@Override
 			public List<String> call() throws Exception {
 				List<String> result = Lists.newArrayList();
-				for (HaxeCompilerParametersSupport param : nonNullParams) {
+				for (HaxeCompilerParameters param : nonNullParams) {
 					result.addAll(param.getFlagList());
 				}
 				return result;
@@ -122,7 +118,7 @@ public abstract class AbstractHaxeCompileTask extends ConventionTask implements 
 			@Override
 			public Boolean call() throws Exception {
 				boolean debug = false;
-				for (HaxeCompilerParametersSupport param : nonNullParams) {
+				for (HaxeCompilerParameters param : nonNullParams) {
 					if (param.isDebug()) {
 						debug = true;
 						break;
@@ -195,7 +191,6 @@ public abstract class AbstractHaxeCompileTask extends ConventionTask implements 
 	public boolean isDebug() {
 		return params.isDebug();
 	}
-
 	@Override
 	public void debug(boolean debug) {
 		params.debug(debug);
@@ -204,7 +199,6 @@ public abstract class AbstractHaxeCompileTask extends ConventionTask implements 
 	public Set<Object> getSources() {
 		return sources;
 	}
-
 	public void setSources(Set<Object> sources) {
 		this.sources = sources;
 	}
@@ -213,17 +207,18 @@ public abstract class AbstractHaxeCompileTask extends ConventionTask implements 
 	public Map<String, File> getEmbeddedResources() {
 		return embeddedResources;
 	}
-
 	public void setEmbeddedResources(Map<String, File> embeddedResources) {
 		this.embeddedResources = embeddedResources;
 	}
 
 	@Input
-	public TargetPlatform getTargetPlatform() {
+	public String getTargetPlatform() {
 		return targetPlatform;
 	}
-
-	public void setTargetPlatform(TargetPlatform targetPlatform) {
+	public void setTargetPlatform(String targetPlatform) {
+		this.targetPlatform = targetPlatform;
+	}
+	public void targetPlatform(String targetPlatform) {
 		this.targetPlatform = targetPlatform;
 	}
 }

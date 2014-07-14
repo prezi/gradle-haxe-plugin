@@ -42,22 +42,26 @@ public class EmbeddedResourceEncoding {
 		return encoded.toString();
 	}
 
-	public static Map<String, File> decode(String encoded, File baseDir) throws UnsupportedEncodingException {
+	public static Map<String, File> decode(String encoded, File baseDir) {
 		LinkedHashMap<String, File> resources = new LinkedHashMap<String, File>();
 		if (encoded != null && !encoded.isEmpty()) {
 			for (String res : encoded.split(" ")) {
 				String fileName;
 				String name;
-				if (res.indexOf('@') >= 0) {
-					Iterator<String> iterator = DefaultGroovyMethods.iterator(res.split("@", 2));
-					String fileNameEnc = iterator.hasNext() ? iterator.next() : null;
-					String nameEnc = iterator.hasNext() ? iterator.next() : null;
+				try {
+					if (res.indexOf('@') >= 0) {
+						Iterator<String> iterator = DefaultGroovyMethods.iterator(res.split("@", 2));
+						String fileNameEnc = iterator.hasNext() ? iterator.next() : null;
+						String nameEnc = iterator.hasNext() ? iterator.next() : null;
 
-					fileName = URLDecoder.decode(fileNameEnc, "utf-8");
-					name = URLDecoder.decode(nameEnc, "utf-8");
-				} else {
-					fileName = URLDecoder.decode(res, "utf-8");
-					name = fileName;
+						fileName = URLDecoder.decode(fileNameEnc, "utf-8");
+						name = URLDecoder.decode(nameEnc, "utf-8");
+					} else {
+						fileName = URLDecoder.decode(res, "utf-8");
+						name = fileName;
+					}
+				} catch (UnsupportedEncodingException ex) {
+					throw new AssertionError(ex);
 				}
 
 				resources.put(name, new File(baseDir, fileName));

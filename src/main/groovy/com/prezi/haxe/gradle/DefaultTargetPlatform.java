@@ -9,18 +9,15 @@ import org.gradle.api.NamedDomainObjectFactory;
 import org.gradle.api.Project;
 import org.gradle.util.ConfigureUtil;
 
-public class DefaultTargetPlatform extends DefaultHaxeCompilerParametersSupport implements TargetPlatform {
+import java.io.Serializable;
+
+public class DefaultTargetPlatform extends DefaultHaxeCompilerParameters implements TargetPlatform {
 	private final String name;
 	private final NamedDomainObjectContainer<Flavor> flavors;
 
 	public DefaultTargetPlatform(String name, Project project) {
 		this.name = name;
-		this.flavors = project.container(Flavor.class, new NamedDomainObjectFactory<Flavor>() {
-			@Override
-			public Flavor create(String name) {
-				return new DefaultFlavor(name);
-			}
-		});
+		this.flavors = project.container(Flavor.class, new FlavorNamedDomainObjectFactory());
 	}
 
 	@Override
@@ -51,5 +48,12 @@ public class DefaultTargetPlatform extends DefaultHaxeCompilerParametersSupport 
 				return flavor.getName();
 			}
 		});
+	}
+
+	private static class FlavorNamedDomainObjectFactory implements NamedDomainObjectFactory<Flavor>, Serializable {
+		@Override
+		public Flavor create(String name) {
+			return new DefaultFlavor(name);
+		}
 	}
 }

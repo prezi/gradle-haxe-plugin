@@ -1,12 +1,15 @@
-package com.prezi.haxe.gradle
+package com.prezi.haxe.gradle;
 
-import org.gradle.api.Nullable
-import org.gradle.language.base.internal.BinaryNamingScheme
+import com.google.common.collect.Lists;
+import org.gradle.api.Nullable;
+import org.gradle.language.base.internal.BinaryNamingScheme;
+
+import java.util.List;
 
 /**
  * Copied from {@link org.gradle.language.jvm.internal.ClassDirectoryBinaryNamingScheme}.
  */
-class HaxeBinaryNamingScheme implements BinaryNamingScheme {
+public class HaxeBinaryNamingScheme implements BinaryNamingScheme {
 	private final String parentName;
 	private final String collapsedName;
 
@@ -41,12 +44,15 @@ class HaxeBinaryNamingScheme implements BinaryNamingScheme {
 			if (word == null || word.length() == 0) {
 				continue;
 			}
+
 			if (builder.length() == 0) {
 				appendUncapitalized(builder, word);
 			} else {
 				appendCapitalized(builder, word);
 			}
+
 		}
+
 		return builder.toString();
 	}
 
@@ -59,11 +65,11 @@ class HaxeBinaryNamingScheme implements BinaryNamingScheme {
 	}
 
 	public String getOutputDirectoryBase() {
-		return parentName
+		return parentName;
 	}
 
 	@Override
-	List<String> getVariantDimensions() {
-		return []
+	public List<String> getVariantDimensions() {
+		return Lists.newArrayList();
 	}
 }

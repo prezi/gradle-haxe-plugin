@@ -66,18 +66,22 @@ public abstract class AbstractHaxeBinary<T extends HaxeCompile> extends Abstract
 		return flavor;
 	}
 
+	@Override
 	public T getCompileTask() {
 		return compileTask;
 	}
 
+	@Override
 	public void setCompileTask(T compileTask) {
 		this.compileTask = compileTask;
 	}
 
+	@Override
 	public Har getSourceHarTask() {
 		return sourceHarTask;
 	}
 
+	@Override
 	public void setSourceHarTask(Har sourceHarTask) {
 		this.sourceHarTask = sourceHarTask;
 	}

@@ -143,7 +143,7 @@ class HaxePluginTest extends Specification {
 		expect:
 		compileTask.outputFile == project.file("${project.buildDir}/compiled-haxe/js/compiled.js")
 		compileTask.outputDirectory == null
-		compileTask.targetPlatform.name == "js"
+		compileTask.targetPlatform == "js"
 		sourceDirs(compileTask.sourceSets) == files(
 				"src/main/haxe",
 				"src/main/resources",
@@ -153,7 +153,7 @@ class HaxePluginTest extends Specification {
 
 		testCompileTask.outputFile == project.file("${project.buildDir}/compiled-haxe/jsTest/compiled.js")
 		testCompileTask.outputDirectory == null
-		testCompileTask.targetPlatform.name == "js"
+		testCompileTask.targetPlatform == "js"
 		sourceDirs(testCompileTask.sourceSets) == files(
 				"src/main/haxe",
 				"src/main/resources",

@@ -1,6 +1,6 @@
 package com.prezi.haxe.gradle;
 
-public class DefaultFlavor extends DefaultHaxeCompilerParametersSupport implements Flavor {
+public class DefaultFlavor extends DefaultHaxeCompilerParameters implements Flavor {
 	private final String name;
 
 	public DefaultFlavor(String name) {

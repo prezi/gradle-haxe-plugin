@@ -5,7 +5,9 @@ import org.gradle.api.Action;
 import org.gradle.api.Named;
 import org.gradle.api.NamedDomainObjectContainer;
 
-public interface TargetPlatform extends Named, HaxeCompilerParametersSupport {
+import java.io.Serializable;
+
+public interface TargetPlatform extends Named, HaxeCompilerParameters, Serializable {
 	void flavors(Action<? super NamedDomainObjectContainer<Flavor>> action);
 	void flavors(Closure closure);
 	NamedDomainObjectContainer<Flavor> getFlavors();
