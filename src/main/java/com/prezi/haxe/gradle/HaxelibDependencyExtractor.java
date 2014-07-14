@@ -147,7 +147,7 @@ public class HaxelibDependencyExtractor {
 					FileInputStream fis = new FileInputStream(details.getFile());
 					try {
 						manifest = new Manifest(fis);
-						if (manifest.getMainAttributes().getValue(Har.MANIFEST_ATTR_LIBRARY_VERSION).equals("1.0")) {
+						if ("1.0".equals(manifest.getMainAttributes().getValue(Har.MANIFEST_ATTR_LIBRARY_VERSION))) {
 							type = HaxelibType.VERSION_1_0;
 							details.stopVisiting();
 						}
