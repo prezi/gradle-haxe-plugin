@@ -3,7 +3,7 @@ package com.prezi.haxe.gradle;
 import org.gradle.api.Action;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
-import org.gradle.language.base.BinaryContainer;
+import org.gradle.runtime.base.BinaryContainer;
 
 public class HaxePlugin implements Plugin<Project> {
 	@Override
