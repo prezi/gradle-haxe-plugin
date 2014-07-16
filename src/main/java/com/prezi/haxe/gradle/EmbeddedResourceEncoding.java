@@ -1,6 +1,6 @@
 package com.prezi.haxe.gradle;
 
-import org.codehaus.groovy.runtime.DefaultGroovyMethods;
+import com.google.common.collect.Iterators;
 
 import java.io.File;
 import java.io.UnsupportedEncodingException;
@@ -16,11 +16,11 @@ public class EmbeddedResourceEncoding {
 		for (Map.Entry<String, File> entry : resources.entrySet()) {
 			String name = entry.getKey();
 			File resource = entry.getValue();
-			if (DefaultGroovyMethods.contains(name, "@")) {
+			if (name.contains("@")) {
 				throw new IllegalArgumentException("Resource name must not contain '@': " + name);
 			}
 
-			if (DefaultGroovyMethods.contains(resource.getName(), "@")) {
+			if (resource.getName().contains("@")) {
 				throw new IllegalArgumentException("Resource file name must not contain '@': " + name);
 			}
 
@@ -50,7 +50,7 @@ public class EmbeddedResourceEncoding {
 				String name;
 				try {
 					if (res.indexOf('@') >= 0) {
-						Iterator<String> iterator = DefaultGroovyMethods.iterator(res.split("@", 2));
+						Iterator<String> iterator = Iterators.forArray(res.split("@", 2));
 						String fileNameEnc = iterator.hasNext() ? iterator.next() : null;
 						String nameEnc = iterator.hasNext() ? iterator.next() : null;
 
