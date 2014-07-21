@@ -5,6 +5,8 @@ The Haxe plugin allows you to build, test and package Haxe projects from Gradle.
 
 [![Build Status](https://travis-ci.org/prezi/gradle-haxe-plugin.svg?branch=master)](https://travis-ci.org/prezi/gradle-haxe-plugin)
 
+Gradle 2.0 required. With earlier versions you will get an error that `org.gradle.runtime.base.BinaryContainer` is missing.
+
 The plugin requires [Haxe](http://haxe.org/download) to be installed and available on the path. For testing it also requires [Neko](http://nekovm.org/download) and the [MUnit haxelib](http://lib.haxe.org/p/munit) to be installed.
 
 ## Standard project layout
