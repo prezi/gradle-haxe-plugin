@@ -2,10 +2,10 @@ package com.prezi.haxe.gradle
 
 import org.gradle.api.Project
 import org.gradle.api.Task
-import org.gradle.language.base.BinaryContainer
 import org.gradle.language.base.LanguageSourceSet
 import org.gradle.language.base.ProjectSourceSet
 import org.gradle.language.jvm.ResourceSet
+import org.gradle.runtime.base.BinaryContainer
 import org.gradle.testfixtures.ProjectBuilder
 import spock.lang.Specification
 
