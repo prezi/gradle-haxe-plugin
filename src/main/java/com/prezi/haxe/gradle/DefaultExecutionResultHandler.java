@@ -10,7 +10,6 @@ public class DefaultExecutionResultHandler implements ExecutionResultHandler {
 	private static final Logger logger = LoggerFactory.getLogger(DefaultRepositoryHandler.class);
 
 	private final Iterable<?> cmd;
-	private String output;
 
 	DefaultExecutionResultHandler(Iterable<?> cmd) {
 		this.cmd = cmd;
@@ -22,7 +21,7 @@ public class DefaultExecutionResultHandler implements ExecutionResultHandler {
 			logger.warn("{}", output);
 		}
 		if (exitValue != 0) {
-			throw new RuntimeException("Command finished with non-zero exit value (" + exitValue + "):\n" + Joiner.on("").join(cmd));
+			throw new RuntimeException("Command finished with non-zero exit value (" + exitValue + "):\n" + Joiner.on(" ").join(cmd));
 		}
 	}
 
