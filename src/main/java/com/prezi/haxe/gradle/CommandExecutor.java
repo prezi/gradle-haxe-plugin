@@ -20,10 +20,10 @@ public class CommandExecutor {
 		builder.redirectErrorStream(true);
 		builder.directory(dir);
 		Process process = builder.start();
-		process.waitFor();
-
 		ByteArrayOutputStream bytes = new ByteArrayOutputStream();
 		ByteStreams.copy(process.getInputStream(), bytes);
+		process.waitFor();
+
 		String output = bytes.toString(Charsets.UTF_8.name());
 
 		handler.handleResult(process.exitValue(), output);
