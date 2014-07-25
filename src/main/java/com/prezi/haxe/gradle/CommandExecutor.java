@@ -20,23 +20,10 @@ public class CommandExecutor {
 		ProcessBuilder builder = new ProcessBuilder(cmd);
 		builder.redirectErrorStream(true);
 		builder.directory(dir);
-		final Process process = builder.start();
-		final ByteArrayOutputStream bytes = new ByteArrayOutputStream();
-
-		final Semaphore stdoutReaderSema = new Semaphore(0);
-		Thread stdoutReader = new Thread() {
-			public void run() {
-				try {
-					ByteStreams.copy(process.getInputStream(), bytes);
-				} catch (IOException exception) {
-					logger.error("Exception while reading from subprocess " + process + ": " + exception);
-				}
-				stdoutReaderSema.release();
-			}
-		};
-		stdoutReader.start();
+		Process process = builder.start();
+		ByteArrayOutputStream bytes = new ByteArrayOutputStream();
+		ByteStreams.copy(process.getInputStream(), bytes);
 		process.waitFor();
-		stdoutReaderSema.acquire();
 
 		String output = bytes.toString(Charsets.UTF_8.name());
 
