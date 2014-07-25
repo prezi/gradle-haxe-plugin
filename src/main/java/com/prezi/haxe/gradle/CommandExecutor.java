@@ -10,7 +10,6 @@ import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.util.List;
-import java.util.concurrent.Semaphore;
 
 public class CommandExecutor {
 	private static final Logger logger = LoggerFactory.getLogger(CommandExecutor.class);
