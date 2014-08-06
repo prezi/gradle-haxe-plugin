@@ -1,10 +1,10 @@
 package com.prezi.haxe.gradle;
 
+import com.prezi.haxe.gradle.incubating.AbstractLanguageSourceSet;
+import com.prezi.haxe.gradle.incubating.FunctionalSourceSet;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.internal.file.DefaultSourceDirectorySet;
 import org.gradle.api.internal.file.FileResolver;
-import org.gradle.language.base.FunctionalSourceSet;
-import org.gradle.language.base.internal.AbstractLanguageSourceSet;
 
 public class DefaultHaxeSourceSet extends AbstractLanguageSourceSet implements HaxeSourceSet {
 

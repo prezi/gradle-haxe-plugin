@@ -1,6 +1,6 @@
 package com.prezi.haxe.gradle;
 
-import org.gradle.language.jvm.ResourceSet;
+import com.prezi.haxe.gradle.incubating.ResourceSet;
 
 import java.io.File;
 import java.util.Map;

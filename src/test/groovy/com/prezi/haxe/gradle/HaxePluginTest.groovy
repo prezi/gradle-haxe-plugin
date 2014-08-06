@@ -2,16 +2,10 @@ package com.prezi.haxe.gradle
 
 import org.gradle.api.Project
 import org.gradle.api.Task
-import org.gradle.language.base.LanguageSourceSet
-import org.gradle.language.base.ProjectSourceSet
-import org.gradle.language.jvm.ResourceSet
-import org.gradle.runtime.base.BinaryContainer
 import org.gradle.testfixtures.ProjectBuilder
 import spock.lang.Specification
+import com.prezi.haxe.gradle.incubating.*
 
-/**
- * Created by lptr on 27/04/14.
- */
 @SuppressWarnings("GroovyPointlessBoolean")
 class HaxePluginTest extends Specification {
 	Project project
@@ -57,7 +51,7 @@ class HaxePluginTest extends Specification {
 		checkTask.dependsOn.findAll { it instanceof Task }*.name == ["test"]
 
 		// There should be no binaries
-		project.extensions.getByType(BinaryContainer).empty
+		extension.binaries.empty
 	}
 
 	@SuppressWarnings("GroovyAssignabilityCheck")
@@ -90,7 +84,7 @@ class HaxePluginTest extends Specification {
 
 	def "js target platform creates binaries"() {
 		configureWithJsTargetPlatform()
-		def binaryContainer = project.extensions.getByType(BinaryContainer)
+		def binaryContainer = extension.binaries
 		def binaries = binaryContainer.toList()
 		def binary = binaries.find { it instanceof HaxeBinary } as HaxeBinary
 		def testBinary = binaries.find { it instanceof HaxeTestBinary } as HaxeTestBinary
@@ -195,7 +189,7 @@ class HaxePluginTest extends Specification {
 	}
 
 	private List<File> sourceDirs(String functionalSourceSet, String languageSourceSet, Class<? extends LanguageSourceSet> type = LanguageSourceSet) {
-		def sourceSet = project.extensions.getByType(ProjectSourceSet).getByName(functionalSourceSet).getByName(languageSourceSet)
+		def sourceSet = extension.sources.getByName(functionalSourceSet).getByName(languageSourceSet)
 		if (!(type.isAssignableFrom(sourceSet.getClass()))) {
 			throw new ClassCastException("Expected \"${languageSourceSet}\" in \"${functionalSourceSet}\" to be ${type.name} but got ${sourceSet.getClass().name}")
 		}

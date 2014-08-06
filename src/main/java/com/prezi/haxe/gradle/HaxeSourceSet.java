@@ -1,7 +1,7 @@
 package com.prezi.haxe.gradle;
 
+import com.prezi.haxe.gradle.incubating.LanguageSourceSet;
 import org.gradle.api.artifacts.Configuration;
-import org.gradle.language.base.LanguageSourceSet;
 
 public interface HaxeSourceSet extends LanguageSourceSet {
 	Configuration getCompileClassPath();

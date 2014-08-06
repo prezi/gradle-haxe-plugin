@@ -3,6 +3,14 @@ package com.prezi.haxe.gradle;
 import com.google.common.base.Function;
 import com.google.common.collect.Collections2;
 import com.google.common.collect.Maps;
+import com.prezi.haxe.gradle.incubating.BinaryContainer;
+import com.prezi.haxe.gradle.incubating.BinaryInternal;
+import com.prezi.haxe.gradle.incubating.BinaryNamingScheme;
+import com.prezi.haxe.gradle.incubating.DefaultResourceSet;
+import com.prezi.haxe.gradle.incubating.FunctionalSourceSet;
+import com.prezi.haxe.gradle.incubating.LanguageSourceSet;
+import com.prezi.haxe.gradle.incubating.ProjectSourceSet;
+import com.prezi.haxe.gradle.incubating.ResourceSet;
 import org.gradle.api.Action;
 import org.gradle.api.DomainObjectCollection;
 import org.gradle.api.DomainObjectSet;
@@ -20,15 +28,6 @@ import org.gradle.api.internal.file.DefaultSourceDirectorySet;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.plugins.BasePlugin;
 import org.gradle.internal.reflect.Instantiator;
-import org.gradle.language.base.FunctionalSourceSet;
-import org.gradle.language.base.LanguageSourceSet;
-import org.gradle.language.base.ProjectSourceSet;
-import org.gradle.language.base.plugins.LanguageBasePlugin;
-import org.gradle.language.jvm.ResourceSet;
-import org.gradle.language.jvm.internal.DefaultResourceSet;
-import org.gradle.runtime.base.BinaryContainer;
-import org.gradle.runtime.base.internal.BinaryInternal;
-import org.gradle.runtime.base.internal.BinaryNamingScheme;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -62,9 +61,11 @@ public class HaxeBasePlugin implements Plugin<Project> {
 	@Override
 	public void apply(final Project project) {
 		project.getPlugins().apply(BasePlugin.class);
-		project.getPlugins().apply(LanguageBasePlugin.class);
 
-		final ProjectSourceSet projectSourceSet = project.getExtensions().getByType(ProjectSourceSet.class);
+		// Add "haxe" extension
+		HaxeExtension extension = project.getExtensions().create("haxe", HaxeExtension.class, project, instantiator);
+
+		final ProjectSourceSet projectSourceSet = extension.getSources();
 
 		// Add functional source sets for main code
 		final FunctionalSourceSet main = projectSourceSet.maybeCreate("main");
@@ -105,8 +106,6 @@ public class HaxeBasePlugin implements Plugin<Project> {
 
 		});
 
-		// Add "haxe" extension
-		HaxeExtension extension = project.getExtensions().create("haxe", HaxeExtension.class, project);
 		NamedDomainObjectContainer<TargetPlatform> targetPlatforms = extension.getTargetPlatforms();
 
 		// For each target platform add functional source sets
@@ -204,7 +203,7 @@ public class HaxeBasePlugin implements Plugin<Project> {
 	}
 
 	private static void createBinaries(Project project, String name, TargetPlatform targetPlatform, Flavor flavor, DomainObjectSet<LanguageSourceSet> mainLanguageSets, DomainObjectSet<LanguageSourceSet> testLanguageSets, Configuration mainConfiguration, Configuration testConfiguration) {
-		BinaryContainer binaryContainer = project.getExtensions().getByType(BinaryContainer.class);
+		BinaryContainer binaryContainer = project.getExtensions().getByType(HaxeExtension.class).getBinaries();
 
 		// Add compiled binary
 		final HaxeBinary compileBinary = new HaxeBinary(name, mainConfiguration, targetPlatform, flavor);

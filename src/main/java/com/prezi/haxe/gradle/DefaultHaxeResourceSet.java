@@ -1,10 +1,10 @@
 package com.prezi.haxe.gradle;
 
 import com.google.common.collect.Maps;
+import com.prezi.haxe.gradle.incubating.DefaultResourceSet;
+import com.prezi.haxe.gradle.incubating.FunctionalSourceSet;
 import org.gradle.api.internal.file.DefaultSourceDirectorySet;
 import org.gradle.api.internal.file.FileResolver;
-import org.gradle.language.base.FunctionalSourceSet;
-import org.gradle.language.jvm.internal.DefaultResourceSet;
 
 import java.io.File;
 import java.util.Map;

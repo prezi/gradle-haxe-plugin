@@ -5,9 +5,9 @@ import com.google.common.base.Joiner;
 import com.google.common.base.Predicate;
 import com.google.common.collect.Iterables;
 import com.google.common.io.Files;
+import com.prezi.haxe.gradle.incubating.LanguageSourceSet;
 import org.apache.commons.io.FileUtils;
 import org.gradle.api.DomainObjectSet;
-import org.gradle.language.base.LanguageSourceSet;
 
 import java.io.File;
 import java.io.IOException;
