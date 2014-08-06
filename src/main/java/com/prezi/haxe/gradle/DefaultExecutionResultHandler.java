@@ -1,13 +1,12 @@
 package com.prezi.haxe.gradle;
 
 import com.google.common.base.Joiner;
-import org.gradle.api.internal.artifacts.dsl.DefaultRepositoryHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class DefaultExecutionResultHandler implements ExecutionResultHandler {
 
-	private static final Logger logger = LoggerFactory.getLogger(DefaultRepositoryHandler.class);
+	private static final Logger logger = LoggerFactory.getLogger(DefaultExecutionResultHandler.class);
 
 	private final Iterable<?> cmd;
 
