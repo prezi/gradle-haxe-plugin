@@ -46,8 +46,9 @@ public class HaxeBasePlugin implements Plugin<Project> {
 	public static final String COMPILE_TASK_NAME = "compile";
 	public static final String COMPILE_TASKS_GROUP = "compile";
 	public static final String CHECK_TASK_NAME = "check";
+	public static final String BUILD_TASK_NAME = "build";
 	public static final String TEST_TASK_NAME = "test";
-	public static final String TEST_TASKS_GROUP = "test";
+	public static final String VERIFICATION_GROUP = "verification";
 
 	private final Instantiator instantiator;
 	private final FileResolver fileResolver;
@@ -180,26 +181,35 @@ public class HaxeBasePlugin implements Plugin<Project> {
 		Task testTask = project.getTasks().findByName(TEST_TASK_NAME);
 		if (testTask == null) {
 			testTask = project.getTasks().create(TEST_TASK_NAME);
-			testTask.setGroup(TEST_TASKS_GROUP);
-			testTask.setDescription("Runs all unit tests");
+			testTask.setGroup(VERIFICATION_GROUP);
+			testTask.setDescription("Runs all unit tests.");
 		}
 		final Task _testTask = testTask;
 
 		Task checkTask = project.getTasks().findByName(CHECK_TASK_NAME);
 		if (checkTask == null) {
 			checkTask = project.getTasks().create(CHECK_TASK_NAME);
-			checkTask.setGroup(TEST_TASKS_GROUP);
-			checkTask.setDescription("Runs all checks");
+			checkTask.setGroup(VERIFICATION_GROUP);
+			checkTask.setDescription("Runs all checks.");
 		}
 
 		checkTask.dependsOn(testTask);
 		project.getTasks().withType(MUnit.class).all(new Action<MUnit>() {
 			@Override
 			public void execute(MUnit task) {
-				task.setGroup(TEST_TASKS_GROUP);
+				task.setGroup(VERIFICATION_GROUP);
 				_testTask.dependsOn(task);
 			}
 		});
+
+		Task buildTask = project.getTasks().findByName(BUILD_TASK_NAME);
+		if (buildTask == null) {
+			buildTask = project.getTasks().create(BUILD_TASK_NAME);
+			buildTask.setDescription("Assembles and tests this project.");
+			buildTask.setGroup(BasePlugin.BUILD_GROUP);
+		}
+		buildTask.dependsOn(BasePlugin.ASSEMBLE_TASK_NAME);
+		buildTask.dependsOn(checkTask);
 	}
 
 	private static void createBinaries(Project project, String name, TargetPlatform targetPlatform, Flavor flavor, DomainObjectSet<LanguageSourceSet> mainLanguageSets, DomainObjectSet<LanguageSourceSet> testLanguageSets, Configuration mainConfiguration, Configuration testConfiguration) {
