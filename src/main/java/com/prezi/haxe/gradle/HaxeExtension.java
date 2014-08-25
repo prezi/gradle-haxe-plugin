@@ -1,5 +1,6 @@
 package com.prezi.haxe.gradle;
 
+import com.google.common.collect.Sets;
 import com.prezi.haxe.gradle.incubating.BinaryContainer;
 import com.prezi.haxe.gradle.incubating.BinaryInternal;
 import com.prezi.haxe.gradle.incubating.DefaultBinaryContainer;
@@ -13,12 +14,15 @@ import org.gradle.api.Task;
 import org.gradle.internal.reflect.Instantiator;
 
 import java.io.Serializable;
+import java.util.Arrays;
+import java.util.Set;
 
 public class HaxeExtension extends DefaultHaxeCompilerParameters implements Serializable {
 	private final NamedDomainObjectContainer<TargetPlatform> targetPlatforms;
 
 	private final ProjectSourceSet sources;
 	private final BinaryContainer binaries;
+	private final Set<Object> compilerVersions = Sets.newLinkedHashSet();
 
 	public HaxeExtension(final Project project, Instantiator instantiator) {
 		this.sources = instantiator.newInstance(DefaultProjectSourceSet.class, instantiator);
@@ -57,6 +61,26 @@ public class HaxeExtension extends DefaultHaxeCompilerParameters implements Seri
 
 	public void targetPlatforms(Action<? super NamedDomainObjectContainer<TargetPlatform>> action) {
 		action.execute(targetPlatforms);
+	}
+
+	public void setCompilerVersions(Object... versions) {
+		compilerVersions.addAll(Arrays.asList(versions));
+	}
+
+	public void setCompilerVersion(Object... versions) {
+		setCompilerVersions(versions);
+	}
+
+	public void compilerVersions(Object... versions) {
+		setCompilerVersions(versions);
+	}
+
+	public void compilerVersion(Object... versions) {
+		setCompilerVersions(versions);
+	}
+
+	public Set<Object> getCompilerVersions() {
+		return compilerVersions;
 	}
 
 	private static class TargetPlatformNamedDomainObjectFactory implements NamedDomainObjectFactory<TargetPlatform>, Serializable {

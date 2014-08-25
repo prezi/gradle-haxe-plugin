@@ -35,6 +35,7 @@ import javax.inject.Inject;
 import java.io.File;
 import java.util.Collection;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.Callable;
 
 public class HaxeBasePlugin implements Plugin<Project> {
@@ -43,6 +44,7 @@ public class HaxeBasePlugin implements Plugin<Project> {
 	public static final String HAXE_SOURCE_SET_NAME = "haxe";
 	public static final String RESOURCE_SET_NAME = "resources";
 	public static final String HAXE_RESOURCE_SET_NAME = "haxeResources";
+	public static final String CHECK_HAXE_VERSION_TASK_NAME = "checkHaxeVersion";
 	public static final String COMPILE_TASK_NAME = "compile";
 	public static final String COMPILE_TASKS_GROUP = "compile";
 	public static final String CHECK_TASK_NAME = "check";
@@ -64,7 +66,7 @@ public class HaxeBasePlugin implements Plugin<Project> {
 		project.getPlugins().apply(BasePlugin.class);
 
 		// Add "haxe" extension
-		HaxeExtension extension = project.getExtensions().create("haxe", HaxeExtension.class, project, instantiator);
+		final HaxeExtension extension = project.getExtensions().create("haxe", HaxeExtension.class, project, instantiator);
 
 		final ProjectSourceSet projectSourceSet = extension.getSources();
 
@@ -157,6 +159,23 @@ public class HaxeBasePlugin implements Plugin<Project> {
 						createBinaries(project, flavorName, targetPlatform, flavor, flavorMainLanguageSets, flavorTestLanguageSets, flavorMainCompile, flavorTestCompile);
 					}
 				});
+			}
+		});
+
+		// Add checkHaxeVersion task
+		final CheckHaxeVersion checkVersionTask = project.getTasks().create(CHECK_HAXE_VERSION_TASK_NAME, CheckHaxeVersion.class);
+		checkVersionTask.getConventionMapping().map("compilerVersions", new Callable<Set<Object>>() {
+			@Override
+			public Set<Object> call() throws Exception {
+				return extension.getCompilerVersions();
+			}
+		});
+		checkVersionTask.setDescription("Checks if Haxe compiler is the right version.");
+		checkVersionTask.setGroup(VERIFICATION_GROUP);
+		project.getTasks().withType(AbstractHaxeCompileTask.class).all(new Action<AbstractHaxeCompileTask>() {
+			@Override
+			public void execute(AbstractHaxeCompileTask compileTask) {
+				compileTask.dependsOn(checkVersionTask);
 			}
 		});
 
