@@ -1,6 +1,7 @@
 package com.prezi.haxe.gradle;
 
 import com.google.common.base.Charsets;
+import com.google.common.base.Function;
 import com.google.common.base.Joiner;
 import com.google.common.base.Predicate;
 import com.google.common.collect.Iterables;
@@ -20,6 +21,8 @@ import java.util.regex.Pattern;
 
 public class HaxeTestCompile extends HaxeCompile {
 	private static final Pattern EXAMPLE_TEST_LINE = Pattern.compile("(import |\\s*add\\()ExampleTest\\)?;");
+	private static final Pattern NO_JUNIT_CLIENT = Pattern.compile("\\s+runner.addResultClient.*;");
+	private static final Pattern JUNIT_CLIENT = Pattern.compile("\\s+//\\s*runner.addResultClient.*;");
 	private File workingDirectory;
 
 	@Override
@@ -36,7 +39,6 @@ public class HaxeTestCompile extends HaxeCompile {
 			}
 		}
 
-
 		List<String> cmd = Arrays.asList("haxelib", "run", "munit", "gen", testsDir.getName());
 		CommandExecutor.execute(cmd, workDir, new DefaultExecutionResultHandler(cmd));
 
@@ -46,15 +48,39 @@ public class HaxeTestCompile extends HaxeCompile {
 		if (suite.exists()) {
 			List<String> suiteText = Files.readLines(suite, Charsets.UTF_8);
 			FileUtils.deleteQuietly(suite);
-			Files.write(Joiner.on("\n").join(Iterables.filter(suiteText, new Predicate<String>() {
+			Files.write(Joiner.on("\n").join(Iterables.transform(suiteText, new Function<String, String>() {
 				@Override
-				public boolean apply(String line) {
-					return !EXAMPLE_TEST_LINE.matcher(line).matches();
+				public String apply(String line) {
+					String result;
+					if (EXAMPLE_TEST_LINE.matcher(line).matches()) {
+						result = "// " + line;
+					} else {
+						result = line;
+					}
+					return result;
 				}
-
 			})), suite, Charsets.UTF_8);
 		}
 
+		File main = new File(testsDir, "TestMain.hx");
+		if (main.exists()) {
+			List<String> mainText = Files.readLines(main, Charsets.UTF_8);
+			FileUtils.deleteQuietly(main);
+			Files.write(Joiner.on("\n").join(Iterables.transform(mainText, new Function<String, String>() {
+				@Override
+				public String apply(String line) {
+					String result;
+					if (NO_JUNIT_CLIENT.matcher(line).matches()) {
+						result = "// " + line;
+					} else if (JUNIT_CLIENT.matcher(line).matches()) {
+						result = line.replaceFirst("//", "");
+					} else {
+						result = line;
+					}
+					return result;
+				}
+			})), main, Charsets.UTF_8);
+		}
 
 		super.compile();
 	}
