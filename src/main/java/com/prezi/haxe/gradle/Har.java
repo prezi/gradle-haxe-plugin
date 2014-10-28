@@ -1,22 +1,22 @@
 package com.prezi.haxe.gradle;
 
+import com.google.common.base.Throwables;
 import groovy.lang.Closure;
+import org.apache.commons.io.IOUtils;
 import org.gradle.api.Action;
 import org.gradle.api.file.CopySpec;
 import org.gradle.api.file.FileCopyDetails;
 import org.gradle.api.internal.file.FileResolver;
-import org.gradle.api.internal.file.collections.FileTreeAdapter;
-import org.gradle.api.internal.file.collections.MapFileTree;
 import org.gradle.api.internal.file.copy.CopySpecInternal;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.java.archives.Manifest;
 import org.gradle.api.java.archives.internal.DefaultManifest;
 import org.gradle.api.tasks.bundling.Zip;
-import org.gradle.internal.nativeplatform.filesystem.Chmod;
 import org.gradle.util.ConfigureUtil;
 
 import java.io.File;
-import java.io.OutputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.OutputStreamWriter;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -37,23 +37,24 @@ public class Har extends Zip {
 		this.manifest = new DefaultManifest(getServices().get(FileResolver.class));
 		this.metaInf = getRootSpec().addFirst();
 		this.metaInf.into("META-INF");
-		this.metaInf.addChild().from(new Callable<FileTreeAdapter>() {
+		this.metaInf.addChild().from(new Callable<File>() {
 			@Override
-			public FileTreeAdapter call() throws Exception {
-				MapFileTree manifestSource = new MapFileTree(getTemporaryDirFactory(), getServices().get(Chmod.class));
-				manifestSource.add("MANIFEST.MF", new Closure<Void>(this) {
-					@Override
-					public Void call(Object... args) {
-						OutputStream output = (OutputStream) args[0];
-						Manifest manifest = getManifest();
-						if (manifest == null) {
-							manifest = new DefaultManifest(null);
-						}
-						manifest.writeTo(new OutputStreamWriter(output));
-						return null;
+			public File call() throws Exception {
+				File manifestFile = new File(getTemporaryDir(), "MANIFEST.MF");
+				FileOutputStream output = null;
+				try {
+					output = new FileOutputStream(manifestFile);
+					Manifest manifest = getManifest();
+					if (manifest == null) {
+						manifest = new DefaultManifest(null);
 					}
-				});
-				return new FileTreeAdapter(manifestSource);
+					manifest.writeTo(new OutputStreamWriter(output));
+				} catch (FileNotFoundException e) {
+					throw Throwables.propagate(e);
+				} finally {
+					IOUtils.closeQuietly(output);
+				}
+				return manifestFile;
 			}
 		});
 		getMainSpec().eachFile(new Action<FileCopyDetails>() {
