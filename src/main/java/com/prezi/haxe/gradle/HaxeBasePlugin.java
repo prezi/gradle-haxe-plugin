@@ -294,6 +294,17 @@ public class HaxeBasePlugin implements Plugin<Project> {
 		BinaryNamingScheme namingScheme = ((BinaryInternal) binary).getNamingScheme();
 		String compileTaskName = namingScheme.getTaskName("compile");
 
+		T compileTask = createCompileTaskInternal(project, binary, compileType, compileTaskName);
+
+		project.getTasks().getByName(namingScheme.getLifecycleTaskName()).dependsOn(compileTask);
+		binary.setCompileTask(compileTask);
+		binary.builtBy(compileTask);
+
+		logger.debug("Created compile task {} for {} in {}", compileTask, binary, project.getPath());
+		return compileTask;
+	}
+
+	public static <T extends HaxeCompile> T createCompileTaskInternal(final Project project, final HaxeBinaryBase<? super T> binary, Class<T> compileType, String compileTaskName) {
 		final T compileTask = project.getTasks().create(compileTaskName, compileType);
 		compileTask.setDescription("Compiles " + binary);
 		compileTask.getConventionMapping().map("embeddedResources", new Callable<Map<String, File>>() {
@@ -321,14 +332,8 @@ public class HaxeBasePlugin implements Plugin<Project> {
 				compileTask.source(it);
 			}
 		});
-
-		project.getTasks().getByName(namingScheme.getLifecycleTaskName()).dependsOn(compileTask);
 		compileTask.dependsOn(binary.getConfiguration());
 		compileTask.dependsOn(binary.getSource());
-		binary.setCompileTask(compileTask);
-		binary.builtBy(compileTask);
-
-		logger.debug("Created compile task {} for {} in {}", compileTask, binary, project.getPath());
 		return compileTask;
 	}
 
