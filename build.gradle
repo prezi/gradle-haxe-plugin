@@ -158,5 +158,5 @@ if (signArtifacts) {
 tasks.withType(Upload).all { dependsOn "check" }
 
 task wrapper(type: Wrapper) {
-	gradleVersion = '2.0'
+	gradleVersion = '2.2.1'
 }
