@@ -1,9 +1,9 @@
 package com.prezi.haxe.gradle.incubating;
 
-import org.gradle.internal.typeconversion.NotationParser;
-import org.gradle.internal.typeconversion.NotationParserBuilder;
-import org.gradle.internal.typeconversion.TypeInfo;
-import org.gradle.internal.typeconversion.TypedNotationParser;
+import com.prezi.haxe.gradle.incubating.typeconversion.NotationParser;
+import com.prezi.haxe.gradle.incubating.typeconversion.NotationParserBuilder;
+import com.prezi.haxe.gradle.incubating.typeconversion.TypeInfo;
+import com.prezi.haxe.gradle.incubating.typeconversion.TypedNotationParser;
 
 import java.util.Collection;
 import java.util.Collections;

@@ -8,13 +8,13 @@ import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import com.prezi.haxe.gradle.incubating.LanguageSourceSet;
 import com.prezi.haxe.gradle.incubating.SourceSetNotationParser;
+import com.prezi.haxe.gradle.incubating.typeconversion.NotationParser;
 import org.gradle.api.DomainObjectSet;
 import org.gradle.api.internal.ConventionTask;
 import org.gradle.api.internal.DefaultDomainObjectSet;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.InputFiles;
 import org.gradle.api.tasks.Optional;
-import org.gradle.internal.typeconversion.NotationParser;
 
 import java.io.File;
 import java.util.Arrays;
