@@ -3,7 +3,6 @@ package com.prezi.haxe.gradle;
 import com.google.common.base.Charsets;
 import com.google.common.base.Function;
 import com.google.common.base.Joiner;
-import com.google.common.base.Predicate;
 import com.google.common.collect.Iterables;
 import com.google.common.io.Files;
 import com.prezi.haxe.gradle.incubating.LanguageSourceSet;
