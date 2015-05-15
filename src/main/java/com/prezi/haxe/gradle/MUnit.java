@@ -21,6 +21,7 @@ public class MUnit extends ConventionTask {
 	private String targetPlatform;
 	private File inputFile;
 	private File workingDirectory;
+	private final SocketLock socketLock = new SocketLock();
 
 	@Input
 	public String getTargetPlatform() {
@@ -55,26 +56,31 @@ public class MUnit extends ConventionTask {
 		FileUtils.forceMkdir(workDir);
 
 		prepareEnvironment(workDir);
-
 		final List<String> cmd = getMUnitCommandLine();
-		CommandExecutor.execute(cmd, getWorkingDirectory(), new DefaultExecutionResultHandler(cmd) {
-			@Override
-			public void handleResult(int exitValue, String output) {
-				super.handleResult(exitValue, output);
-				if (!isTestSuccessful(output)) {
-					throw new RuntimeException("There are failing tests");
+		socketLock.lock(30000);
+		try {
+			CommandExecutor.execute(cmd, getWorkingDirectory(), new DefaultExecutionResultHandler(cmd) {
+				@Override
+				public void handleResult(int exitValue, String output) {
+					getLogger().error("OUTPUT" + output);
+					super.handleResult(exitValue, output);
+					if (!isTestSuccessful(output)) {
+						throw new RuntimeException("There are failing tests");
+					}
 				}
-			}
 
-			@Override
-			protected boolean shouldPrintResult(int exitValue, String output) {
-				return super.shouldPrintResult(exitValue, output) || !isTestSuccessful(output);
-			}
+				@Override
+				protected boolean shouldPrintResult(int exitValue, String output) {
+					return super.shouldPrintResult(exitValue, output) || !isTestSuccessful(output);
+				}
 
-			private boolean isTestSuccessful(String output) {
-				return SUCCESSFUL_TEST_PATTERN.matcher(output).find();
-			}
-		});
+				private boolean isTestSuccessful(String output) {
+					return SUCCESSFUL_TEST_PATTERN.matcher(output).find();
+				}
+			});
+		} finally {
+			socketLock.unlock();
+		}
 	}
 
 	protected List<String> getMUnitCommandLine() {
