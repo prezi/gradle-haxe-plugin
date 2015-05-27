@@ -1,10 +1,14 @@
 package com.prezi.haxe.gradle;
 
-
 import com.google.common.base.Throwables;
 
 import java.io.IOException;
-import java.net.*;
+import java.net.BindException;
+import java.net.InetAddress;
+import java.net.InetSocketAddress;
+import java.net.Socket;
+import java.net.SocketException;
+import java.net.UnknownHostException;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
