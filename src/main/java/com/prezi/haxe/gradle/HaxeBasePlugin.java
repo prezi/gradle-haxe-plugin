@@ -11,6 +11,7 @@ import com.prezi.haxe.gradle.incubating.FunctionalSourceSet;
 import com.prezi.haxe.gradle.incubating.LanguageSourceSet;
 import com.prezi.haxe.gradle.incubating.ProjectSourceSet;
 import com.prezi.haxe.gradle.incubating.ResourceSet;
+import com.prezi.haxe.gradle.nodetest.HaxeNodeTestCompile;
 import org.gradle.api.Action;
 import org.gradle.api.DomainObjectCollection;
 import org.gradle.api.DomainObjectSet;
@@ -22,6 +23,7 @@ import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.file.CopySpec;
 import org.gradle.api.file.DuplicatesStrategy;
 import org.gradle.api.file.SourceDirectorySet;
+import org.gradle.api.internal.ConventionTask;
 import org.gradle.api.internal.DefaultDomainObjectSet;
 import org.gradle.api.internal.artifacts.publish.ArchivePublishArtifact;
 import org.gradle.api.internal.file.DefaultSourceDirectorySet;
@@ -347,6 +349,31 @@ public class HaxeBasePlugin implements Plugin<Project> {
 		String munitTaskName = namingScheme.getTaskName("run");
 		T munitTask = project.getTasks().create(munitTaskName, munitType);
 		munitTask.setDescription("Runs MUnit on " + binary);
+		setMunitTaskProperties(project, binary, munitTask);
+
+		munitTask.dependsOn(binary.getCompileTask());
+		project.getTasks().getByName(namingScheme.getLifecycleTaskName()).dependsOn(munitTask);
+		logger.debug("Created munit task {} for {} in {}", munitTask, binary, project.getPath());
+
+		HaxeNodeTestCompile haxeNodeTestCompile = project.getTasks().create(namingScheme.getTaskName("runNode"), HaxeNodeTestCompile.class);
+		haxeNodeTestCompile.getConventionMapping().map("inputDirectory", new Callable<File>() {
+			@Override
+			public File call() throws Exception {
+				return project.file(project.getBuildDir() + "/haxe-test-compile/" + binary.getName());
+			}
+		});
+		haxeNodeTestCompile.getConventionMapping().map("workingDirectory", new Callable<File>() {
+			@Override
+			public File call() throws Exception {
+				return project.file(project.getBuildDir() + "/haxe-test-compile/" + "node" + binary.getName());
+			}
+		});
+		haxeNodeTestCompile.dependsOn(binary.getCompileTask());
+
+		return munitTask;
+	}
+
+	private static void setMunitTaskProperties(final Project project, final HaxeTestBinary binary, ConventionTask munitTask) {
 		munitTask.getConventionMapping().map("workingDirectory", new Callable<File>() {
 			@Override
 			public File call() throws Exception {
@@ -365,12 +392,14 @@ public class HaxeBasePlugin implements Plugin<Project> {
 				return binary.getCompileTask().getOutputFile();
 			}
 		});
-
-		munitTask.dependsOn(binary.getCompileTask());
-		project.getTasks().getByName(namingScheme.getLifecycleTaskName()).dependsOn(munitTask);
-		logger.debug("Created munit task {} for {} in {}", munitTask, binary, project.getPath());
-		return munitTask;
 	}
+
+//	private static void createPrepareMunitEnvironmentTask(final Project project, final HaxeTestBinary binary, final MUnit mUnitTask) {
+//		PrepareMunitEnvironment prepareMunitEnvironment = project.getTasks().create(mUnitTask.getName() + "Prepare", PrepareMunitEnvironment.class);
+//		prepareMunitEnvironment.dependsOn(binary.getCompileTask());
+//		setMunitTaskProperties(project, binary, prepareMunitEnvironment);
+//		mUnitTask.dependsOn(prepareMunitEnvironment);
+//	}
 
 	public static <T extends Har> T createSourceTask(final Project project, final HaxeBinaryBase<?> binary, Class<T> harType) {
 		final BinaryNamingScheme namingScheme = ((BinaryInternal) binary).getNamingScheme();

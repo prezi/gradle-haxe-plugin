@@ -55,7 +55,9 @@ public class MUnit extends ConventionTask {
 		FileUtils.forceMkdir(workDir);
 
 		prepareEnvironment(workDir);
-
+		if (getProject().hasProperty("munit.skiprunner")) {
+			return;
+		}
 		final List<String> cmd = getMUnitCommandLine();
 		CommandExecutor.execute(cmd, getWorkingDirectory(), new DefaultExecutionResultHandler(cmd) {
 			@Override
