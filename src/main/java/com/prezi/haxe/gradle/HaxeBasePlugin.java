@@ -386,13 +386,6 @@ public class HaxeBasePlugin implements Plugin<Project> {
 		});
 	}
 
-//	private static void createPrepareMunitEnvironmentTask(final Project project, final HaxeTestBinary binary, final MUnit mUnitTask) {
-//		PrepareMunitEnvironment prepareMunitEnvironment = project.getTasks().create(mUnitTask.getName() + "Prepare", PrepareMunitEnvironment.class);
-//		prepareMunitEnvironment.dependsOn(binary.getCompileTask());
-//		setMunitTaskProperties(project, binary, prepareMunitEnvironment);
-//		mUnitTask.dependsOn(prepareMunitEnvironment);
-//	}
-
 	public static <T extends Har> T createSourceTask(final Project project, final HaxeBinaryBase<?> binary, Class<T> harType) {
 		final BinaryNamingScheme namingScheme = ((BinaryInternal) binary).getNamingScheme();
 
