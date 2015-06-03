@@ -239,12 +239,14 @@ public class HaxeBasePlugin implements Plugin<Project> {
 
 		// Add compiled binary
 		final HaxeBinary compileBinary = new HaxeBinary(name, mainConfiguration, targetPlatform, flavor);
-		final HaxeTestBinary testBinary = new HaxeTestBinary(name, testConfiguration, targetPlatform, flavor);
+		final HaxeTestBinary testBinary = new HaxeTestBinary(name, testConfiguration, targetPlatform, flavor, HaxeTestCompile.class);
+		final HaxeTestBinary nodeTestBinary = new HaxeTestBinary("node" + name, testConfiguration, targetPlatform, flavor, HaxeNodeTestCompile.class);
 		mainLanguageSets.all(new Action<LanguageSourceSet>() {
 			@Override
 			public void execute(LanguageSourceSet it) {
 				compileBinary.getSource().add(it);
 				testBinary.getSource().add(it);
+				nodeTestBinary.getSource().add(it);
 			}
 
 		});
@@ -252,11 +254,13 @@ public class HaxeBasePlugin implements Plugin<Project> {
 			@Override
 			public void execute(LanguageSourceSet it) {
 				testBinary.getSource().add(it);
+				nodeTestBinary.getSource().add(it);
 			}
 
 		});
 		binaryContainer.add(compileBinary);
 		binaryContainer.add(testBinary);
+		binaryContainer.add(nodeTestBinary);
 		logger.debug("Added binaries {} and {} in {}", compileBinary, testBinary, project.getPath());
 	}
 
@@ -355,61 +359,6 @@ public class HaxeBasePlugin implements Plugin<Project> {
 		munitTask.dependsOn(binary.getCompileTask());
 		project.getTasks().getByName(namingScheme.getLifecycleTaskName()).dependsOn(munitTask);
 		logger.debug("Created munit task {} for {} in {}", munitTask, binary, project.getPath());
-
-	/*	final HaxeNodeTestCompile haxeNodeTestCompile = project.getTasks().create(namingScheme.getTaskName("compileNode"), HaxeNodeTestCompile.class);
-		haxeNodeTestCompile.getConventionMapping().map("inputDirectory", new Callable<File>() {
-			@Override
-			public File call() throws Exception {
-				return project.file(project.getBuildDir() + "/haxe-test-compile/" + binary.getName());
-			}
-		});
-		haxeNodeTestCompile.getConventionMapping().map("workingDirectory", new Callable<File>() {
-			@Override
-			public File call() throws Exception {
-				return project.file(project.getBuildDir() + "/haxe-test-compile/" + "node" + binary.getName());
-			}
-		});
-        haxeNodeTestCompile.getConventionMapping().map("targetPlatform", new Callable<String>() {
-            @Override
-            public String call() throws Exception {
-                return binary.getTargetPlatform().getName();
-            }
-        });
-        haxeNodeTestCompile.getConventionMapping().map("embeddedResources", new Callable<Map<String, File>>() {
-            @Override
-            public Map<String, File> call() throws Exception {
-                return gatherEmbeddedResources(binary.getSource());
-            }
-        });
-        haxeNodeTestCompile.getConventionMapping().map("outputFile", new Callable<File>() {
-            @Override
-            public File call() throws Exception {
-
-                final BinaryNamingScheme namingScheme = ((BinaryInternal) binary).getNamingScheme();
-                return project.file(project.getBuildDir() + "/compiled-haxe/node" + namingScheme.getOutputDirectoryBase() + "/compiled." + binary.getTargetPlatform().getName());
-            }
-        });
-        haxeNodeTestCompile.setConventionMapping(project.getExtensions().getByType(HaxeExtension.class), binary.getTargetPlatform(), binary.getFlavor());
-        binary.getSource().all(new Action<LanguageSourceSet>() {
-            @Override
-            public void execute(LanguageSourceSet it) {
-                haxeNodeTestCompile.source(it);
-            }
-        });
-
-
-		haxeNodeTestCompile.dependsOn(binary.getCompileTask());
-
-*/
-//        HaxeNodeTestRun haxeNodeTestRun = project.getTasks().create(namingScheme.getTaskName("runNode"), HaxeNodeTestRun.class);
-//        haxeNodeTestRun.getConventionMapping().map("workingDirectory", new Callable<File>() {
-//            @Override
-//            public File call() throws Exception {
-//                return project.file(project.getBuildDir() + "/munit/node" + binary.getName());
-//            }
-//        });
-//
-//        haxeNodeTestRun.dependsOn(binary.get);
 
 		return munitTask;
 	}

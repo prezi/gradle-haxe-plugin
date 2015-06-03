@@ -90,7 +90,7 @@ class HaxePluginTest extends Specification {
 		def testBinary = binaries.find { it instanceof HaxeTestBinary } as HaxeTestBinary
 
 		expect:
-		binaryContainer.size() == 2
+		binaryContainer.size() == 3
 
 		binary.name == "js"
 		binary.buildDependencies.getDependencies(null)*.name == ["js"]
