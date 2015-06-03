@@ -12,7 +12,6 @@ import com.prezi.haxe.gradle.incubating.LanguageSourceSet;
 import com.prezi.haxe.gradle.incubating.ProjectSourceSet;
 import com.prezi.haxe.gradle.incubating.ResourceSet;
 import com.prezi.haxe.gradle.nodetest.HaxeNodeTestCompile;
-import com.prezi.haxe.gradle.nodetest.HaxeNodeTestRun;
 import org.gradle.api.Action;
 import org.gradle.api.DomainObjectCollection;
 import org.gradle.api.DomainObjectSet;
