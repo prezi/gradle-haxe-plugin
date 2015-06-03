@@ -1,6 +1,7 @@
 package com.prezi.haxe.gradle;
 
 import com.prezi.haxe.gradle.incubating.BinaryContainer;
+import com.prezi.haxe.gradle.nodetest.HaxeNodeTestCompile;
 import org.gradle.api.Action;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
@@ -19,6 +20,7 @@ public class HaxePlugin implements Plugin<Project> {
 				HaxeBasePlugin.createSourceTask(project, binary, Har.class);
 			}
 		});
+
 		binaryContainer.withType(HaxeTestBinary.class).all(new Action<HaxeTestBinary>() {
 			@Override
 			public void execute(HaxeTestBinary binary) {
@@ -27,5 +29,6 @@ public class HaxePlugin implements Plugin<Project> {
 				HaxeBasePlugin.createMUnitTask(project, binary, MUnit.class);
 			}
 		});
+
 	}
 }

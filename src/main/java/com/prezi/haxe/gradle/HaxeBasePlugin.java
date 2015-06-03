@@ -12,6 +12,7 @@ import com.prezi.haxe.gradle.incubating.LanguageSourceSet;
 import com.prezi.haxe.gradle.incubating.ProjectSourceSet;
 import com.prezi.haxe.gradle.incubating.ResourceSet;
 import com.prezi.haxe.gradle.nodetest.HaxeNodeTestCompile;
+import com.prezi.haxe.gradle.nodetest.HaxeNodeTestRun;
 import org.gradle.api.Action;
 import org.gradle.api.DomainObjectCollection;
 import org.gradle.api.DomainObjectSet;
@@ -355,7 +356,7 @@ public class HaxeBasePlugin implements Plugin<Project> {
 		project.getTasks().getByName(namingScheme.getLifecycleTaskName()).dependsOn(munitTask);
 		logger.debug("Created munit task {} for {} in {}", munitTask, binary, project.getPath());
 
-		HaxeNodeTestCompile haxeNodeTestCompile = project.getTasks().create(namingScheme.getTaskName("runNode"), HaxeNodeTestCompile.class);
+	/*	final HaxeNodeTestCompile haxeNodeTestCompile = project.getTasks().create(namingScheme.getTaskName("compileNode"), HaxeNodeTestCompile.class);
 		haxeNodeTestCompile.getConventionMapping().map("inputDirectory", new Callable<File>() {
 			@Override
 			public File call() throws Exception {
@@ -368,7 +369,47 @@ public class HaxeBasePlugin implements Plugin<Project> {
 				return project.file(project.getBuildDir() + "/haxe-test-compile/" + "node" + binary.getName());
 			}
 		});
+        haxeNodeTestCompile.getConventionMapping().map("targetPlatform", new Callable<String>() {
+            @Override
+            public String call() throws Exception {
+                return binary.getTargetPlatform().getName();
+            }
+        });
+        haxeNodeTestCompile.getConventionMapping().map("embeddedResources", new Callable<Map<String, File>>() {
+            @Override
+            public Map<String, File> call() throws Exception {
+                return gatherEmbeddedResources(binary.getSource());
+            }
+        });
+        haxeNodeTestCompile.getConventionMapping().map("outputFile", new Callable<File>() {
+            @Override
+            public File call() throws Exception {
+
+                final BinaryNamingScheme namingScheme = ((BinaryInternal) binary).getNamingScheme();
+                return project.file(project.getBuildDir() + "/compiled-haxe/node" + namingScheme.getOutputDirectoryBase() + "/compiled." + binary.getTargetPlatform().getName());
+            }
+        });
+        haxeNodeTestCompile.setConventionMapping(project.getExtensions().getByType(HaxeExtension.class), binary.getTargetPlatform(), binary.getFlavor());
+        binary.getSource().all(new Action<LanguageSourceSet>() {
+            @Override
+            public void execute(LanguageSourceSet it) {
+                haxeNodeTestCompile.source(it);
+            }
+        });
+
+
 		haxeNodeTestCompile.dependsOn(binary.getCompileTask());
+
+*/
+//        HaxeNodeTestRun haxeNodeTestRun = project.getTasks().create(namingScheme.getTaskName("runNode"), HaxeNodeTestRun.class);
+//        haxeNodeTestRun.getConventionMapping().map("workingDirectory", new Callable<File>() {
+//            @Override
+//            public File call() throws Exception {
+//                return project.file(project.getBuildDir() + "/munit/node" + binary.getName());
+//            }
+//        });
+//
+//        haxeNodeTestRun.dependsOn(binary.get);
 
 		return munitTask;
 	}
