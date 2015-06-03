@@ -220,7 +220,9 @@ public class HaxeBasePlugin implements Plugin<Project> {
 			@Override
 			public void execute(MUnit task) {
 				task.setGroup(VERIFICATION_GROUP);
-				_testTask.dependsOn(task);
+				if (task.shouldRunAutomatically()) {
+					_testTask.dependsOn(task);
+				}
 			}
 		});
 

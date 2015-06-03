@@ -130,4 +130,8 @@ public class MUnit extends ConventionTask {
 	protected URL getMUnitJsHtmlTemplate() {
 		return this.getClass().getResource("/js_runner-html.mtt");
 	}
+
+	public boolean shouldRunAutomatically() {
+		return !getProject().hasProperty("munit.usenode") || getProject().property("munit.usenode").equals("false");
+	}
 }
