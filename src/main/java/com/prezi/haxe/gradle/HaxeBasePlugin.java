@@ -11,6 +11,7 @@ import com.prezi.haxe.gradle.incubating.FunctionalSourceSet;
 import com.prezi.haxe.gradle.incubating.LanguageSourceSet;
 import com.prezi.haxe.gradle.incubating.ProjectSourceSet;
 import com.prezi.haxe.gradle.incubating.ResourceSet;
+import com.prezi.haxe.gradle.nodetest.HaxeNodeTestCompile;
 import org.gradle.api.Action;
 import org.gradle.api.DomainObjectCollection;
 import org.gradle.api.DomainObjectSet;
@@ -22,6 +23,7 @@ import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.file.CopySpec;
 import org.gradle.api.file.DuplicatesStrategy;
 import org.gradle.api.file.SourceDirectorySet;
+import org.gradle.api.internal.ConventionTask;
 import org.gradle.api.internal.DefaultDomainObjectSet;
 import org.gradle.api.internal.artifacts.publish.ArchivePublishArtifact;
 import org.gradle.api.internal.file.DefaultSourceDirectorySet;
@@ -217,7 +219,9 @@ public class HaxeBasePlugin implements Plugin<Project> {
 			@Override
 			public void execute(MUnit task) {
 				task.setGroup(VERIFICATION_GROUP);
-				_testTask.dependsOn(task);
+				if (task.shouldRunAutomatically()) {
+					_testTask.dependsOn(task);
+				}
 			}
 		});
 
@@ -236,12 +240,14 @@ public class HaxeBasePlugin implements Plugin<Project> {
 
 		// Add compiled binary
 		final HaxeBinary compileBinary = new HaxeBinary(name, mainConfiguration, targetPlatform, flavor);
-		final HaxeTestBinary testBinary = new HaxeTestBinary(name, testConfiguration, targetPlatform, flavor);
+		final HaxeTestBinary testBinary = new HaxeTestBinary(name, testConfiguration, targetPlatform, flavor, HaxeTestCompile.class);
+		final HaxeTestBinary nodeTestBinary = new HaxeTestBinary("node" + name, testConfiguration, targetPlatform, flavor, HaxeNodeTestCompile.class);
 		mainLanguageSets.all(new Action<LanguageSourceSet>() {
 			@Override
 			public void execute(LanguageSourceSet it) {
 				compileBinary.getSource().add(it);
 				testBinary.getSource().add(it);
+				nodeTestBinary.getSource().add(it);
 			}
 
 		});
@@ -249,11 +255,13 @@ public class HaxeBasePlugin implements Plugin<Project> {
 			@Override
 			public void execute(LanguageSourceSet it) {
 				testBinary.getSource().add(it);
+				nodeTestBinary.getSource().add(it);
 			}
 
 		});
 		binaryContainer.add(compileBinary);
 		binaryContainer.add(testBinary);
+		binaryContainer.add(nodeTestBinary);
 		logger.debug("Added binaries {} and {} in {}", compileBinary, testBinary, project.getPath());
 	}
 
@@ -347,6 +355,16 @@ public class HaxeBasePlugin implements Plugin<Project> {
 		String munitTaskName = namingScheme.getTaskName("run");
 		T munitTask = project.getTasks().create(munitTaskName, munitType);
 		munitTask.setDescription("Runs MUnit on " + binary);
+		setMunitTaskProperties(project, binary, munitTask);
+
+		munitTask.dependsOn(binary.getCompileTask());
+		project.getTasks().getByName(namingScheme.getLifecycleTaskName()).dependsOn(munitTask);
+		logger.debug("Created munit task {} for {} in {}", munitTask, binary, project.getPath());
+
+		return munitTask;
+	}
+
+	private static void setMunitTaskProperties(final Project project, final HaxeTestBinary binary, ConventionTask munitTask) {
 		munitTask.getConventionMapping().map("workingDirectory", new Callable<File>() {
 			@Override
 			public File call() throws Exception {
@@ -365,11 +383,6 @@ public class HaxeBasePlugin implements Plugin<Project> {
 				return binary.getCompileTask().getOutputFile();
 			}
 		});
-
-		munitTask.dependsOn(binary.getCompileTask());
-		project.getTasks().getByName(namingScheme.getLifecycleTaskName()).dependsOn(munitTask);
-		logger.debug("Created munit task {} for {} in {}", munitTask, binary, project.getPath());
-		return munitTask;
 	}
 
 	public static <T extends Har> T createSourceTask(final Project project, final HaxeBinaryBase<?> binary, Class<T> harType) {

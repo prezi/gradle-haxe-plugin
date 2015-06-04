@@ -55,7 +55,9 @@ public class MUnit extends ConventionTask {
 		FileUtils.forceMkdir(workDir);
 
 		prepareEnvironment(workDir);
-
+		if (getProject().hasProperty("munit.skiprunner")) {
+			return;
+		}
 		final List<String> cmd = getMUnitCommandLine();
 		CommandExecutor.execute(cmd, getWorkingDirectory(), new DefaultExecutionResultHandler(cmd) {
 			@Override
@@ -127,5 +129,9 @@ public class MUnit extends ConventionTask {
 
 	protected URL getMUnitJsHtmlTemplate() {
 		return this.getClass().getResource("/js_runner-html.mtt");
+	}
+
+	public boolean shouldRunAutomatically() {
+		return !getProject().hasProperty("munit.usenode") || getProject().property("munit.usenode").equals("false");
 	}
 }
