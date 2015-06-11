@@ -4,6 +4,7 @@ var jsdom = require("jsdom");
 var fs = require('fs');
 
 global.$ = require('jquery');
+global.$.ajax = function(){};
 global.window = jsdom.jsdom().createWindow();
 global.alert = function(){};
 
