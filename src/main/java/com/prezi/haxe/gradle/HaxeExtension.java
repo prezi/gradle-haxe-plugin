@@ -13,6 +13,7 @@ import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.internal.reflect.Instantiator;
 
+import java.io.File;
 import java.io.Serializable;
 import java.util.Arrays;
 import java.util.Set;
@@ -23,6 +24,7 @@ public class HaxeExtension extends DefaultHaxeCompilerParameters implements Seri
 	private final ProjectSourceSet sources;
 	private final BinaryContainer binaries;
 	private final Set<Object> compilerVersions = Sets.newLinkedHashSet();
+	private File munitNodeModuleInstallDir;
 
 	public HaxeExtension(final Project project, Instantiator instantiator) {
 		this.sources = instantiator.newInstance(DefaultProjectSourceSet.class, instantiator);
@@ -37,6 +39,14 @@ public class HaxeExtension extends DefaultHaxeCompilerParameters implements Seri
 				binary.setBuildTask(binaryLifecycleTask);
 			}
 		});
+	}
+
+	public File getMunitNodeModuleInstallDir() {
+		return munitNodeModuleInstallDir;
+	}
+
+	public void setMunitNodeModuleInstallDir(File munitNodeModuleInstallDir) {
+		this.munitNodeModuleInstallDir = munitNodeModuleInstallDir;
 	}
 
 	public ProjectSourceSet getSources() {

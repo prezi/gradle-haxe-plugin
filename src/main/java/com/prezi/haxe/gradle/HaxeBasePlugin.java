@@ -383,6 +383,14 @@ public class HaxeBasePlugin implements Plugin<Project> {
 				return binary.getCompileTask().getOutputFile();
 			}
 		});
+		if (munitTask instanceof MUnitNode) {
+			munitTask.getConventionMapping().map("nodeModulesDirectory", new Callable<File>() {
+				@Override
+				public File call() throws Exception {
+					return project.getExtensions().getByType(HaxeExtension.class).getMunitNodeModuleInstallDir();
+				}
+			});
+		}
 	}
 
 	public static <T extends Har> T createSourceTask(final Project project, final HaxeBinaryBase<?> binary, Class<T> harType) {
