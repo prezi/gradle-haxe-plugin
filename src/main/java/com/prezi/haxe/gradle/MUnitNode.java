@@ -71,8 +71,13 @@ public class MUnitNode extends MUnit {
 	}
 
 	private void setupRunner(File workDir) throws IOException {
-		Resources.copy(Resources.getResource(MUnitNode.class, "/munit_node_resources/" + MUNIT_NODE_RUNNER_JS),
-				new FileOutputStream(new File(workDir, MUNIT_NODE_RUNNER_JS)));
+		FileOutputStream fos = new FileOutputStream(new File(workDir, MUNIT_NODE_RUNNER_JS));
+		try {
+			Resources.copy(Resources.getResource(MUnitNode.class, "/munit_node_resources/" + MUNIT_NODE_RUNNER_JS),
+					fos);
+		} finally {
+			IOUtils.closeQuietly(fos);
+		}
 	}
 
 	@Override
