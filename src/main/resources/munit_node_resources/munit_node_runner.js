@@ -15,126 +15,113 @@ for(var p in global.window)
         global[p] = global.window[p];
 }
 
+process.stdout.write("\n\n");
 
-var pprt = (function(){
-	var indentLevel = 0;
-	var isFresh = true;
-	var freshLine = function()
-	{
-		if(!isFresh)
-		{
-			process.stdout.write("\n");
-			isFresh = true;
+(function() {
+	var oldErr = process.stderr.write;
+	process.stderr.write = function (t) {
+		//emscripten floods error: https://github.com/kripken/emscripten/blob/667dcd241886fdb878e248d95d8e03abb09c80b7/src/postamble.js
+		if (t.indexOf("pre-main") !== 0) {
+			oldErr.apply(process.stderr, arguments);
 		}
-	}
-
-	var writeLine = function(x)
-	{
-		write(x);
-		freshLine();
-	}
-
-	var write = function(x)
-	{
-		var first = true;
-		x.split("\n").map(function(line){
-			if(!first)
-				process.stdout.write("\n");
-			first = false;
-			if(isFresh || !first)
-			{
-				for(i=0;i<indentLevel;i++)
-					process.stdout.write("    ");
-			}
-			process.stdout.write(line);
-		
-		});
-		isFresh = false;
-
-	}
-
-	var indent = function()
-	{
-		indentLevel++;		
-	}
-
-	var unindent = function()
-	{
-		indentLevel--;
-	}
-
-	return {
-		freshLine: freshLine,
-		writeLine: writeLine,
-		write: write,
-		indent: indent,
-		unindent: unindent,
 	}
 })();
 
 global.addToQueue = (function ()
 {
-	var oldLog = console.log;
-//	console.log = function(){}
+	var stdlog = function(str) {
+		process.stdout.write(str);
+	};
+	var stderr = function(str) {
+		process.stderr.write(str);
+	};
 
-	var trace = [];
+	var colors = {'pass': 90
+		, 'fail': 31
+		, 'bright pass': 92
+		, 'bright fail': 91
+		, 'bright yellow': 93
+		, 'pending': 36
+		, 'suite': 0
+		, 'error title': 0
+		, 'error message': 31
+		, 'error stack': 90
+		, 'checkmark': 32
+		, 'fast': 90
+		, 'medium': 33
+		, 'slow': 31
+		, 'green': 32
+		, 'light': 90
+		, 'diff gutter': 90
+		, 'diff added': 32
+		, 'diff removed': 31
+	};
+	var colorize = function(type, str) {
+		return '\u001b[' + colors[type] + 'm' + str + '\u001b[0m';
+	};
+
+	var tab = function(str, tabNum) {
+		var t = new Array(tabNum + 1).join("    ");
+		return t + str.replace(/\n/g, "\n" + t);
+	};
+
+	var TestCase = function(){
+		this.result = 0;
+		this.trace = [];
+		this.className = '';
+		this.summary = '';
+	};
+	TestCase.prototype.write = function(out) {
+		var failure = this.result == "1" || this.result == "2";
+		var res = failure ? colorize('fail', "✖") : colorize('checkmark', "✓");
+
+		out(tab(res + " " + this.className + " " + this.summary, 1) + "\n");
+		this.trace.forEach(function(t) {
+			out(tab(colorize('light', t), 2) + "\n");
+		});
+	};
+
+	var oldLog = console.log;
+	console.log = function(){};
+
+	var currentTestCase;
+	var failedTestCases = [];
+	var summary;
 
 	function unhtml(st)
 	{
-		st = st.replace(/&nbsp;/g, ' ');
 		st = st.replace(/<br\/>/g, '\n');
+		st = st.replace(/&nbsp;/g, " ");
+		st = st.replace(/&amp;/g , "&");
+		st = st.replace(/&quot;/g, "\"");
+		st = st.replace(/&lt;/g  , "<");
+		st = st.replace(/&gt;/g  , ">");
 		return st;
 	}
 
-	function flushTrace()
-	{
-		pprt.indent();
-		while(trace.length)
-			pprt.writeLine(trace.shift());
-		pprt.unindent();
-	}
-
-	
 	function addToQueue(fnc,arg1,arg2,arg3)
 	{
 		arg1 = unhtml(arg1);
+
 		if(fnc == "updateTestSummary")
 		{
-			pprt.write(unhtml(arg1));
+			currentTestCase.summary += arg1;
 		}
 		else if(fnc == "setTestClassResult")	
 		{
-
-			switch(arg1)
-			{
-				case "0":
-					pprt.writeLine("PASSED");
-					break;
-				case "1":
-					pprt.writeLine("FAILED");
-					break;
-				case "2":
-					pprt.writeLine("ERROR");
-					break;
-				case "3":
-					//color = COLOR_WARNING;// yellow passed but not covered
-					pprt.writeLine("PASSED");
-					break;
-				default: 
-					break;
-			}
-
-			flushTrace();
-
+			currentTestCase.result = arg1;
+			currentTestCase.write(stdlog);
+			if(arg1 == "1" || arg1 == "2")
+				failedTestCases.push(currentTestCase);
 		}
 		else if(fnc == "addTestError")
 		{
-			trace.push(arg1);
-
+			currentTestCase.trace.push(arg1);
 		}
 		else if(fnc == "createTestClass")	
 		{
-
+			currentTestCase = new TestCase();
+			currentTestCase.className = arg1;
 		}
 		else if(fnc == "addTestIgnore")	
 		{
@@ -142,25 +129,27 @@ global.addToQueue = (function ()
 		}
 		else if(fnc == "munitTrace")
 		{
-			trace.push(arg1);
-		
+			currentTestCase.trace.push(arg1);
 		}
 		else if(fnc == "printSummary")
 		{
-			pprt.freshLine("");
-			oldLog(arg1);	
+			summary = arg1;
 		}
 		else if(fnc == "setResult")
 		{
-			flushTrace();
+			var resultColor = 'green';
+			if (failedTestCases.length) {
+				resultColor = 'fail';
+			}
+			stdlog("\n\n" + tab(colorize(resultColor, summary), 1) + "\n\n");
+			failedTestCases.forEach(function (testCase) {
+				testCase.write(stderr);
+			});
 		}
 		else
 		{
-			pprt.freshLine();
 			oldLog("XXXXX", arguments);
-			
 		}
-			
 	}
 
 	return addToQueue;
