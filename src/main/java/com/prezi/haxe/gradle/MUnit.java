@@ -132,6 +132,6 @@ public class MUnit extends ConventionTask {
 	}
 
 	public boolean shouldRunAutomatically() {
-		return !getProject().hasProperty("munit.usenode") || getProject().property("munit.usenode").equals("false");
+		return getProject().hasProperty("munit.usebrowser") && !getProject().property("munit.usebrowser").equals("false");
 	}
 }

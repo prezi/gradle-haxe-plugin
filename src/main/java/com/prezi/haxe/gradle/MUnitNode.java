@@ -82,6 +82,6 @@ public class MUnitNode extends MUnit {
 
 	@Override
 	public boolean shouldRunAutomatically() {
-		return getProject().hasProperty("munit.usenode") && !getProject().property("munit.usenode").equals("false");
+		return !getProject().hasProperty("munit.usebrowser") || getProject().property("munit.usebrowser").equals("false");
 	}
 }
