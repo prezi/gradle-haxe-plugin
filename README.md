@@ -149,6 +149,8 @@ TBD
 
 ### MUnit command-line parameters
 
+The default runner for the MUnit tests is a custom Node.js based runner. To use custom node modules create a task that copies them to `${buildDir}/munit/node_modules`. To use the default browser-based testing use the `-Pmunit.usebrowser` flag.
+
 You can pass some command-line parameters to Gradle so that it will pass some to MUnit:
 
 * `-Pmunit.browser=<browser>` -- adds `-browser <browser>`
