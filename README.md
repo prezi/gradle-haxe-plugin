@@ -160,7 +160,7 @@ You can pass some command-line parameters to Gradle so that it will pass some to
 
 A typical server-side example:
 
-	$ gradle clean uploadArchives -Pmunit.browser=chromium -Pmunit.kill-browser`
+	$ gradle clean uploadArchives -Pmunit.browser=chromium -Pmunit.kill-browser -Pmunit.usebrowser`
 
 ### Tasks
 
