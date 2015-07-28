@@ -40,7 +40,7 @@ dependencies {
 
 	testCompile "org.spockframework:spock-core:0.7-groovy-2.0"
 	// Override the one from Spock
-	testCompile "org.codehaus.groovy:groovy-all:2.3.6"
+	testCompile "org.codehaus.groovy:groovy-all:2.3.10"
 }
 
 javadoc {
@@ -158,5 +158,5 @@ if (signArtifacts) {
 tasks.withType(Upload).all { dependsOn "check" }
 
 task wrapper(type: Wrapper) {
-	gradleVersion = '2.2.1'
+	gradleVersion = '2.4'
 }
