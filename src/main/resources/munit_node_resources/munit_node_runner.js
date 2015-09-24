@@ -2,6 +2,7 @@
 
 var jsdom = require("jsdom");
 var fs = require('fs');
+var util = require('util');
 
 global.$ = require('jquery');
 global.$.ajax = function(){};
@@ -82,7 +83,13 @@ global.addToQueue = (function ()
 	};
 
 	var oldLog = console.log;
-	console.log = function(){};
+	console.log = function(){
+
+		
+		var stArgs = Array.prototype.slice.call(arguments).map(function(x){return util.format(x)}).join(' ');
+
+		currentTestCase.trace.push(stArgs);
+	};
 
 	var currentTestCase;
 	var failedTestCases = [];
