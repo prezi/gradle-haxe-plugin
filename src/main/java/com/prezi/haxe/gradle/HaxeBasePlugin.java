@@ -39,6 +39,7 @@ import java.util.Collection;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.Callable;
+import org.gradle.api.internal.file.collections.DefaultDirectoryFileTreeFactory;
 
 public class HaxeBasePlugin implements Plugin<Project> {
 	private static final Logger logger = LoggerFactory.getLogger(HaxeBasePlugin.class);
@@ -95,7 +96,7 @@ public class HaxeBasePlugin implements Plugin<Project> {
 
 				// Add resources if not exists yet
 				if (functionalSourceSet.findByName(RESOURCE_SET_NAME) == null) {
-					DefaultSourceDirectorySet resourcesDirectorySet = instantiator.newInstance(DefaultSourceDirectorySet.class, String.format("%s resources", functionalSourceSet.getName()), fileResolver);
+					DefaultSourceDirectorySet resourcesDirectorySet = instantiator.newInstance(DefaultSourceDirectorySet.class, String.format("%s resources", functionalSourceSet.getName()), fileResolver, new DefaultDirectoryFileTreeFactory());
 					resourcesDirectorySet.srcDir(String.format("src/%s/resources", functionalSourceSet.getName()));
 					DefaultResourceSet resourceSet = instantiator.newInstance(DefaultResourceSet.class, RESOURCE_SET_NAME, resourcesDirectorySet, functionalSourceSet);
 					functionalSourceSet.add(resourceSet);

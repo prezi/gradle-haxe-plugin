@@ -8,13 +8,14 @@ import org.gradle.api.internal.file.FileResolver;
 
 import java.io.File;
 import java.util.Map;
+import org.gradle.api.internal.file.collections.DefaultDirectoryFileTreeFactory;
 
 public class DefaultHaxeResourceSet extends DefaultResourceSet implements HaxeResourceSet {
 	private final Map<String, File> embeddedResources = Maps.newLinkedHashMap();
 	private final FileResolver fileResolver;
 
 	public DefaultHaxeResourceSet(String name, FunctionalSourceSet parent, FileResolver fileResolver) {
-		super(name, new DefaultSourceDirectorySet("resource", fileResolver), parent);
+		super(name, new DefaultSourceDirectorySet("resource", fileResolver, new DefaultDirectoryFileTreeFactory()), parent);
 		this.fileResolver = fileResolver;
 	}
 
