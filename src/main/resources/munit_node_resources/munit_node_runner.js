@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 
-var jsdom = require("jsdom");
+var jsdom = require("jsdom").jsdom;
 var fs = require('fs');
 var util = require('util');
 
