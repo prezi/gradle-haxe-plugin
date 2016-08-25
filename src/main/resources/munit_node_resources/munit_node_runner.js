@@ -6,7 +6,8 @@ var util = require('util');
 
 global.$ = require('jquery');
 global.$.ajax = function(){};
-global.window = jsdom.jsdom().createWindow();
+global.document = jsdom(undefined, {});
+global.window = document.parentWindow;
 global.alert = function(){};
 
 for(var p in global.window)
