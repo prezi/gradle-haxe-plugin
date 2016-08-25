@@ -1,12 +1,13 @@
 #!/usr/bin/env node
 
-var jsdom = require("jsdom");
+var jsdom = require("jsdom").jsdom;
 var fs = require('fs');
 var util = require('util');
 
 global.$ = require('jquery');
 global.$.ajax = function(){};
-global.window = jsdom.jsdom().createWindow();
+global.document = jsdom(undefined, {});
+global.window = document.parentWindow;
 global.alert = function(){};
 
 for(var p in global.window)
