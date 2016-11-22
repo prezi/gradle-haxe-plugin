@@ -139,24 +139,25 @@ uploadArchives {
 		}
 	}
 }
+if (project.hasProperty("nexusUser") && project.hasProperty("nexusPassword")) {
+	publishing {
+		repositories {
+			maven {
+				def repoUrl = project.version.endsWith('-SNAPSHOT') ?
+						"https://artifactory.prezi.com/plugins-snapshot-local/" :
+						"https://artifactory.prezi.com/plugins-release-local/"
 
-publishing {
-	repositories {
-		maven {
-			def repoUrl = project.version.endsWith('-SNAPSHOT') ?
-					"https://artifactory.prezi.com/plugins-snapshot-local/" :
-					"https://artifactory.prezi.com/plugins-release-local/"
-
-			url repoUrl
-			credentials {
-				username = nexusUser
-				password = nexusPassword
+				url repoUrl
+				credentials {
+					username = nexusUser
+					password = nexusPassword
+				}
 			}
 		}
-	}
-	publications {
-		maven(MavenPublication) {
-			from components.java
+		publications {
+			maven(MavenPublication) {
+				from components.java
+			}
 		}
 	}
 }
