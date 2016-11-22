@@ -15,6 +15,7 @@ def signArtifacts = sonatype || hasProperty("sign")
 
 apply plugin: 'groovy'
 apply plugin: 'maven'
+apply plugin: "maven-publish"
 apply plugin: 'idea'
 
 sourceCompatibility = "1.6"
@@ -134,6 +135,28 @@ uploadArchives {
 						authentication(userName: user, password: password)
 					}
 				}
+			}
+		}
+	}
+}
+if (project.hasProperty("nexusUser") && project.hasProperty("nexusPassword")) {
+	publishing {
+		repositories {
+			maven {
+				def repoUrl = project.version.endsWith('-SNAPSHOT') ?
+						"https://artifactory.prezi.com/plugins-snapshot-local/" :
+						"https://artifactory.prezi.com/plugins-release-local/"
+
+				url repoUrl
+				credentials {
+					username = nexusUser
+					password = nexusPassword
+				}
+			}
+		}
+		publications {
+			maven(MavenPublication) {
+				from components.java
 			}
 		}
 	}
