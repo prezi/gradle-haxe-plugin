@@ -15,5 +15,4 @@ public class HaxeNodeTestCompile extends HaxeTestCompile {
         File jsRunnerTemplate = new File(testDir, "TestMain.hx");
 		Resources.asByteSource(this.getClass().getResource("/TestMain.hx")).copyTo(Files.asByteSink(jsRunnerTemplate));
 	}
-
 }
