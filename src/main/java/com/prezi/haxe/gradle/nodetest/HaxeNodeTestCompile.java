@@ -13,7 +13,7 @@ public class HaxeNodeTestCompile extends HaxeTestCompile {
     protected void postProcessGeneratedSources(File testDir) throws IOException {
 		super.postProcessGeneratedSources(testDir);
         File jsRunnerTemplate = new File(testDir, "TestMain.hx");
-		Files.copy(Resources.newInputStreamSupplier(this.getClass().getResource("/TestMain.hx")), jsRunnerTemplate);
+		Resources.asByteSource(this.getClass().getResource("/TestMain.hx")).copyTo(Files.asByteSink(jsRunnerTemplate));
 	}
 
 }
