@@ -45,7 +45,7 @@ public class HaxelibDependencyExtractor {
 		for (Dependency dependency : configuration.getAllDependencies()) {
 			if (dependency instanceof ProjectDependency) {
 				ProjectDependency projectDependency = (ProjectDependency) dependency;
-				Configuration dependentConfiguration = projectDependency.getProjectConfiguration();
+				Configuration dependentConfiguration = projectDependency.getDependencyProject().getConfigurations().getByName(projectDependency.getTargetConfiguration());
 				extractDependenciesFromInternal(dependentConfiguration, sourcePath, resourcePath, embeds);
 
 				Iterable<PublishArtifact> harArtifacts = Iterables.filter(dependentConfiguration.getAllArtifacts(), new Predicate<PublishArtifact>() {

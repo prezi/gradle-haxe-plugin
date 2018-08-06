@@ -41,19 +41,11 @@ public class Har extends Zip {
 			@Override
 			public File call() throws Exception {
 				File manifestFile = new File(getTemporaryDir(), "MANIFEST.MF");
-				FileOutputStream output = null;
-				try {
-					output = new FileOutputStream(manifestFile);
-					Manifest manifest = getManifest();
-					if (manifest == null) {
-						manifest = new DefaultManifest(null);
-					}
-					manifest.writeTo(new OutputStreamWriter(output));
-				} catch (FileNotFoundException e) {
-					throw Throwables.propagate(e);
-				} finally {
-					IOUtils.closeQuietly(output);
+				Manifest manifest = getManifest();
+				if (manifest == null) {
+					manifest = new DefaultManifest(null);
 				}
+				manifest.writeTo(manifestFile);
 				return manifestFile;
 			}
 		});

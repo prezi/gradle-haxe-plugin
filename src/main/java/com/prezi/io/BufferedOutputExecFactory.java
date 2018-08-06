@@ -1,10 +1,7 @@
 package com.prezi.io;
 
 import org.gradle.api.Task;
-import org.gradle.process.BaseExecSpec;
-import org.gradle.process.ExecResult;
-import org.gradle.process.ExecSpec;
-import org.gradle.process.ProcessForkOptions;
+import org.gradle.process.*;
 import org.gradle.process.internal.ExecAction;
 import org.gradle.process.internal.ExecActionFactory;
 import org.gradle.process.internal.ExecException;
@@ -49,6 +46,11 @@ public class BufferedOutputExecFactory {
 		}
 
 		@Override
+		public void setCommandLine(List<String> list) {
+			execAction.setCommandLine(list);
+		}
+
+		@Override
 		public void setCommandLine(Object... objects) {
 			execAction.setCommandLine(objects);
 		}
@@ -79,6 +81,11 @@ public class BufferedOutputExecFactory {
 		}
 
 		@Override
+		public ExecSpec setArgs(List<String> list) {
+			return execAction.setArgs(list);
+		}
+
+		@Override
 		public ExecSpec setArgs(Iterable<?> iterable) {
 			return execAction.setArgs(iterable);
 		}
@@ -86,6 +93,11 @@ public class BufferedOutputExecFactory {
 		@Override
 		public List<String> getArgs() {
 			return execAction.getArgs();
+		}
+
+		@Override
+		public List<CommandLineArgumentProvider> getArgumentProviders() {
+			return execAction.getArgumentProviders();
 		}
 
 		@Override
@@ -139,6 +151,11 @@ public class BufferedOutputExecFactory {
 		}
 
 		@Override
+		public void setExecutable(String s) {
+			execAction.setExecutable(s);
+		}
+
+		@Override
 		public void setExecutable(Object o) {
 			execAction.setExecutable(o);
 		}
@@ -151,6 +168,11 @@ public class BufferedOutputExecFactory {
 		@Override
 		public File getWorkingDir() {
 			return execAction.getWorkingDir();
+		}
+
+		@Override
+		public void setWorkingDir(File file) {
+			execAction.setWorkingDir(file);
 		}
 
 		@Override
