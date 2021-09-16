@@ -2,8 +2,9 @@ package com.prezi.haxe.gradle.incubating;
 
 import org.gradle.api.Buildable;
 import org.gradle.api.Incubating;
-import org.gradle.api.Nullable;
 import org.gradle.api.Task;
+
+import javax.annotation.Nullable;
 
 /**
  * A model element that is directly buildable.

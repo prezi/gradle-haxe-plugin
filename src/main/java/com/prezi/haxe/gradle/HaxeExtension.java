@@ -11,6 +11,7 @@ import org.gradle.api.NamedDomainObjectContainer;
 import org.gradle.api.NamedDomainObjectFactory;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
+import org.gradle.api.internal.CollectionCallbackActionDecorator;
 import org.gradle.internal.reflect.Instantiator;
 
 import java.io.File;
@@ -26,9 +27,9 @@ public class HaxeExtension extends DefaultHaxeCompilerParameters implements Seri
 	private final Set<Object> compilerVersions = Sets.newLinkedHashSet();
 	private File munitNodeModuleInstallDir;
 
-	public HaxeExtension(final Project project, Instantiator instantiator) {
-		this.sources = instantiator.newInstance(DefaultProjectSourceSet.class, instantiator);
-		this.binaries = instantiator.newInstance(DefaultBinaryContainer.class, instantiator);
+	public HaxeExtension(final Project project, Instantiator instantiator, CollectionCallbackActionDecorator collectionCallbackActionDecorator) {
+		this.sources = instantiator.newInstance(DefaultProjectSourceSet.class, instantiator, collectionCallbackActionDecorator);
+		this.binaries = instantiator.newInstance(DefaultBinaryContainer.class, instantiator, collectionCallbackActionDecorator);
 		this.targetPlatforms = project.container(TargetPlatform.class, new TargetPlatformNamedDomainObjectFactory(project));
 
 		binaries.withType(BinaryInternal.class).all(new Action<BinaryInternal>() {
