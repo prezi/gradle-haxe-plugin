@@ -3,10 +3,7 @@ package com.prezi.haxe.gradle;
 import com.prezi.haxe.gradle.incubating.LanguageSourceSet;
 import org.apache.commons.io.FileUtils;
 import org.gradle.api.DomainObjectSet;
-import org.gradle.api.tasks.Optional;
-import org.gradle.api.tasks.OutputDirectory;
-import org.gradle.api.tasks.OutputFile;
-import org.gradle.api.tasks.TaskAction;
+import org.gradle.api.tasks.*;
 
 import java.io.File;
 import java.io.IOException;
@@ -24,6 +21,7 @@ public class HaxeCompile extends AbstractHaxeCompileTask {
 		CommandExecutor.execute(cmd, getProject().getProjectDir(), new DefaultExecutionResultHandler(cmd));
 	}
 
+	@Internal
 	public List<String> getHaxeCommandToExecute() throws IOException {
 		return configureHaxeCommandBuilder(getAndRecreateOutput(), getSourceSets()).build();
 	}
@@ -45,6 +43,8 @@ public class HaxeCompile extends AbstractHaxeCompileTask {
 		return AbstractHaxeCompileTask.getAllSourceDirectories(sources);
 	}
 
+	@Input
+	@Optional
 	protected String getMainClass() {
 		return getMain();
 	}

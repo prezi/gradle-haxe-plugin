@@ -14,6 +14,7 @@ import org.gradle.api.internal.ConventionTask;
 import org.gradle.api.internal.DefaultDomainObjectSet;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.InputFiles;
+import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.Optional;
 
 import java.io.File;
@@ -35,6 +36,7 @@ public abstract class AbstractHaxeCompileTask extends ConventionTask implements 
 		this.sources.addAll(Arrays.asList(sources));
 	}
 
+	@Internal
 	protected DomainObjectSet<LanguageSourceSet> getSourceSets() {
 		DomainObjectSet<LanguageSourceSet> result = new DefaultDomainObjectSet<LanguageSourceSet>(LanguageSourceSet.class);
 		for (Object source : sources) {
@@ -186,7 +188,6 @@ public abstract class AbstractHaxeCompileTask extends ConventionTask implements 
 	}
 
 	@Input
-	@Optional
 	@Override
 	public boolean isDebug() {
 		return params.isDebug();
@@ -196,6 +197,7 @@ public abstract class AbstractHaxeCompileTask extends ConventionTask implements 
 		params.debug(debug);
 	}
 
+	@Internal
 	public Set<Object> getSources() {
 		return sources;
 	}
