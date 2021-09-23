@@ -11,6 +11,7 @@ import org.gradle.api.internal.file.copy.CopySpecInternal;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.java.archives.Manifest;
 import org.gradle.api.java.archives.internal.DefaultManifest;
+import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.bundling.Zip;
 import org.gradle.util.ConfigureUtil;
 
@@ -28,8 +29,11 @@ public class Har extends Zip {
 	public static final String MANIFEST_ATTR_LIBRARY_VERSION = "Library-Version";
 	public static final String MANIFEST_ATTR_EMBEDDED_RESOURCES = "Embedded-Resources";
 
+	@Internal
 	private Manifest manifest;
+	@Internal
 	private Map<String, File> embeddedResources = new LinkedHashMap<String, File>();
+	@Internal
 	private final CopySpecInternal metaInf;
 
 	public Har() {

@@ -6,20 +6,21 @@ if (hasProperty("release")) {
 	version = [ "git", "describe", "--match", "[0-9]*", "--abbrev=0"].execute().text.trim() + "-SNAPSHOT"
 }
 
-task version << {
-	println "Version: ${version}"
+task version {
+	doLast {
+		println "Version: ${version}"
+	}
 }
 
-def sonatype = hasProperty("sonatype")
-def signArtifacts = sonatype || hasProperty("sign")
+def ossRelease = hasProperty("oss") || hasProperty("sonatype")
+def signArtifacts = ossRelease || hasProperty("sign")
 
 apply plugin: 'groovy'
-apply plugin: 'maven'
 apply plugin: "maven-publish"
 apply plugin: 'idea'
 
-sourceCompatibility = "1.6"
-targetCompatibility = "1.6"
+sourceCompatibility = "1.8"
+targetCompatibility = "1.8"
 
 tasks.withType(AbstractCompile) {
 	options.encoding = "UTF-8"
@@ -31,17 +32,22 @@ repositories {
 }
 
 dependencies {
-	compile gradleApi()
-	compile "org.webjars:requirejs:2.1.8"
-	compile "commons-io:commons-io:2.4"
-	compile "com.google.guava:guava:17.0"
+	implementation (
+		gradleApi(),
+		"org.webjars:requirejs:2.1.8",
+		"commons-io:commons-io:2.4",
+		"com.google.guava:guava:17.0",
 
-	// Required only for the incubating stuff brought over from Gradle 2.0
-	compile "commons-lang:commons-lang:2.6"
+		// Required only for the incubating stuff brought over from Gradle 2.0
+		"commons-lang:commons-lang:2.6",
+	)
 
-	testCompile "org.spockframework:spock-core:0.7-groovy-2.0"
-	// Override the one from Spock
-	testCompile "org.codehaus.groovy:groovy-all:2.4.12"
+	testImplementation (
+		'junit:junit:4.12',
+		"org.spockframework:spock-core:2.0-groovy-3.0",
+		// Override the one from Spock
+		"org.codehaus.groovy:groovy-all:3.0.7",
+	)
 }
 
 javadoc {
@@ -70,93 +76,71 @@ artifacts {
 }
 
 task run(type: Exec) {
-	dependsOn install
+	dependsOn "install"
 	workingDir "src/test/at"
 	commandLine = ["gradle", "clean", "compile", "testJs", "uploadArchives", "--no-daemon", "-Pmunit.kill-browser", "--info", "--stacktrace"]
 }
 
-uploadArchives {
-	repositories {
-		repositories {
-			mavenDeployer {
-				pom.project {
-					url "http://github.com/prezi/gradle-haxe-plugin"
-					name project.name
-					description project.description
+test {
+	useJUnitPlatform()
+}
 
-					scm {
-						url "http://github.com/prezi/gradle-haxe-plugin"
-						connection "scm:git@github.com:prezi/gradle-haxe-plugin.git"
-						developerConnection "scm:git@github.com:prezi/gradle-haxe-plugin.git"
-					}
+publishing {
+	publications {
+		mavenJava(MavenPublication) {
+			from components.java
+			pom {
+				url = "http://github.com/prezi/gradle-haxe-plugin"
+				name = project.name
+				description = project.description
 
-					licenses {
-						license {
-							name "The Apache Software License, Version 2.0"
-							url "http://www.apache.org/licenses/LICENSE-2.0.txt"
-							distribution "repo"
-						}
-					}
+				scm {
+					url = "http://github.com/prezi/gradle-haxe-plugin"
+					connection = "scm:git@github.com:prezi/gradle-haxe-plugin.git"
+					developerConnection = "scm:git@github.com:prezi/gradle-haxe-plugin.git"
+				}
 
-					developers {
-						developer {
-							id "lptr"
-							name "Lorant Pinter"
-						}
-						developer {
-							id "Schipy"
-							name "Peter Sipos"
-						}
-						developer {
-							id "btorok"
-							name "Balazs Torok"
-						}
+				licenses {
+					license {
+						name = "The Apache Software License, Version 2.0"
+						url = "http://www.apache.org/licenses/LICENSE-2.0.txt"
+						distribution = "repo"
 					}
 				}
 
-				if (sonatype) {
-					repository(url: "https://oss.sonatype.org/service/local/staging/deploy/maven2/") {
-						def user = project.getProperty("sonatypeUsername")
-						def password = project.getProperty("sonatypePassword")
-						authentication(userName: user, password: password)
+				developers {
+					developer {
+						id = "lptr"
+						name = "Lorant Pinter"
 					}
-					snapshotRepository(url: "https://oss.sonatype.org/content/repositories/snapshots/") {
-						def user = project.getProperty("sonatypeUsername")
-						def password = project.getProperty("sonatypePassword")
-						authentication(userName: user, password: password)
+					developer {
+						id = "Schipy"
+						name = "Peter Sipos"
 					}
-				} else if (project.hasProperty("nexusUser") && project.hasProperty("nexusPassword")) {
-					def user = project.getProperty("nexusUser")
-					def password = project.getProperty("nexusPassword")
-					repository(url: "https://artifactory.prezi.com/plugins-release-local/") {
-						authentication(userName: user, password: password)
-					}
-					snapshotRepository(url: "https://artifactory.prezi.com/plugins-snapshot-local/") {
-						authentication(userName: user, password: password)
+					developer {
+						id = "btorok"
+						name = "Balazs Torok"
 					}
 				}
 			}
 		}
 	}
-}
-if (project.hasProperty("nexusUser") && project.hasProperty("nexusPassword")) {
-	publishing {
-		repositories {
-			maven {
-				def repoUrl = project.version.endsWith('-SNAPSHOT') ?
-						"https://artifactory.prezi.com/plugins-snapshot-local/" :
-						"https://artifactory.prezi.com/plugins-release-local/"
-
-				url repoUrl
+	repositories {
+		maven {
+			def isSnapshot = version.endsWith('SNAPSHOT')
+			if (ossRelease) {
 				credentials {
-					username = nexusUser
-					password = nexusPassword
+					username = project.getProperty("sonatypeUsername")
+					password = project.getProperty("sonatypePassword")
 				}
-			}
-		}
-		publications {
-			maven(MavenPublication) {
-				from components.java
+				url = isSnapshot ? "https://oss.sonatype.org/content/repositories/snapshots/" : "https://oss.sonatype.org/service/local/staging/deploy/maven2/"
+			} else if (project.hasProperty("nexusUser") && project.hasProperty("nexusPassword")) {
+				credentials {
+					username = project.getProperty("nexusUser")
+					password = project.getProperty("nexusPassword")
+				}
+				def baseRepoUrl = "https://artifactory.prezi.com/artifactory"
+				url = isSnapshot ? "${baseRepoUrl}/plugins-snapshot-local/" : "${baseRepoUrl}/plugins-release-local/"
 			}
 		}
 	}
@@ -166,20 +150,6 @@ if (signArtifacts) {
 	apply plugin: "signing"
 
 	signing {
-		sign configurations.archives
+		sign publishing.publications.mavenJava
 	}
-
-	uploadArchives {
-		repositories {
-			mavenDeployer {
-				beforeDeployment { MavenDeployment deployment -> signing.signPom(deployment) }
-			}
-		}
-	}
-}
-
-tasks.withType(Upload).all { dependsOn "check" }
-
-task wrapper(type: Wrapper) {
-	gradleVersion = '2.4'
 }

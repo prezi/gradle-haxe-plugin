@@ -8,6 +8,8 @@ import com.google.common.io.Files;
 import com.prezi.haxe.gradle.incubating.LanguageSourceSet;
 import org.apache.commons.io.FileUtils;
 import org.gradle.api.DomainObjectSet;
+import org.gradle.api.tasks.InputDirectory;
+import org.gradle.api.tasks.Internal;
 
 import java.io.File;
 import java.io.IOException;
@@ -107,6 +109,7 @@ public class HaxeTestCompile extends HaxeCompile {
 		return Collections.singleton(getTestsDirectory());
 	}
 
+	@Internal
 	public File getTestsDirectory() {
 		return new File(getWorkingDirectory(), "tests");
 	}
@@ -114,6 +117,8 @@ public class HaxeTestCompile extends HaxeCompile {
 	public void workingDirectory(Object workingDirectory) {
 		setWorkingDirectory(workingDirectory);
 	}
+
+	@Internal
 	public File getWorkingDirectory() {
 		return workingDirectory;
 	}

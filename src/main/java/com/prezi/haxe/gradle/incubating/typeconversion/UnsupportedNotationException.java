@@ -15,9 +15,9 @@
  */
 package com.prezi.haxe.gradle.incubating.typeconversion;
 
-import org.gradle.api.Nullable;
 import org.gradle.util.GUtil;
 
+import javax.annotation.Nullable;
 import java.util.Formatter;
 import java.util.List;
 

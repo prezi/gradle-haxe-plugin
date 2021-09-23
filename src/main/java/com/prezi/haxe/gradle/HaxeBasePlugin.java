@@ -28,6 +28,7 @@ import org.gradle.api.internal.DefaultDomainObjectSet;
 import org.gradle.api.internal.artifacts.publish.ArchivePublishArtifact;
 import org.gradle.api.internal.file.DefaultSourceDirectorySet;
 import org.gradle.api.internal.file.FileResolver;
+import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.plugins.BasePlugin;
 import org.gradle.internal.reflect.Instantiator;
 import org.slf4j.Logger;
@@ -57,11 +58,13 @@ public class HaxeBasePlugin implements Plugin<Project> {
 
 	private final Instantiator instantiator;
 	private final FileResolver fileResolver;
+	private final ObjectFactory objectFactory;
 
 	@Inject
-	public HaxeBasePlugin(Instantiator instantiator, FileResolver fileResolver) {
+	public HaxeBasePlugin(Instantiator instantiator, FileResolver fileResolver, ObjectFactory objectFactory) {
 		this.instantiator = instantiator;
 		this.fileResolver = fileResolver;
+		this.objectFactory = objectFactory;
 	}
 
 	@Override
@@ -89,14 +92,15 @@ public class HaxeBasePlugin implements Plugin<Project> {
 				// Inspired by JavaBasePlugin
 				// Add Haxe source set for "src/<name>/haxe"
 				Configuration compileConfiguration = project.getConfigurations().getByName(functionalSourceSet.getName());
-				DefaultHaxeSourceSet haxeSourceSet = instantiator.newInstance(DefaultHaxeSourceSet.class, HAXE_SOURCE_SET_NAME, functionalSourceSet, compileConfiguration, fileResolver);
+				DefaultHaxeSourceSet haxeSourceSet = instantiator.newInstance(DefaultHaxeSourceSet.class, HAXE_SOURCE_SET_NAME, functionalSourceSet, compileConfiguration, objectFactory);
 				haxeSourceSet.getSource().srcDir(String.format("src/%s/haxe", functionalSourceSet.getName()));
 				functionalSourceSet.add(haxeSourceSet);
 				logger.debug("Added {} in {}", haxeSourceSet, project.getPath());
 
 				// Add resources if not exists yet
 				if (functionalSourceSet.findByName(RESOURCE_SET_NAME) == null) {
-					DefaultSourceDirectorySet resourcesDirectorySet = instantiator.newInstance(DefaultSourceDirectorySet.class, String.format("%s resources", functionalSourceSet.getName()), fileResolver, new DefaultDirectoryFileTreeFactory());
+					String resourceDirectorySetName = String.format("%s resources", functionalSourceSet.getName());
+					SourceDirectorySet resourcesDirectorySet = objectFactory.sourceDirectorySet(resourceDirectorySetName, resourceDirectorySetName);
 					resourcesDirectorySet.srcDir(String.format("src/%s/resources", functionalSourceSet.getName()));
 					DefaultResourceSet resourceSet = instantiator.newInstance(DefaultResourceSet.class, RESOURCE_SET_NAME, resourcesDirectorySet, functionalSourceSet);
 					functionalSourceSet.add(resourceSet);
@@ -105,7 +109,7 @@ public class HaxeBasePlugin implements Plugin<Project> {
 
 
 				// Add Haxe resource set to be used for embedded resources
-				DefaultHaxeResourceSet haxeResourceSet = instantiator.newInstance(DefaultHaxeResourceSet.class, HAXE_RESOURCE_SET_NAME, functionalSourceSet, fileResolver);
+				DefaultHaxeResourceSet haxeResourceSet = instantiator.newInstance(DefaultHaxeResourceSet.class, HAXE_RESOURCE_SET_NAME, functionalSourceSet, fileResolver, objectFactory);
 				functionalSourceSet.add(haxeResourceSet);
 				logger.debug("Added {} in {}", haxeResourceSet, project.getPath());
 			}

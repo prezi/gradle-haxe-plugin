@@ -2,8 +2,8 @@ package com.prezi.haxe.gradle;
 
 import com.google.common.collect.Lists;
 import com.prezi.haxe.gradle.incubating.BinaryNamingScheme;
-import org.gradle.api.Nullable;
 
+import javax.annotation.Nullable;
 import java.util.List;
 
 /*

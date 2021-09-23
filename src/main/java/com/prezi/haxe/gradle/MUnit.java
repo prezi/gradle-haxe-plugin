@@ -7,6 +7,7 @@ import org.apache.commons.io.FileUtils;
 import org.gradle.api.internal.ConventionTask;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.InputFile;
+import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.TaskAction;
 
 import java.io.File;
@@ -79,6 +80,7 @@ public class MUnit extends ConventionTask {
 		});
 	}
 
+	@Internal
 	protected List<String> getMUnitCommandLine() {
 		return new MUnitCommandBuilder(getProject()).build();
 	}
@@ -115,6 +117,7 @@ public class MUnit extends ConventionTask {
 		return ((String) (testBinaryName));
 	}
 
+	@Internal
 	public File getWorkingDirectory() {
 		return workingDirectory;
 	}
@@ -127,6 +130,7 @@ public class MUnit extends ConventionTask {
 		setWorkingDirectory(workingDirectory);
 	}
 
+	@Internal
 	protected URL getMUnitJsHtmlTemplate() {
 		return this.getClass().getResource("/js_runner-html.mtt");
 	}
