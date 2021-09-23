@@ -7,7 +7,9 @@ if (hasProperty("release")) {
 }
 
 task version {
-	println "Version: ${version}"
+	doLast {
+		println "Version: ${version}"
+	}
 }
 
 def ossRelease = hasProperty("oss") || hasProperty("sonatype")
